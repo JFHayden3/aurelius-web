@@ -7,13 +7,15 @@ import JournalArticle from './JournalArticle'
 
 export default class JournalEntry extends Component {
   render() {
+    const { value } = this.props
+    const { date, articles } = value
     return (
       <div>
         <div>
-          {this.props.value.date.toLocaleDateString()}
+          {date.toLocaleDateString()}
         </div>
         <ul>
-          {this.props.value.articles.map((article) => (
+          {articles.map((article) => (
             <li key={article.id}>
               <JournalArticle value={article} />
             </li>

@@ -6,13 +6,22 @@
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import IntentionsArticleContent from './IntentionsArticleContent'
+import AgendaArticleContent from './AgendaArticleContent'
+import ReflectionsArticleContent from './ReflectionsArticleContent'
 
 export default class JournalArticle extends Component {
   render() {
+    const { title, kind, content } = this.props.value
     return (
       <div>
-        {this.props.value.kind}
-        {this.props.value.title}
+        {title}
+        <div>
+          {kind === 'REFLECTION' && <ReflectionsArticleContent value={content} />}
+          {kind === 'INTENTION'  && <IntentionsArticleContent value={content} />}
+          {kind === 'AGENDA'     && <AgendaArticleContent value={content} />}
+        </div>
+        <button>X</button>
       </div>
     )
   }

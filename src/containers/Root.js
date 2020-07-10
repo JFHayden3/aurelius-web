@@ -26,6 +26,36 @@ const dummyState = {
             text: "Blah, blah, want to do important stuff"
           }
         },
+        {
+          id: 3,
+          kind: 'AGENDA',
+          title: 'Today\'s Plan',
+          content: {
+            vow: "In order to step closer to my potential I vow to do the following today",
+            items: [
+              {
+                id: 1,
+                activity: {
+                  kind: "GROWTH",
+                  content: "#growth-activity1"
+                },
+                optDuration: {},
+                optTime: {},
+                optNotes: "Some special notes about growth activity 1"
+              },
+              {
+                id: 2,
+                activity: {
+                  kind: "CUSTOM",
+                  content: "Pick up the mail"
+                },
+                optDuration: {},
+                optTime: {},
+                optNotes: "details about picking up mail"
+              },
+            ] 
+          }
+        },
       ]
     },
     {
