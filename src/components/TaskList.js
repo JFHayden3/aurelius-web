@@ -7,21 +7,23 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import TaskListItem from './TaskListItem'
 import TaskAdder from './TaskAdder'
+import { Timeline } from 'antd';
 
 export default class TaskList extends Component {
   render() {
     const items = this.props.value
     return (
-      <div>
-        <ul>
-          {items && items.map((task) => (
-            <li key={task.id}>
-              <TaskListItem value={task} />
-            </li>
-          ))}
-        </ul>
-        <TaskAdder />
-      </div>
+      <Timeline>
+        {items && items.map((task) => (
+          <Timeline.Item >
+            <TaskListItem value={task} />
+          </Timeline.Item>
+        ))}
+        <Timeline.Item>
+          <TaskAdder />
+        </Timeline.Item>
+
+      </Timeline>
     )
   }
 }

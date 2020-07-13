@@ -5,17 +5,24 @@
 import JournalEntry from './JournalEntry'
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import { List, Card } from 'antd';
+
 
 export default class LifeJournal extends Component {
   render() {
     return (
-      <ul>
-        {this.props.entries.map((entry) => (
-          <li key={entry.date}>
-            <JournalEntry value={entry} />
-          </li>
-        ))}
-      </ul>
+      <List
+        itemLayout="vertical"
+        dataSource={this.props.entries}
+        renderItem={entry =>
+          <List.Item key={entry.date}>
+            <Card title={entry.date.toLocaleDateString()}>
+              <JournalEntry value={entry} />
+            </Card>
+          </List.Item>
+        }
+      >
+      </List>
     )
   }
 }

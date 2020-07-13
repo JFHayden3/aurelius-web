@@ -2,6 +2,11 @@ import React, { Component } from 'react'
 import { Provider } from 'react-redux'
 import configureStore from '../configureStore'
 import JournalApp from './JournalApp'
+import { Layout, Menu } from 'antd';
+import 'antd/dist/antd.css';
+
+const { Header, Content, Footer, Sider } = Layout;
+
 
 const dummyState = {
   entries: [
@@ -11,7 +16,7 @@ const dummyState = {
         {
           id: 1,
           kind: 'REFLECTION',
-          title: 'Recent Reflections',
+          title: 'Reflections',
           content: {
             hint: "How have things been going?",
             text: "Blah, blah, dildoes"
@@ -20,7 +25,7 @@ const dummyState = {
         {
           id: 2,
           kind: 'INTENTION',
-          title: 'Day\'s Intentions',
+          title: 'Intentions',
           content: {
             hint: "What would you like to make out of this day?",
             text: "Blah, blah, want to do important stuff"
@@ -29,7 +34,7 @@ const dummyState = {
         {
           id: 3,
           kind: 'AGENDA',
-          title: 'Today\'s Plan',
+          title: 'Agenda',
           content: {
             vow: "In order to step closer to my potential I vow to do the following today",
             items: [
@@ -53,7 +58,7 @@ const dummyState = {
                 optTime: {},
                 optNotes: "details about picking up mail"
               },
-            ] 
+            ]
           }
         },
       ]
@@ -75,7 +80,30 @@ export default class Root extends Component {
   render() {
     return (
       <Provider store={store}>
-        <JournalApp />
+        <Layout style={{ minHeight: '100vh' }}>
+          <Sider>
+            <div className="logo" />
+            <Menu defaultSelectedKeys={["journal"]} mode="inline">
+              <Menu.Item key="journal">
+                Journal
+              </Menu.Item>
+              <Menu.Item key="vices">
+                Vices
+              </Menu.Item>
+              <Menu.Item key="virtues">
+                Virtues
+              </Menu.Item>
+            </Menu>
+          </Sider>
+          <Layout className="site-layout">
+            <Content style={{ margin: '0 16px' }}>
+              <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
+                <JournalApp />
+              </div>
+            </Content>
+            <Footer style={{ textAlign: 'center' }}>Aurelius ©2020 Created by Two Carls LLC</Footer>
+          </Layout>
+        </Layout>
       </Provider>
     )
   }

@@ -4,24 +4,31 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import JournalArticle from './JournalArticle'
+import { List, Card } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 
 export default class JournalEntry extends Component {
   render() {
     const { value } = this.props
-    const { date, articles } = value
+    const { articles, date } = value
     return (
-      <div>
-        <div>
-          {date.toLocaleDateString()}
-        </div>
-        <ul>
-          {articles.map((article) => (
-            <li key={article.id}>
+      <List
+        dataSource={articles}
+        grid={{ gutter: 8, column: 2 }}
+        itemLayout="vertical"
+        renderItem={article =>
+          <List.Item key={article.id}>
+            <Card title={article.title}
+               type="inner"
+               actions={[
+                 <DeleteOutlined key="delete" />
+               ]}>
               <JournalArticle value={article} />
-            </li>
-          ))}
-        </ul>
-      </div>
+            </Card>
+          </List.Item>
+        }
+      >
+      </List>
     )
   }
 }

@@ -15,13 +15,9 @@ export default class JournalArticle extends Component {
     const { title, kind, content } = this.props.value
     return (
       <div>
-        {title}
-        <div>
-          {kind === 'REFLECTION' && <ReflectionsArticleContent value={content} />}
-          {kind === 'INTENTION'  && <IntentionsArticleContent value={content} />}
-          {kind === 'AGENDA'     && <AgendaArticleContent value={content} />}
-        </div>
-        <button>X</button>
+        {kind === 'REFLECTION' && <ReflectionsArticleContent value={content} />}
+        {kind === 'INTENTION' && <IntentionsArticleContent value={content} />}
+        {kind === 'AGENDA' && <AgendaArticleContent value={content} />}
       </div>
     )
   }

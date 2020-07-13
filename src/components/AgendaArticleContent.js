@@ -9,7 +9,18 @@ export default class AgendaArticleContent extends Component {
     const { vow, items } = this.props.value
     return (
       <div>
-        <div>{vow}</div>
+        <div style={{
+          background: '#f6f6f6',
+          fontStyle:'italic',
+          padding:'5px',
+          borderColor: 'lightgray',
+          borderWidth: '1px',
+          borderStyle: 'solid',
+          borderRadius: '1px',
+          marginBottom: '16px'
+        }}>
+          {vow}
+        </div>
         <TaskList value={items} />
       </div>
     )

@@ -4,20 +4,38 @@
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import { Card } from 'antd';
+import TaskEditor from './TaskEditor'
 
 export default class TaskListItem extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      editing: false
+    }
+    this.handleClick = this.handleClick.bind(this)
+  }
+
+  handleClick(e) {
+    if (!this.state.editing) {
+      e.preventDefault()
+      this.setState({editing: true})
+    }
+  }
+
   render() {
-  //  activity: {
-  //    kind: "GROWTH",
-  //    content: "#growth-activity1"
-  //  },
-  //  optDuration: {},
-  //  optTime: {},
-  //  optNotes: "Some special notes about growth activity 1"
-    const {activity, optDuration, optTime, optNotes } = this.props.value
-    return (
-      <div>{activity.content} :  {optNotes}</div>
-    )
+    const { activity, optDuration, optTime, optNotes } = this.props.value
+    if (this.state.editing) {
+      return (
+        <TaskEditor value={this.props.value} />
+      )
+    } else {
+      return (
+        <Card size="small" bordered={false} hoverable={true} onClick={this.handleClick}>
+          {activity.content} :  {optNotes}
+        </Card>
+      )
+    }
   }
 }
 

@@ -4,12 +4,15 @@
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import { Input } from 'antd';
+
+const { TextArea } = Input;
 
 export default class IntentionsArticleContent extends Component {
   render() {
     const {hint, text} = this.props.value
     return (
-      <textarea placeholder={hint} defaultValue={text} />
+      <TextArea autoSize={true} placeholder={hint} defaultValue={text} />
     )
   }
 }
