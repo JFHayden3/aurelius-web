@@ -15,7 +15,7 @@ export default class TaskList extends Component {
     return (
       <Timeline>
         {items && items.map((task) => (
-          <Timeline.Item >
+          <Timeline.Item key={task.id}>
             <TaskListItem value={task} />
           </Timeline.Item>
         ))}
