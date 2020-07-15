@@ -2,37 +2,25 @@
 // Has a child button with popup for adding new journal articles to the day.
 
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import JournalArticle from './JournalArticle'
-import { List, Card } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
+import { JournalArticle } from './JournalArticle'
+import { List } from 'antd';
+import { selectEntryById } from '../model/journalEntriesSlice'
+import { useSelector } from 'react-redux'
 
-export default class JournalEntry extends Component {
-  render() {
-    const { value } = this.props
-    const { articles, date } = value
-    return (
-      <List
-        dataSource={articles}
-        grid={{ gutter: 8, column: 2 }}
-        itemLayout="vertical"
-        renderItem={article =>
-          <List.Item key={article.id}>
-            <Card title={article.title}
-               type="inner"
-               actions={[
-                 <DeleteOutlined key="delete" />
-               ]}>
-              <JournalArticle value={article} />
-            </Card>
-          </List.Item>
-        }
-      >
-      </List>
-    )
-  }
-}
-
-JournalEntry.propTypes = {
-  value: PropTypes.object.isRequired
+export const JournalEntry = ({ entryId }) => {
+  const entry = useSelector((state) => selectEntryById(state, entryId))
+  const articleIds = entry.articleIds
+  return (
+    <List
+      dataSource={articleIds}
+      grid={{ gutter: 8, column: 2 }}
+      itemLayout="vertical"
+      renderItem={articleId =>
+        <List.Item key={articleId}>
+          <JournalArticle articleId={articleId} />
+        </List.Item>
+      }
+    >
+    </List>
+  )
 }

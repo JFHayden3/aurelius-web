@@ -1,12 +1,11 @@
 import React, { Component } from 'react'
 import { Provider } from 'react-redux'
-import configureStore from '../configureStore'
+import store from '../configureStore'
 import JournalApp from './JournalApp'
 import { Layout, Menu } from 'antd';
 import 'antd/dist/antd.css';
 
 const { Header, Content, Footer, Sider } = Layout;
-
 
 const dummyState = {
   entries: [
@@ -74,14 +73,17 @@ const dummyState = {
   ]
 }
 
-const store = configureStore(dummyState)
-
 export default class Root extends Component {
   render() {
     return (
       <Provider store={store}>
         <Layout style={{ minHeight: '100vh' }}>
-          <Sider>
+          <Sider style={{
+            overflow: 'auto',
+            height: '100vh',
+            position: 'fixed',
+            left: 0,
+          }}>
             <div className="logo" />
             <Menu defaultSelectedKeys={["journal"]} mode="inline">
               <Menu.Item key="journal">
@@ -95,7 +97,7 @@ export default class Root extends Component {
               </Menu.Item>
             </Menu>
           </Sider>
-          <Layout className="site-layout">
+          <Layout className="site-layout" style={{marginLeft: '200px'}}>
             <Content style={{ margin: '0 16px' }}>
               <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
                 <JournalApp />

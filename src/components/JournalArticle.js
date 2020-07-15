@@ -5,24 +5,29 @@
 // *ArticleContent defined below.
 
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import IntentionsArticleContent from './IntentionsArticleContent'
+import {IntentionsArticleContent} from './IntentionsArticleContent'
 import AgendaArticleContent from './AgendaArticleContent'
-import ReflectionsArticleContent from './ReflectionsArticleContent'
+import { ReflectionsArticleContent } from './ReflectionsArticleContent'
+import { selectArticleById } from '../model/journalArticlesSlice'
+import { useSelector } from 'react-redux'
+import { Card } from 'antd'
+import { DeleteOutlined } from '@ant-design/icons';
 
-export default class JournalArticle extends Component {
-  render() {
-    const { title, kind, content } = this.props.value
-    return (
+export const JournalArticle = ({ articleId }) => {
+  const article = useSelector((state) => selectArticleById(state, articleId))
+  const { title, kind, content } = article
+  return (
+    <Card title={title}
+      type="inner"
+      actions={[
+        <DeleteOutlined key="delete" />
+      ]}>
       <div>
-        {kind === 'REFLECTION' && <ReflectionsArticleContent value={content} />}
-        {kind === 'INTENTION' && <IntentionsArticleContent value={content} />}
+        {kind === 'REFLECTION' && <ReflectionsArticleContent articleId={articleId} />}
+        {kind === 'INTENTION' && <IntentionsArticleContent articleId={articleId} />}
         {kind === 'AGENDA' && <AgendaArticleContent value={content} />}
       </div>
-    )
-  }
-}
+    </Card>
 
-JournalArticle.propTypes = {
-  value: PropTypes.object.isRequired
+  )
 }

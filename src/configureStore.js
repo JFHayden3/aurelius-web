@@ -1,14 +1,16 @@
-import { createStore, applyMiddleware } from 'redux'
+import { configureStore } from '@reduxjs/toolkit'
 import thunkMiddleware from 'redux-thunk'
 import { createLogger } from 'redux-logger'
-import rootReducer from './reducers'
+import journalArticlesReducer from '../src/model/journalArticlesSlice'
+import journalEntriesReducer from '../src/model/journalEntriesSlice'
+import lifeJournalReducer from '../src/model/lifeJournalSlice'
 
 const loggerMiddleware = createLogger()
 
-export default function configureStore(preloadedState) {
-  return createStore(
-    rootReducer,
-    preloadedState,
-    applyMiddleware(thunkMiddleware, loggerMiddleware)
-  )
-}
+export default configureStore({
+  reducer: {
+    journal: lifeJournalReducer,
+    journalEntries: journalEntriesReducer,
+    journalArticles: journalArticlesReducer,
+  }
+})

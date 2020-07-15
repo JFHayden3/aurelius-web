@@ -3,20 +3,22 @@
 // vices/growths
 
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
 import { Input } from 'antd';
-
+import { selectArticleById, textUpdated } from '../model/journalArticlesSlice'
+import { useSelector, useDispatch } from 'react-redux'
 const { TextArea } = Input;
 
-export default class IntentionsArticleContent extends Component {
-  render() {
-    const {hint, text} = this.props.value
-    return (
-      <TextArea autoSize={true} placeholder={hint} defaultValue={text} />
-    )
-  }
-}
-
-IntentionsArticleContent.propTypes = {
-  value: PropTypes.object.isRequired
+export const IntentionsArticleContent = ({ articleId }) => {
+  const dispatch = useDispatch()
+  const article = useSelector((state) => selectArticleById(state, articleId))
+  const { title, kind, content } = article
+  return (
+    <TextArea
+      autoSize={true}
+      placeholder={content.hint}
+      defaultValue={content.text}
+      onChange={(e) =>
+        dispatch(textUpdated({ articleId: articleId, text: e.target.value }))}
+    />
+  )
 }

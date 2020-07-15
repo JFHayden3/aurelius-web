@@ -1,25 +1,14 @@
 import React, { Component } from 'react'
-import { connect } from 'react-redux'
-import LifeJournal from '../components/LifeJournal'
-import PropTypes from 'prop-types'
+import { LifeJournal } from '../components/LifeJournal'
 
 class JournalApp extends Component {
   render() {
     return (
       <div>
-        <LifeJournal entries={this.props.entries}/>
+        <LifeJournal />
       </div>
     )
   }
 }
 
-function mapStateToProps(state) {
-  return { entries: state.entries } 
-}
-
-JournalApp.propTypes = {
-  entries: PropTypes.array.isRequired,
-  dispatch: PropTypes.func.isRequired
-}
-
-export default connect(mapStateToProps)(JournalApp)
+export default JournalApp

@@ -2,31 +2,27 @@
 // May also add children for searching and filtering later. 
 // For now, just responsible for facilitating the infinite scroll behavior
 
-import JournalEntry from './JournalEntry'
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
+import {JournalEntry} from './JournalEntry'
+import React from 'react'
 import { List, Card } from 'antd';
+import { useSelector } from 'react-redux'
+import { selectAllEntries } from '../model/journalEntriesSlice'
 
-
-export default class LifeJournal extends Component {
-  render() {
-    return (
-      <List
-        itemLayout="vertical"
-        dataSource={this.props.entries}
-        renderItem={entry =>
-          <List.Item key={entry.date}>
-            <Card title={entry.date.toLocaleDateString()}>
-              <JournalEntry value={entry} />
-            </Card>
-          </List.Item>
-        }
-      >
-      </List>
-    )
-  }
+export const LifeJournal = () => {
+  const entries = useSelector((state) => selectAllEntries(state))
+  return (
+    <List
+      itemLayout="vertical"
+      dataSource={entries}
+      renderItem={entry =>
+        <List.Item key={entry.date}>
+          <Card title={new Date(entry.date).toLocaleDateString()}>
+            <JournalEntry entryId={entry.id} />
+          </Card>
+        </List.Item>
+      }
+    >
+    </List>
+  )
 }
 
-LifeJournal.propTypes = {
-  entries: PropTypes.array.isRequired
-}
