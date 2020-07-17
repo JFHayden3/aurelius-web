@@ -5,7 +5,7 @@
 // *ArticleContent defined below.
 
 import React, { Component } from 'react'
-import {IntentionsArticleContent} from './IntentionsArticleContent'
+import { IntentionsArticleContent } from './IntentionsArticleContent'
 import AgendaArticleContent from './AgendaArticleContent'
 import { ReflectionsArticleContent } from './ReflectionsArticleContent'
 import { selectArticleById } from '../model/journalArticlesSlice'
@@ -15,19 +15,21 @@ import { DeleteOutlined } from '@ant-design/icons';
 
 export const JournalArticle = ({ articleId }) => {
   const article = useSelector((state) => selectArticleById(state, articleId))
-  const { title, kind, content } = article
-  return (
-    <Card title={title}
-      type="inner"
-      actions={[
-        <DeleteOutlined key="delete" />
-      ]}>
-      <div>
-        {kind === 'REFLECTION' && <ReflectionsArticleContent articleId={articleId} />}
-        {kind === 'INTENTION' && <IntentionsArticleContent articleId={articleId} />}
-        {kind === 'AGENDA' && <AgendaArticleContent value={content} />}
-      </div>
-    </Card>
-
-  )
+  if (article) {
+    const { title, kind, content } = article
+    return (
+      <Card title={title}
+        type="inner"
+        actions={[
+          <DeleteOutlined key="delete" />
+        ]}>
+        <div>
+          {kind === 'REFLECTION' && <ReflectionsArticleContent articleId={articleId} />}
+          {kind === 'INTENTION' && <IntentionsArticleContent articleId={articleId} />}
+          {kind === 'AGENDA' && <AgendaArticleContent value={content} />}
+        </div>
+      </Card>)
+  } else {
+    return (<div></div>)
+  }
 }

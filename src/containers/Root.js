@@ -3,6 +3,8 @@ import { Provider } from 'react-redux'
 import store from '../configureStore'
 import JournalApp from './JournalApp'
 import { Layout, Menu } from 'antd';
+import {fetchEntries} from "../model/journalEntriesSlice";
+
 import 'antd/dist/antd.css';
 
 const { Header, Content, Footer, Sider } = Layout;
@@ -72,6 +74,8 @@ const dummyState = {
     }
   ]
 }
+
+store.dispatch(fetchEntries({ maxEndDate:20200717, maxNumEntries: 10 }))
 
 export default class Root extends Component {
   render() {

@@ -12,6 +12,7 @@ export const IntentionsArticleContent = ({ articleId }) => {
   const dispatch = useDispatch()
   const article = useSelector((state) => selectArticleById(state, articleId))
   const { title, kind, content } = article
+  console.log(article)
   return (
     <TextArea
       autoSize={true}
