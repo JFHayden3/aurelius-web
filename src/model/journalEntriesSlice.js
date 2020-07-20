@@ -4,38 +4,67 @@ import {
   createSlice
 } from '@reduxjs/toolkit'
 import { client } from '../api/client'
-const entriesAdapter = createEntityAdapter()
 
-function apiDateToFe(str) {
-  if (!/^(\d){8}$/.test(str)) {
-    console.log("invalid date")
-    return NaN
+const entriesAdapter = createEntityAdapter({
+  sortComparer: (a, b) => {
+    if (b.date < a.date) {
+      return -1
+    } else if (b.date > a.date) {
+      return 1
+    } else {
+      return 0
+    }
   }
-  var y = str.substr(0, 4),
-    m = str.substr(4, 2),
-    d = str.substr(6, 2);
-  return Date.parse(y + "-" + m + "-" + d);
-}
+})
+
+
+// SHOULDN'T be necessary and adds additional danger of forgetting/inconsistent conversion.
+// Will try to just work with the yyyyMMdd numerical format until presentation
+//function apiDateToFe(str) {
+//  if (!/^(\d){8}$/.test(str)) {
+//    console.log("invalid date")
+//    return NaN
+//  }
+//  var y = str.substr(0, 4),
+//    m = str.substr(4, 2),
+//    d = str.substr(6, 2);
+//  let foo = Date.parse(y + "-" + m + "-" + d)
+//  return foo;
+//}
+//
+//function feDateToApi(dNum) {
+//  const date = new Date(dNum)
+//  return Number.parseInt("" + date.getFullYear() + (date.getMonth() + 1) + date.getDate())
+//}
 
 function convertApiToFe(items) {
   const entries = Array.map(items, (item) => JSON.parse(item.Entry))
   const articles = [].concat.apply([], Array.map(entries, (entry) => entry.articles))
   //const ids = Array.map(entries, (entry) => apiDateToFe(entry.date.toString()))
   //  Entry: "{"date":20200715,"articles":[{"id":11,"kind":"INTENTIONS","title":"Intentions","content":{"hint":"intentions hint","text":"intentions text"}},{"id":12,"kind":"REFLECTIONS","title":"Reflections","content":{"hint":"reflections hint","text":"reflections text"}}]}"
-  let foo = Array.map(entries, (entry) => {
+  const normalizedEntries = Array.map(entries, (entry) => {
     let articleIds = Array.map(entry.articles, (article) => article.id)
-    let feDateFormat = apiDateToFe(entry.date.toString())
     return {
-      id: feDateFormat,
-      date: feDateFormat,
+      id: entry.date,
+      date: entry.date,
+      isDirty: false,
       articleIds: articleIds
     }
   })
 
   return {
-    entities:foo,
+    entities: normalizedEntries,
     articles: articles
   }
+}
+
+function convertFeEntriesToApi(entries, articlesDictionary) {
+  return entries.map(entry => {
+     const denormalizedArticles = entry.articleIds.map(articleId => articlesDictionary[articleId])
+     return { date: entry.date,
+              articles: denormalizedArticles
+            }
+  })
 }
 
 export const fetchEntries = createAsyncThunk(
@@ -47,26 +76,27 @@ export const fetchEntries = createAsyncThunk(
     return convertApiToFe(response.Items)
   })
 
-const initialState = entriesAdapter.getInitialState({
-  ids: [1, 2, 3],
-  entities: {
-    1: {
-      id: 1,
-      date: (Date.now()),
-      articleIds: [11, 12, 13]
-    },
-    2: {
-      id: 2,
-      date: (Date.parse("2020-10-30")),
-      articleIds: []
-    },
-    3: {
-      id: 3,
-      date: (Date.parse("2020-10-28")),
-      articleIds: []
+export const syncDirtyEntries = createAsyncThunk(
+  'journalEntries/syncDirtyEntries',
+  async (payload, { getState }) => {
+    const dirtyEntries = selectAllEntries(getState()).filter(entry => entry.isDirty)
+    console.log(dirtyEntries.length)
+    if (dirtyEntries.length === 0) return Promise.resolve();
+    async function syncEntity(entity) {
+      // TODO fire off the event here
+      // ALSO: on the pending of this, set the dirty flag to 'SAVING'.
+      // going to change dirty to be 'CLEAN, DIRTY, or 'SAVING' so we can
+      // keep track of dirty changes made after a sync was already in flight
+      console.log(JSON.stringify(entity))
+      Promise.resolve(1)
     }
+    let promises = convertFeEntriesToApi(dirtyEntries, getState().journalArticles.entities).map(syncEntity)
+    Promise.all(promises)
+    console.log("all done")
   }
-})
+)
+
+const initialState = entriesAdapter.getInitialState()
 
 export const journalEntriesSlice = createSlice({
   name: 'journalEntries',
@@ -78,10 +108,19 @@ export const journalEntriesSlice = createSlice({
     [fetchEntries.fulfilled]: (state, action) => {
       entriesAdapter.setAll(state, action.payload.entities)
     },
+    [syncDirtyEntries.pending]: (state, action) => {
+    },
+    'journalArticles/textUpdated': (state, action) => {
+      // PERFNOTE: This could be made much more efficient by creating a back reference
+      // from article -> date/entry upon loading.
+      const { articleId } = action.payload
+      const dirtiedEntry = Object.values(state.entities).find(entry => entry.articleIds.includes(articleId))
+      dirtiedEntry.isDirty = true
+    }
   },
 })
 
-//export const { increment, decrement, incrementByAmount } = counterSlice.actions
+//export const { syncDirtyEntries } = journalEntriesSlice.actions
 
 export default journalEntriesSlice.reducer
 

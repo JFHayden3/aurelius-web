@@ -4,64 +4,9 @@ import {
   createSlice
 } from '@reduxjs/toolkit'
 
-const articlesAdapter = createEntityAdapter({
-  sortComparer: (a, b) => a.id > (b.id)
-})
+const articlesAdapter = createEntityAdapter()
 
 const initialState = articlesAdapter.getInitialState() 
-//{
-//  ids: [11, 12, 13 ],
-//  entities: {
-//    11: {
-//      id: 11,
-//      kind: 'REFLECTION',
-//      title: 'Reflections',
-//      content: {
-//        hint: "How have things been going?",
-//        text: "Blah, blah, dildoes"
-//      }
-//    },
-//    12: {
-//      id: 12,
-//      kind: 'INTENTION',
-//      title: 'Intentions',
-//      content: {
-//        hint: "What would you like to make out of this day?",
-//        text: "Blah, blah, want to do important stuff"
-//      }
-//    },
-//    13: {
-//      id: 13,
-//      kind: 'AGENDA',
-//      title: 'Agenda',
-//      content: {
-//        vow: "In order to step closer to my potential I vow to do the following today",
-//        items: [
-//          {
-//            id: 1,
-//            activity: {
-//              kind: "GROWTH",
-//              content: "#growth-activity1"
-//            },
-//            optDuration: {},
-//            optTime: {},
-//            optNotes: "Some special notes about growth activity 1"
-//          },
-//          {
-//            id: 2,
-//            activity: {
-//              kind: "CUSTOM",
-//              content: "Pick up the mail"
-//            },
-//            optDuration: {},
-//            optTime: {},
-//            optNotes: "details about picking up mail"
-//          },
-//        ]
-//      }
-//    }
-//  }
-//})
 
 export const journalArticlesSlice = createSlice({
   name: 'journalArticles',
@@ -81,7 +26,9 @@ export const journalArticlesSlice = createSlice({
   },
   extraReducers: {
     'journalEntries/fetchEntries/fulfilled':(state,action) => {
-      console.log(action.payload.articles)
+      // Note that the payload here is formed in the async thunk in
+      // Journal entries slice as that's where we first fondle the
+      // fetched results.
       articlesAdapter.setAll(state, action.payload.articles)
     }
   }
