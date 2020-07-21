@@ -3,7 +3,8 @@ import { Provider } from 'react-redux'
 import store from '../configureStore'
 import JournalApp from './JournalApp'
 import { Layout, Menu } from 'antd';
-import {fetchEntries} from "../model/journalEntriesSlice";
+import { fetchEntries, createNewEntry, selectEntryById } from "../model/journalEntriesSlice";
+import { createDefaultArticles } from "../model/journalArticlesSlice";
 
 import 'antd/dist/antd.css';
 
@@ -75,7 +76,24 @@ const dummyState = {
   ]
 }
 
-store.dispatch(fetchEntries({ maxEndDate:20200717, maxNumEntries: 10 }))
+function todayAsYyyyMmDd() {
+  const now = new Date(Date.now())
+  function monthStr(date) {
+    const monthNum = date.getMonth() + 1
+    return monthNum < 10 ? "0" + monthNum : monthNum.toString()
+  }
+  return Number.parseInt("" + now.getFullYear() + monthStr(now) + now.getDate())
+}
+
+store.dispatch(
+  fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
+  .then(() => {
+    const payload = { dateId: todayAsYyyyMmDd() }
+    if (!selectEntryById(store.getState(), payload.dateId)) {
+      store.dispatch(createNewEntry(payload))
+      store.dispatch(createDefaultArticles(payload))
+    }
+  })
 
 export default class Root extends Component {
   render() {
@@ -101,7 +119,7 @@ export default class Root extends Component {
               </Menu.Item>
             </Menu>
           </Sider>
-          <Layout className="site-layout" style={{marginLeft: '200px'}}>
+          <Layout className="site-layout" style={{ marginLeft: '200px' }}>
             <Content style={{ margin: '0 16px' }}>
               <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
                 <JournalApp />

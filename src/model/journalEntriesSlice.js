@@ -1,7 +1,9 @@
 import {
   createAsyncThunk,
   createEntityAdapter,
-  createSlice
+  createSlice,
+  createSelector,
+  compose
 } from '@reduxjs/toolkit'
 import { client } from '../api/client'
 
@@ -47,7 +49,7 @@ function convertApiToFe(items) {
     return {
       id: entry.date,
       date: entry.date,
-      isDirty: false,
+      dirtiness: 'CLEAN',
       articleIds: articleIds
     }
   })
@@ -60,39 +62,49 @@ function convertApiToFe(items) {
 
 function convertFeEntriesToApi(entries, articlesDictionary) {
   return entries.map(entry => {
-     const denormalizedArticles = entry.articleIds.map(articleId => articlesDictionary[articleId])
-     return { date: entry.date,
-              articles: denormalizedArticles
-            }
+    const denormalizedArticles = entry.articleIds
+    .map(articleId => articlesDictionary[articleId])
+    .filter(article => article) // Excludes null entries (hanging references)
+    return {
+      date: entry.date,
+      articles: denormalizedArticles
+    }
   })
+}
+async function fetchJournalEntries(user, maxEndDate, maxNumEntries) {
+  console.log('fetching')
+  const response = await client.get(
+    'https://mjsjd63379.execute-api.us-east-1.amazonaws.com/dev/journal'
+    + '?userId=' + user + '&maxEndDate=' + maxEndDate + '&maxNumEntries=' + maxNumEntries + '');
+  return convertApiToFe(response.Items)
 }
 
 export const fetchEntries = createAsyncThunk(
   'journalEntries/fetchEntries',
   async (payload) => {
-    const response = await client.get(
-      'https://mjsjd63379.execute-api.us-east-1.amazonaws.com/dev/journal'
-      + '?userId=testUser&maxEndDate=' + payload.maxEndDate + '&maxNumEntries=' + payload.maxNumEntries + '');
-    return convertApiToFe(response.Items)
+    return fetchJournalEntries(payload.user, payload.maxEndDate, payload.maxNumEntries)
   })
 
 export const syncDirtyEntries = createAsyncThunk(
   'journalEntries/syncDirtyEntries',
   async (payload, { getState }) => {
-    const dirtyEntries = selectAllEntries(getState()).filter(entry => entry.isDirty)
-    console.log(dirtyEntries.length)
+    const dirtyEntryIds = payload.dirtyEntryIds
+    const dirtyEntries = dirtyEntryIds.map((id) => selectEntryById(getState(), id))
     if (dirtyEntries.length === 0) return Promise.resolve();
-    async function syncEntity(entity) {
-      // TODO fire off the event here
-      // ALSO: on the pending of this, set the dirty flag to 'SAVING'.
-      // going to change dirty to be 'CLEAN, DIRTY, or 'SAVING' so we can
-      // keep track of dirty changes made after a sync was already in flight
-      console.log(JSON.stringify(entity))
-      Promise.resolve(1)
+    async function syncEntity(apiJournalEntry) {
+      console.log("forming body")
+      const body = {
+        userId: "testUser",
+        entry: apiJournalEntry,
+        httpMethod: "POST"
+      }
+      const response = await client.post(
+        'https://mjsjd63379.execute-api.us-east-1.amazonaws.com/dev/journal', body)
+      console.log(JSON.stringify(response))
+      return response
     }
     let promises = convertFeEntriesToApi(dirtyEntries, getState().journalArticles.entities).map(syncEntity)
     Promise.all(promises)
-    console.log("all done")
   }
 )
 
@@ -102,25 +114,67 @@ export const journalEntriesSlice = createSlice({
   name: 'journalEntries',
   initialState,
   reducers: {
-
+    createNewEntry(state, action) {
+      const { dateId } = action.payload
+      // check if the entry already exists for this date
+      if (state.entities[dateId]) {
+        console.log("\n\nATTEMPTED TO CREATE ENTITY THAT ALREADY EXISTS: " + dateId)
+        return;
+      }
+      // TODO: figure out how best to do article creation and ID-uniqueness
+      // Let's just do something dumb for now so I can start using this and iterating
+      // interactively:
+      // - Hardcoding 3 article IDs in here which will be picked up in a reducer
+      // - in articlesSlice and will automatically create entries for refelections,
+      // intetions, and agenda
+      const articleIds = ["01", "02"].map(ext => Number.parseInt(dateId + ext))
+      const newEntry = {
+        id: dateId,
+        date: dateId,
+        dirtiness: 'DIRTY',
+        articleIds: articleIds
+      }
+      entriesAdapter.upsertOne(state, newEntry)
+    }
   },
   extraReducers: {
     [fetchEntries.fulfilled]: (state, action) => {
       entriesAdapter.setAll(state, action.payload.entities)
     },
     [syncDirtyEntries.pending]: (state, action) => {
+      const entryIdsInFlight = action.meta.arg.dirtyEntryIds
+      const entriesInFlight = entryIdsInFlight.map((id) => state.entities[id])
+      entriesInFlight.forEach((entry) => entry.dirtiness = 'SAVING')
+    },
+    [syncDirtyEntries.fulfilled]: (state, action) => {
+      const entryIdsInFlight = action.meta.arg.dirtyEntryIds
+      const entriesInFlight = entryIdsInFlight.map((id) => state.entities[id])
+      // Only set the in-flight entries to 'CLEAN' so any changes made during
+      // the request will be sent on the next fetch.
+      entriesInFlight
+        .filter((entry) => entry.dirtiness === 'SAVING')
+        .forEach((entry) => entry.dirtiness = 'CLEAN')
     },
     'journalArticles/textUpdated': (state, action) => {
       // PERFNOTE: This could be made much more efficient by creating a back reference
       // from article -> date/entry upon loading.
       const { articleId } = action.payload
       const dirtiedEntry = Object.values(state.entities).find(entry => entry.articleIds.includes(articleId))
-      dirtiedEntry.isDirty = true
+      dirtiedEntry.dirtiness = 'DIRTY'
     }
   },
 })
 
-//export const { syncDirtyEntries } = journalEntriesSlice.actions
+export function dispatchSyncDirtyEntitiesWithDelay() {
+  return function (dispatch, getState) {
+    setTimeout(() => {
+      const dirtyEntryIds = selectDirtyEntries(getState()).map(entry => entry.date)
+      dispatch(syncDirtyEntries({ dirtyEntryIds: dirtyEntryIds }))
+    }, 2500)
+  }
+}
+
+export const { createNewEntry } = journalEntriesSlice.actions
 
 export default journalEntriesSlice.reducer
 
@@ -131,3 +185,13 @@ export const {
   selectIds: selectEntryIds,
   // Pass in a selector that returns the entries slice of state
 } = entriesAdapter.getSelectors(state => state.journalEntries)
+
+export const selectByDirtiness = createSelector(
+  [selectAllEntries, (state, dirtiness) => dirtiness],
+  (entries, dirtiness) => entries.filter((entry) => entry.dirtiness === dirtiness)
+)
+
+export const selectDirtyEntries = createSelector(
+  [selectAllEntries, (state, dirtiness) => dirtiness],
+  (entries) => entries.filter((entry) => entry.dirtiness === 'DIRTY')
+)

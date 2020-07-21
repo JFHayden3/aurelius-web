@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit'
 import thunkMiddleware from 'redux-thunk'
 import { createLogger } from 'redux-logger'
 import journalArticlesReducer from '../src/model/journalArticlesSlice'
@@ -12,5 +12,6 @@ export default configureStore({
     journal: lifeJournalReducer,
     journalEntries: journalEntriesReducer,
     journalArticles: journalArticlesReducer,
-  }
+  },
+  middleware: [loggerMiddleware, thunkMiddleware, ...getDefaultMiddleware()]
 })
