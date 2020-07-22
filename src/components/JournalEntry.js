@@ -3,24 +3,27 @@
 
 import React, { Component } from 'react'
 import { JournalArticle } from './JournalArticle'
-import { List } from 'antd';
+import { List, Divider } from 'antd';
 import { selectEntryById } from '../model/journalEntriesSlice'
 import { useSelector } from 'react-redux'
+import { apiDateToFe } from "../kitchenSink"
 
 export const JournalEntry = ({ entryId }) => {
   const entry = useSelector((state) => selectEntryById(state, entryId))
   const articleIds = entry.articleIds
   return (
-    <List
-      dataSource={articleIds}
-      grid={{ gutter: 8, column: 2 }}
-      itemLayout="vertical"
-      renderItem={articleId =>
-        <List.Item key={articleId}>
-          <JournalArticle articleId={articleId} />
-        </List.Item>
-      }
-    >
-    </List>
+    <div>
+      <h2>{apiDateToFe(entry.date)}</h2>
+      <List
+        dataSource={articleIds}
+        itemLayout="vertical"
+        renderItem={articleId =>
+          <List.Item key={articleId} style={{ borderBottom: 'none' }}>
+            <JournalArticle articleId={articleId} />
+          </List.Item>
+        }
+      >
+      </List>
+    </div>
   )
 }

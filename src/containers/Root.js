@@ -3,10 +3,11 @@ import { Provider } from 'react-redux'
 import store from '../configureStore'
 import JournalApp from './JournalApp'
 import { Layout, Menu } from 'antd';
-import { fetchEntries, createNewEntry, selectEntryById } from "../model/journalEntriesSlice";
-import { createDefaultArticles } from "../model/journalArticlesSlice";
+import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId } from "../model/journalEntriesSlice";
+import { addArticle } from "../model/journalArticlesSlice";
 
 import 'antd/dist/antd.css';
+import ActionButton from 'antd/lib/modal/ActionButton';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -87,11 +88,18 @@ function todayAsYyyyMmDd() {
 
 store.dispatch(
   fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
-  .then(() => {
-    const payload = { dateId: todayAsYyyyMmDd() }
-    if (!selectEntryById(store.getState(), payload.dateId)) {
-      store.dispatch(createNewEntry(payload))
-      store.dispatch(createDefaultArticles(payload))
+  .then((action) => {
+    if (action.error) {
+      // TODO retry and/or put the UI into an error state
+      console.log("\n\nINITIAL FETCH FAILED\n\n")
+    } else {
+      const payload = { dateId: todayAsYyyyMmDd() }
+      if (!selectEntryById(store.getState(), payload.dateId)) {
+        store.dispatch(createNewEntry(payload))
+        const nextArticleId = computeNextArticleId(store.getState(), payload.dateId)
+        store.dispatch(addArticle({entryId:payload.dateId,articleId:nextArticleId,articleKind:'INTENTION'}))
+        //store.dispatch(createDefaultArticles(payload))
+      }
     }
   })
 

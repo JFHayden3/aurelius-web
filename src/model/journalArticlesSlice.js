@@ -12,6 +12,20 @@ export const journalArticlesSlice = createSlice({
   name: 'journalArticles',
   initialState,
   reducers: {
+    addArticle(state, action) {
+      const { entryId, articleId, articleKind } = action.payload
+      // TODO just filling in dummy available values. Need to reach into settings
+      const newArticle = {
+        id: articleId,
+        kind: articleKind,
+        title: (articleKind + " - title"),
+        content: {
+          hint: (articleKind + " - hint text"),
+          text:""
+        },
+      }
+      articlesAdapter.upsertOne(state, newArticle)
+    },
     textUpdated(state, action) {
       const { articleId, text } = action.payload
       const existingArticle = state.entities[articleId]
@@ -35,8 +49,9 @@ export const journalArticlesSlice = createSlice({
         }
       }
       const defaultArticles =
-        [createTextArticle(Number.parseInt(dateId + '01'), 'INTENTION', "Intentions", "Today's intentions"),
-        createTextArticle(Number.parseInt(dateId + '02'), 'REFLECTION', "Reflections", "Some recent reflections"),
+        [
+          createTextArticle(Number.parseInt(dateId + '01'), 'REFLECTION', "Reflections", "Some recent reflections"),
+          createTextArticle(Number.parseInt(dateId + '02'), 'INTENTION', "Intentions", "Today's intentions"),
         ]
       articlesAdapter.upsertMany(state, defaultArticles)
     }
@@ -52,11 +67,14 @@ export const journalArticlesSlice = createSlice({
     },
     'journalEntries/createNewEntry': (state, action) => {
       console.log("\n\n" + JSON.stringify(action))
+    },
+    'journalEntries/addArticle':(state, action) => {
+      console.log(JSON.stringify(action))
     }
   }
 })
 
-export const { textUpdated, createDefaultArticles } = journalArticlesSlice.actions
+export const { textUpdated, createDefaultArticles, addArticle } = journalArticlesSlice.actions
 
 export default journalArticlesSlice.reducer
 

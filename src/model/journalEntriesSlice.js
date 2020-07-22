@@ -63,8 +63,8 @@ function convertApiToFe(items) {
 function convertFeEntriesToApi(entries, articlesDictionary) {
   return entries.map(entry => {
     const denormalizedArticles = entry.articleIds
-    .map(articleId => articlesDictionary[articleId])
-    .filter(article => article) // Excludes null entries (hanging references)
+      .map(articleId => articlesDictionary[articleId])
+      .filter(article => article) // Excludes null entries (hanging references)
     return {
       date: entry.date,
       articles: denormalizedArticles
@@ -72,11 +72,12 @@ function convertFeEntriesToApi(entries, articlesDictionary) {
   })
 }
 async function fetchJournalEntries(user, maxEndDate, maxNumEntries) {
-  console.log('fetching')
-  const response = await client.get(
+  return client.get(
     'https://mjsjd63379.execute-api.us-east-1.amazonaws.com/dev/journal'
-    + '?userId=' + user + '&maxEndDate=' + maxEndDate + '&maxNumEntries=' + maxNumEntries + '');
-  return convertApiToFe(response.Items)
+    + '?userId=' + user + '&maxEndDate=' + maxEndDate + '&maxNumEntries=' + maxNumEntries + '')
+    .then(response => {
+      return convertApiToFe(response.Items)
+    })
 }
 
 export const fetchEntries = createAsyncThunk(
@@ -92,23 +93,26 @@ export const syncDirtyEntries = createAsyncThunk(
     const dirtyEntries = dirtyEntryIds.map((id) => selectEntryById(getState(), id))
     if (dirtyEntries.length === 0) return Promise.resolve();
     async function syncEntity(apiJournalEntry) {
-      console.log("forming body")
       const body = {
         userId: "testUser",
         entry: apiJournalEntry,
         httpMethod: "POST"
       }
-      const response = await client.post(
+      return client.post(
         'https://mjsjd63379.execute-api.us-east-1.amazonaws.com/dev/journal', body)
-      console.log(JSON.stringify(response))
-      return response
     }
     let promises = convertFeEntriesToApi(dirtyEntries, getState().journalArticles.entities).map(syncEntity)
-    Promise.all(promises)
+    return Promise.allSettled(promises)
   }
 )
 
 const initialState = entriesAdapter.getInitialState()
+export function computeNextArticleId(state, forEntryId) {
+  const entry = state.journalEntries.entities[forEntryId]
+  const newArticleIndex = entry.articleIds.length + 1
+  return Number.parseInt(
+    forEntryId + ((newArticleIndex < 10) ? '0' : '') + newArticleIndex)
+}
 
 export const journalEntriesSlice = createSlice({
   name: 'journalEntries',
@@ -124,18 +128,17 @@ export const journalEntriesSlice = createSlice({
       // TODO: figure out how best to do article creation and ID-uniqueness
       // Let's just do something dumb for now so I can start using this and iterating
       // interactively:
-      // - Hardcoding 3 article IDs in here which will be picked up in a reducer
+      // - Hardcoding 2 article IDs in here which will be picked up in a reducer
       // - in articlesSlice and will automatically create entries for refelections,
       // intetions, and agenda
-      const articleIds = ["01", "02"].map(ext => Number.parseInt(dateId + ext))
       const newEntry = {
         id: dateId,
         date: dateId,
         dirtiness: 'DIRTY',
-        articleIds: articleIds
+        articleIds: [],
       }
       entriesAdapter.upsertOne(state, newEntry)
-    }
+    },
   },
   extraReducers: {
     [fetchEntries.fulfilled]: (state, action) => {
@@ -154,6 +157,19 @@ export const journalEntriesSlice = createSlice({
       entriesInFlight
         .filter((entry) => entry.dirtiness === 'SAVING')
         .forEach((entry) => entry.dirtiness = 'CLEAN')
+    },
+    [syncDirtyEntries.rejected]: (state, action) => {
+      const entryIdsInFlight = action.meta.arg.dirtyEntryIds
+      const entriesInFlight = entryIdsInFlight.map((id) => state.entities[id])
+      // TODO surface error, switch gui togle to manual rather than timed
+      entriesInFlight
+        .filter((entry) => entry.dirtiness === 'SAVING')
+        .forEach((entry) => entry.dirtiness = 'DIRTY')
+    },
+    'journalArticles/addArticle': (state, action) => {
+      const { entryId, articleId } = action.payload
+      const entry = state.entities[entryId]
+      entry.articleIds.push(articleId)
     },
     'journalArticles/textUpdated': (state, action) => {
       // PERFNOTE: This could be made much more efficient by creating a back reference

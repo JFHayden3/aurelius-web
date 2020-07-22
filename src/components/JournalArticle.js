@@ -5,30 +5,26 @@
 // *ArticleContent defined below.
 
 import React, { Component } from 'react'
-import { IntentionsArticleContent } from './IntentionsArticleContent'
 import AgendaArticleContent from './AgendaArticleContent'
-import { ReflectionsArticleContent } from './ReflectionsArticleContent'
 import { selectArticleById } from '../model/journalArticlesSlice'
 import { useSelector } from 'react-redux'
-import { Card } from 'antd'
-import { DeleteOutlined } from '@ant-design/icons';
+import { Divider } from 'antd'
+import { WrittenArticleContent } from './WrittenArticleContent'
 
 export const JournalArticle = ({ articleId }) => {
   const article = useSelector((state) => selectArticleById(state, articleId))
   if (article) {
     const { title, kind, content } = article
     return (
-      <Card title={title}
-        type="inner"
-        actions={[
-          <DeleteOutlined key="delete" />
-        ]}>
+      <div>
+        <Divider orientation="left">{title}</Divider>
         <div>
-          {kind === 'REFLECTION' && <ReflectionsArticleContent articleId={articleId} />}
-          {kind === 'INTENTION' && <IntentionsArticleContent articleId={articleId} />}
+          {kind === 'REFLECTION' && <WrittenArticleContent articleId={articleId} />}
+          {kind === 'INTENTION' && <WrittenArticleContent articleId={articleId} />}
           {kind === 'AGENDA' && <AgendaArticleContent value={content} />}
         </div>
-      </Card>)
+      </div>
+    )
   } else {
     return (<div></div>)
   }

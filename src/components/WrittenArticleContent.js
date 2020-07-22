@@ -5,17 +5,17 @@
 import React, { Component } from 'react'
 import { Input } from 'antd';
 import { selectArticleById, textUpdated } from '../model/journalArticlesSlice'
-import { useSelector } from 'react-redux'
-import { useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 const { TextArea } = Input;
 
-export const ReflectionsArticleContent = ({ articleId }) => {
+export const WrittenArticleContent = ({ articleId }) => {
   const dispatch = useDispatch()
   const article = useSelector((state) => selectArticleById(state, articleId))
   const { title, kind, content } = article
   return (
     <TextArea
       autoSize={true}
+      style={{ overflowY: "hidden" }}
       placeholder={content.hint}
       defaultValue={content.text}
       onChange={(e) =>
