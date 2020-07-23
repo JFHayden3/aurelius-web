@@ -9,13 +9,7 @@ import { client } from '../api/client'
 
 const entriesAdapter = createEntityAdapter({
   sortComparer: (a, b) => {
-    if (b.date < a.date) {
-      return -1
-    } else if (b.date > a.date) {
-      return 1
-    } else {
-      return 0
-    }
+    return b.date - a.date
   }
 })
 
@@ -109,9 +103,9 @@ export const syncDirtyEntries = createAsyncThunk(
 const initialState = entriesAdapter.getInitialState()
 export function computeNextArticleId(state, forEntryId) {
   const entry = state.journalEntries.entities[forEntryId]
-  const newArticleIndex = entry.articleIds.length + 1
-  return Number.parseInt(
-    forEntryId + ((newArticleIndex < 10) ? '0' : '') + newArticleIndex)
+  return (!entry.articleIds || entry.articleIds.length === 0) 
+    ? Number.parseInt(forEntryId + "01")
+    : Math.max.apply(null, entry.articleIds) + 1
 }
 
 export const journalEntriesSlice = createSlice({
@@ -170,16 +164,27 @@ export const journalEntriesSlice = createSlice({
       const { entryId, articleId } = action.payload
       const entry = state.entities[entryId]
       entry.articleIds.push(articleId)
+      entry.dirtiness = 'DIRTY'
+    },
+    'journalArticles/removeArticle': (state, action) => {
+      const { articleId } = action.payload
+      const entry = selectEntryByArticleId(state, articleId)
+      entry.articleIds = entry.articleIds.filter(id => id != articleId)
+      entry.dirtiness = 'DIRTY'
     },
     'journalArticles/textUpdated': (state, action) => {
-      // PERFNOTE: This could be made much more efficient by creating a back reference
-      // from article -> date/entry upon loading.
       const { articleId } = action.payload
-      const dirtiedEntry = Object.values(state.entities).find(entry => entry.articleIds.includes(articleId))
+      const dirtiedEntry = selectEntryByArticleId(state, articleId)
       dirtiedEntry.dirtiness = 'DIRTY'
     }
   },
 })
+
+function selectEntryByArticleId(state, articleId) {
+  // PERFNOTE: This could be made much more efficient by creating a back reference
+  // from article -> date/entry upon loading.
+  return Object.values(state.entities).find(entry => entry.articleIds.includes(articleId))
+}
 
 export function dispatchSyncDirtyEntitiesWithDelay() {
   return function (dispatch, getState) {

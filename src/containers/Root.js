@@ -5,6 +5,7 @@ import JournalApp from './JournalApp'
 import { Layout, Menu } from 'antd';
 import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId } from "../model/journalEntriesSlice";
 import { addArticle } from "../model/journalArticlesSlice";
+import { getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 
 import 'antd/dist/antd.css';
 import ActionButton from 'antd/lib/modal/ActionButton';
@@ -86,6 +87,7 @@ function todayAsYyyyMmDd() {
   return Number.parseInt("" + now.getFullYear() + monthStr(now) + now.getDate())
 }
 
+// TODO this logic should probably be moved into a dedicated start-up coordinator 
 store.dispatch(
   fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
   .then((action) => {
@@ -96,9 +98,19 @@ store.dispatch(
       const payload = { dateId: todayAsYyyyMmDd() }
       if (!selectEntryById(store.getState(), payload.dateId)) {
         store.dispatch(createNewEntry(payload))
-        const nextArticleId = computeNextArticleId(store.getState(), payload.dateId)
-        store.dispatch(addArticle({entryId:payload.dateId,articleId:nextArticleId,articleKind:'INTENTION'}))
-        //store.dispatch(createDefaultArticles(payload))
+        getDefaultArticleKindsForToday(store.getState())
+          .forEach((articleKind) => {
+            const nextArticleId = computeNextArticleId(store.getState(), payload.dateId)
+            const articleSettings = selectArticleSettingByArticleKind(store.getState(), articleKind)
+            store.dispatch(addArticle(
+              {
+                entryId: payload.dateId,
+                articleId: nextArticleId,
+                articleKind,
+                articleSettings
+              }))
+          }
+          )
       }
     }
   })

@@ -6,21 +6,29 @@
 
 import React, { Component } from 'react'
 import AgendaArticleContent from './AgendaArticleContent'
-import { selectArticleById } from '../model/journalArticlesSlice'
-import { useSelector } from 'react-redux'
-import { Divider } from 'antd'
+import { selectArticleById, removeArticle } from '../model/journalArticlesSlice'
+import { useSelector, useDispatch } from 'react-redux'
+import { Button, Divider } from 'antd'
+import { DeleteOutlined } from '@ant-design/icons';
 import { WrittenArticleContent } from './WrittenArticleContent'
+
 
 export const JournalArticle = ({ articleId }) => {
   const article = useSelector((state) => selectArticleById(state, articleId))
+  const dispatch = useDispatch()
   if (article) {
     const { title, kind, content } = article
     return (
       <div>
-        <Divider orientation="left">{title}</Divider>
+        <Divider orientation="left">
+          <span>
+            {title}
+            <Button onClick={(e)=>dispatch(removeArticle({ articleId }))} type="text" shape="round" icon={<DeleteOutlined />} />
+          </span>
+        </Divider>
         <div>
-          {kind === 'REFLECTION' && <WrittenArticleContent articleId={articleId} />}
-          {kind === 'INTENTION' && <WrittenArticleContent articleId={articleId} />}
+          {['REFLECTION', 'INTENTION', 'GRATITUDE', 'DREAMS'].includes(kind)
+            && <WrittenArticleContent articleId={articleId} />}
           {kind === 'AGENDA' && <AgendaArticleContent value={content} />}
         </div>
       </div>

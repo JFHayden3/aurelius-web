@@ -14,8 +14,17 @@ export const WrittenArticleContent = ({ articleId }) => {
   const { title, kind, content } = article
   return (
     <TextArea
-      autoSize={true}
-      style={{ overflowY: "hidden" }}
+      autoSize={{ minRows: 6 }}
+      size='large'
+      style={
+        {
+          overFlowY: "hidden"
+          , resize: "none"
+         // , fontSize: "16px" Fucks with the scrollbar appearance. Need CSS hackery likely to fix
+          , lineHeight: "1.3em"
+          , fontFamily: "helvetica, sans-serif"
+          , border: 0
+        }}
       placeholder={content.hint}
       defaultValue={content.text}
       onChange={(e) =>

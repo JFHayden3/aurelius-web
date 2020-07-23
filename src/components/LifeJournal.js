@@ -9,8 +9,6 @@ import { useSelector } from 'react-redux'
 import { selectEntryIds } from '../model/journalEntriesSlice'
 import { DirtyJournalTracker } from './DirtyJournalTracker'
 
-
-
 export const LifeJournal = () => {
   const entryIds = useSelector(selectEntryIds)
   return (

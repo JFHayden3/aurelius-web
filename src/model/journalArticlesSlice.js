@@ -13,18 +13,24 @@ export const journalArticlesSlice = createSlice({
   initialState,
   reducers: {
     addArticle(state, action) {
-      const { entryId, articleId, articleKind } = action.payload
+      const { entryId, articleId, articleKind, articleSettings } = action.payload
       // TODO just filling in dummy available values. Need to reach into settings
       const newArticle = {
         id: articleId,
         kind: articleKind,
-        title: (articleKind + " - title"),
+        title: articleSettings.title,
+        // TODO: eventually need to be smarter about non-text article content creation
+        // and reading from settings
         content: {
-          hint: (articleKind + " - hint text"),
+          hint: articleSettings.hintText,
           text:""
         },
       }
       articlesAdapter.upsertOne(state, newArticle)
+    },
+    removeArticle(state, action) {
+      const { articleId } = action.payload
+      articlesAdapter.removeOne(state, articleId)
     },
     textUpdated(state, action) {
       const { articleId, text } = action.payload
@@ -33,29 +39,6 @@ export const journalArticlesSlice = createSlice({
         existingArticle.content.text = text
       }
     },
-    createDefaultArticles(state, action) {
-      const { dateId } = action.payload
-      const articleIds = ["01", "02", "03"].map(ext => Number.parseInt(dateId + ext))
-      //  Entry: "{"date":20200715,"articles":[{"id":11,"kind":"INTENTIONS","title":"Intentions","content":{"hint":"intentions hint","text":"intentions text"}},{"id":12,"kind":"REFLECTIONS","title":"Reflections","content":{"hint":"reflections hint","text":"reflections text"}}]}"
-      function createTextArticle(id, kind, title, hint) {
-        return {
-          id: id,
-          kind: kind,
-          title: title,
-          content: {
-            hint: hint,
-            text: ""
-          },
-        }
-      }
-      const defaultArticles =
-        [
-          createTextArticle(Number.parseInt(dateId + '01'), 'REFLECTION', "Reflections", "Some recent reflections"),
-          createTextArticle(Number.parseInt(dateId + '02'), 'INTENTION', "Intentions", "Today's intentions"),
-        ]
-      articlesAdapter.upsertMany(state, defaultArticles)
-    }
-
   },
   extraReducers: {
     // TODO: either consolidate here or remove the need for a separate initial fetch method
@@ -65,16 +48,10 @@ export const journalArticlesSlice = createSlice({
       // fetched results.
       articlesAdapter.setAll(state, action.payload.articles)
     },
-    'journalEntries/createNewEntry': (state, action) => {
-      console.log("\n\n" + JSON.stringify(action))
-    },
-    'journalEntries/addArticle':(state, action) => {
-      console.log(JSON.stringify(action))
-    }
   }
 })
 
-export const { textUpdated, createDefaultArticles, addArticle } = journalArticlesSlice.actions
+export const { textUpdated, createDefaultArticles, addArticle, removeArticle } = journalArticlesSlice.actions
 
 export default journalArticlesSlice.reducer
 

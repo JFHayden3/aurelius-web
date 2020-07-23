@@ -4,6 +4,7 @@ import { createLogger } from 'redux-logger'
 import journalArticlesReducer from '../src/model/journalArticlesSlice'
 import journalEntriesReducer from '../src/model/journalEntriesSlice'
 import lifeJournalReducer from '../src/model/lifeJournalSlice'
+import settingsSlice from './model/settingsSlice'
 
 const loggerMiddleware = createLogger()
 
@@ -12,6 +13,7 @@ export default configureStore({
     journal: lifeJournalReducer,
     journalEntries: journalEntriesReducer,
     journalArticles: journalArticlesReducer,
+    settings: settingsSlice,
   },
   middleware: [loggerMiddleware, thunkMiddleware, ...getDefaultMiddleware()]
 })
