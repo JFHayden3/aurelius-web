@@ -32,9 +32,16 @@ const dummyState = {
       title: "Gratitude",
       hintText: "Blah blah some shit about gratitude",
       promptFrequency: "DAILY",
-      ordering: 4,
+      ordering: 5,
       isUserCreated: false,
-    }
+    },
+    AGENDA: {
+      title: "Agenda",
+      hintText:"A specific plan to accomplish today's intentions.",
+      promptFrequency: "DAILY",
+      ordering:4,
+      isUserCreated: false,
+    },
   }
 }
 

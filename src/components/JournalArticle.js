@@ -5,7 +5,7 @@
 // *ArticleContent defined below.
 
 import React, { Component } from 'react'
-import AgendaArticleContent from './AgendaArticleContent'
+import { AgendaArticleContent } from './AgendaArticleContent'
 import { selectArticleById, removeArticle } from '../model/journalArticlesSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { Button, Divider } from 'antd'
@@ -23,13 +23,13 @@ export const JournalArticle = ({ articleId }) => {
         <Divider orientation="left">
           <span>
             {title}
-            <Button onClick={(e)=>dispatch(removeArticle({ articleId }))} type="text" shape="round" icon={<DeleteOutlined />} />
+            <Button onClick={(e) => dispatch(removeArticle({ articleId }))} type="text" shape="round" icon={<DeleteOutlined />} />
           </span>
         </Divider>
         <div>
           {['REFLECTION', 'INTENTION', 'GRATITUDE', 'DREAMS'].includes(kind)
             && <WrittenArticleContent articleId={articleId} />}
-          {kind === 'AGENDA' && <AgendaArticleContent value={content} />}
+          {kind === 'AGENDA' && <AgendaArticleContent articleId={articleId} />}
         </div>
       </div>
     )

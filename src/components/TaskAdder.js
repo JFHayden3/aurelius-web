@@ -3,12 +3,16 @@
 // When hovered, is shown as obviously clickable. 
 // When clicked, switches to task-editor view to allow editing
 
-import React, { Component } from 'react'
+import React from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { PlusCircleOutlined } from '@ant-design/icons';
 
-export default class TaskAdder extends Component {
-  render() {
-    return (
-      <button>+</button>
-    )
-  }
+import { addAgendaTask } from '../model/journalArticlesSlice'
+import { Button } from 'antd'
+
+export const TaskAdder = ({ articleId, addIndex }) => {
+  const dispatch = useDispatch()
+  return (
+    <Button icon={<PlusCircleOutlined/>} onClick={(e) => dispatch(addAgendaTask({ articleId, addIndex }))} ></Button>
+  )
 }

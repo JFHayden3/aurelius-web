@@ -3,31 +3,30 @@
 // (NOTE: I’m also considering adding a timeline-like view for more 
 // elegant display of the day’s activities)
 
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import TaskListItem from './TaskListItem'
-import TaskAdder from './TaskAdder'
+import React from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { selectArticleById } from '../model/journalArticlesSlice'
+import { TaskListItem } from './TaskListItem'
+import { TaskAdder } from './TaskAdder'
 import { Timeline } from 'antd';
 
-export default class TaskList extends Component {
-  render() {
-    const items = this.props.value
-    return (
+export const TaskList = ({ articleId }) => {
+  const article = useSelector((state) => selectArticleById(state, articleId))
+  const dispatch = useDispatch()
+  const tasks = article.content.tasks || []
+  return (
+    <div>
       <Timeline>
-        {items && items.map((task) => (
+        {tasks && tasks.map((task, index) => (
           <Timeline.Item key={task.id}>
-            <TaskListItem value={task} />
+            <TaskAdder articleId={articleId} addIndex={index} />
+            <TaskListItem articleId={articleId} taskId={task.id} />
           </Timeline.Item>
         ))}
-        <Timeline.Item>
-          <TaskAdder />
-        </Timeline.Item>
 
       </Timeline>
-    )
-  }
-}
+      <TaskAdder articleId={articleId} addIndex={tasks.length} />
+    </div>
 
-TaskList.propTypes = {
-  value: PropTypes.arrayOf(Object).isRequired
+  )
 }

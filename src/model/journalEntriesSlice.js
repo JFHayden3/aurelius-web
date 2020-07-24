@@ -13,26 +13,6 @@ const entriesAdapter = createEntityAdapter({
   }
 })
 
-
-// SHOULDN'T be necessary and adds additional danger of forgetting/inconsistent conversion.
-// Will try to just work with the yyyyMMdd numerical format until presentation
-//function apiDateToFe(str) {
-//  if (!/^(\d){8}$/.test(str)) {
-//    console.log("invalid date")
-//    return NaN
-//  }
-//  var y = str.substr(0, 4),
-//    m = str.substr(4, 2),
-//    d = str.substr(6, 2);
-//  let foo = Date.parse(y + "-" + m + "-" + d)
-//  return foo;
-//}
-//
-//function feDateToApi(dNum) {
-//  const date = new Date(dNum)
-//  return Number.parseInt("" + date.getFullYear() + (date.getMonth() + 1) + date.getDate())
-//}
-
 function convertApiToFe(items) {
   const entries = Array.map(items, (item) => JSON.parse(item.Entry))
   const articles = [].concat.apply([], Array.map(entries, (entry) => entry.articles))
@@ -100,13 +80,14 @@ export const syncDirtyEntries = createAsyncThunk(
   }
 )
 
-const initialState = entriesAdapter.getInitialState()
 export function computeNextArticleId(state, forEntryId) {
   const entry = state.journalEntries.entities[forEntryId]
   return (!entry.articleIds || entry.articleIds.length === 0) 
     ? Number.parseInt(forEntryId + "01")
     : Math.max.apply(null, entry.articleIds) + 1
 }
+
+const initialState = entriesAdapter.getInitialState()
 
 export const journalEntriesSlice = createSlice({
   name: 'journalEntries',
@@ -173,6 +154,16 @@ export const journalEntriesSlice = createSlice({
       entry.dirtiness = 'DIRTY'
     },
     'journalArticles/textUpdated': (state, action) => {
+      const { articleId } = action.payload
+      const dirtiedEntry = selectEntryByArticleId(state, articleId)
+      dirtiedEntry.dirtiness = 'DIRTY'
+    },
+    'journalArticles/addAgendaTask': (state, action) => {
+      const { articleId } = action.payload
+      const dirtiedEntry = selectEntryByArticleId(state, articleId)
+      dirtiedEntry.dirtiness = 'DIRTY'
+    },
+    'journalArticles/updateAgendaTask': (state, action) => {
       const { articleId } = action.payload
       const dirtiedEntry = selectEntryByArticleId(state, articleId)
       dirtiedEntry.dirtiness = 'DIRTY'

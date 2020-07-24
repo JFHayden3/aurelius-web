@@ -1,32 +1,31 @@
 // Displays the 'agenda vow' and renders the task list. 
 
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import TaskList from './TaskList'
+import React from 'react'
+import {TaskList} from './TaskList'
+import { useSelector, useDispatch } from 'react-redux'
+import { selectArticleById, textUpdated } from '../model/journalArticlesSlice'
+import { Input } from 'antd';
+const { TextArea } = Input
 
-export default class AgendaArticleContent extends Component {
-  render() {
-    const { vow, items } = this.props.value
-    return (
-      <div>
-        <div style={{
-          background: '#f6f6f6',
-          fontStyle:'italic',
-          padding:'5px',
-          borderColor: 'lightgray',
-          borderWidth: '1px',
-          borderStyle: 'solid',
-          borderRadius: '1px',
-          marginBottom: '16px'
-        }}>
-          {vow}
-        </div>
-        <TaskList value={items} />
-      </div>
-    )
-  }
-}
-
-AgendaArticleContent.propTypes = {
-  value: PropTypes.object.isRequired
+export const AgendaArticleContent = ({ articleId }) => {
+  const article = useSelector((state) => selectArticleById(state, articleId))
+  const dispatch = useDispatch()
+  return (
+    <div>
+      <TextArea placeholder="High-level notes about today's agenda..."
+        defaultValue={article.content.text}
+        autoSize
+        style={
+        {
+          overFlowY: "hidden"
+          , resize: "none"
+          , fontFamily: "helvetica, sans-serif"
+          , border: 0
+        }}
+        onChange={(e) =>
+          dispatch(textUpdated({ articleId: articleId, text: e.target.value }))}
+      />
+      <TaskList articleId={articleId} />
+    </div>
+  )
 }
