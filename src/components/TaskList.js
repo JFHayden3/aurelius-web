@@ -14,12 +14,12 @@ export const TaskList = ({ articleId }) => {
   const article = useSelector((state) => selectArticleById(state, articleId))
   const dispatch = useDispatch()
   const tasks = article.content.tasks || []
+ // TODO: inline task adding: <TaskAdder articleId={articleId} addIndex={index} />
   return (
     <div>
       <Timeline>
         {tasks && tasks.map((task, index) => (
           <Timeline.Item key={task.id}>
-            <TaskAdder articleId={articleId} addIndex={index} />
             <TaskListItem articleId={articleId} taskId={task.id} />
           </Timeline.Item>
         ))}

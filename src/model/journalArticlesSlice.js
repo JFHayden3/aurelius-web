@@ -3,7 +3,6 @@ import {
   createSelector,
   createSlice
 } from '@reduxjs/toolkit'
-import { createNewEntry } from './journalEntriesSlice'
 
 const articlesAdapter = createEntityAdapter()
 
@@ -55,6 +54,11 @@ export const journalArticlesSlice = createSlice({
       }
       agendaArticle.content.tasks.splice(addIndex, 0, newTask)
     },
+    removeAgendaTask(state, action) {
+      const { articleId, removeId } = action.payload
+      const agendaArticle = state.entities[articleId]
+      agendaArticle.content.tasks = agendaArticle.content.tasks.filter(task => task.id != removeId)
+    },
     updateAgendaTask(state, action) {
       const { articleId, taskId, changedFields } = action.payload
       const agendaArticle = state.entities[articleId]
@@ -73,7 +77,7 @@ export const journalArticlesSlice = createSlice({
   }
 })
 
-export const { textUpdated, createDefaultArticles, addArticle, removeArticle, addAgendaTask, updateAgendaTask } = journalArticlesSlice.actions
+export const { textUpdated, createDefaultArticles, addArticle, removeArticle, addAgendaTask, removeAgendaTask, updateAgendaTask } = journalArticlesSlice.actions
 
 export default journalArticlesSlice.reducer
 

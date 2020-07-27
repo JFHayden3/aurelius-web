@@ -3,62 +3,113 @@
 // When clicked, switches to task-editor view to allow editing
 
 import React from 'react'
-import { Typography, Button, Tooltip, Divider, TimePicker, Select } from 'antd';
-import { ClockCircleOutlined, HourglassOutlined, MessageOutlined } from '@ant-design/icons';
+import { Typography, Button, Tooltip, Divider, TimePicker, Select, AutoComplete, Input } from 'antd';
+import { ClockCircleOutlined, HourglassOutlined, MessageOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux'
 import TaskEditor from './TaskEditor'
 import moment from 'moment';
-import { selectTaskById, updateAgendaTask } from '../model/journalArticlesSlice'
+import { selectTaskById, updateAgendaTask, removeAgendaTask } from '../model/journalArticlesSlice'
 const { Text } = Typography;
-const { Option } = Select;
 
 export const TaskListItem = ({ articleId, taskId }) => {
   const dispatch = useDispatch()
   const task = useSelector((state) => selectTaskById(state, articleId, taskId))
   const { activity, optDuration, optTime, optNotes } = task
 
-  const onActivityTextChange = str => {
-    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { activity: { content: str } } }))
+  const onActivityTextChange = e => {
+    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { activity: { content: e.target.value } } }))
   };
+  const onNotesTextChange = str => {
+    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optNotes: str } }))
+  }
+  const onAddNotesClick = e => {
+    e.preventDefault()
+    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optNotes: " " } }))
+  }
   const onAddDurationClick = e => {
     e.preventDefault()
     dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optDuration: { hours: 0, minutes: 0 } } }))
   };
-  const onDurationChange = (time, timeString) => {
-
-    if (!timeString) {
-      dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optDuration: null } }))
-    }
+  const onAddTimeClick = e => {
+    e.preventDefault()
+    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optTime: { hour: 9, minute: 0 } } }))
   }
+  const onDeleteClick = e => {
+    e.preventDefault()
+    dispatch(removeAgendaTask({ articleId, removeId: taskId }))
+  }
+  const onDurationChange = (time, timeString) => {
+    let newDuration = null
+    if (time) {
+      newDuration = { hours: time.hours(), minutes: time.minute() }
+    }
+    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optDuration: newDuration } }))
+  }
+  const onTimeChange = (time, timeString) => {
+    let newTime = null
+    if (time) {
+      newTime = { hour: time.hour(), minute: time.minute() }
+    }
+    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optTime: newTime } }))
+  }
+
   const shape = "default"
   const type = "default"
   return (
     <div>
       <span>
-        <Text editable={{ onChange: onActivityTextChange }}>{activity.content}</Text>
+        <Input
+          style={{
+            minWidth: '20px',
+            maxWidth: '150px'
+          }}
+          onChange={onActivityTextChange} defaultValue={activity.content} />
+        {optNotes &&
+          <Text editable={{ onChange: onNotesTextChange }}>{optNotes}</Text>
+         }
         {optDuration &&
-          <TimePicker 
-            onChange={onDurationChange}
-            defaultValue={moment(optDuration.hours + ':' + optDuration.minutes, "HH:mm")}
-            format="HH\hr mm\min"
-            minuteStep={5}
-            placeholder="Select duration"
-            showNow={false}
-          />
+          <Tooltip title="Set duration">
+            <TimePicker
+              onChange={onDurationChange}
+              defaultValue={moment(optDuration.hours + ':' + optDuration.minutes, "HH:mm")}
+              format="HH\hr mm\min"
+              minuteStep={5}
+              placeholder="Select duration"
+              suffixIcon={<HourglassOutlined />}
+              showNow={false}
+            />
+          </Tooltip>
+        }
+        {optTime &&
+          <Tooltip title="Set time">
+            <TimePicker
+              onChange={onTimeChange}
+              defaultValue={moment(optTime.hour + ':' + optTime.minute, "h:mm")}
+              use12Hours={true}
+              minuteStep={5}
+              placeholder="Select time"
+              format="h:mm a"
+              suffixIcon={<ClockCircleOutlined />}
+              showNow={false}
+            />
+          </Tooltip>
         }
         <Divider type="vertical" />
+        {!optNotes &&
+          <Tooltip title="Add description">
+            <Button shape={shape} type={type} onClick={onAddNotesClick} size="small" icon={<MessageOutlined />} />
+          </Tooltip>}
         {!optDuration &&
           <Tooltip title="Add duration">
             <Button shape={shape} type={type} onClick={onAddDurationClick} size="small" icon={<HourglassOutlined />} />
           </Tooltip>}
         {!optTime &&
           <Tooltip title="Add time">
-            <Button shape={shape} type={type} size="small" icon={<ClockCircleOutlined />} />
+            <Button shape={shape} type={type} onClick={onAddTimeClick} size="small" icon={<ClockCircleOutlined />} />
           </Tooltip>}
-        {!optNotes &&
-          <Tooltip title="Add description">
-            <Button shape={shape} type={type} size="small" icon={<MessageOutlined />} />
-          </Tooltip>}
+        <Tooltip title="Delete task">
+          <Button shape={shape} type={type} onClick={onDeleteClick} size="small" icon={<DeleteOutlined />} />
+        </Tooltip>
       </span>
     </div>
   )

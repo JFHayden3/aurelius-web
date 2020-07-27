@@ -9,14 +9,14 @@ const dummyState = {
   articleSettings: {
     INTENTION: {
       title: "Intentions",
-      hintText: "blah blah blah intentions hint text",
+      hintText: "What kind of day would you like to have? When you're in bed tonight reflecting on the day, what will make you feel proud -- like the day was worth showing up for?",
       promptFrequency: "DAILY",
       ordering: 3,
       isUserCreated: false,
     },
     REFLECTION: {
       title: "Reflections",
-      hintText: "blah blah reflections hint text",
+      hintText: "How have things been going lately? Spend some time thinking about recent triumphs, troubles, concerns, etc",
       promptFrequency: "DAILY",
       ordering: 1,
       isUserCreated: false,
@@ -30,7 +30,7 @@ const dummyState = {
     },
     GRATITUDE: {
       title: "Gratitude",
-      hintText: "Blah blah some shit about gratitude",
+      hintText: "Anything happen recently that you'd like to express something positive about?s",
       promptFrequency: "DAILY",
       ordering: 5,
       isUserCreated: false,

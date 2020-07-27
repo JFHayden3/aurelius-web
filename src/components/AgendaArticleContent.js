@@ -21,6 +21,7 @@ export const AgendaArticleContent = ({ articleId }) => {
           , resize: "none"
           , fontFamily: "helvetica, sans-serif"
           , border: 0
+          , marginBottom: '16px'
         }}
         onChange={(e) =>
           dispatch(textUpdated({ articleId: articleId, text: e.target.value }))}

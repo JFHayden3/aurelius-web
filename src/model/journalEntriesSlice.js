@@ -83,7 +83,7 @@ export const syncDirtyEntries = createAsyncThunk(
 export function computeNextArticleId(state, forEntryId) {
   const entry = state.journalEntries.entities[forEntryId]
   return (!entry.articleIds || entry.articleIds.length === 0) 
-    ? Number.parseInt(forEntryId + "01")
+    ? Number.parseInt(forEntryId + "001")
     : Math.max.apply(null, entry.articleIds) + 1
 }
 
@@ -159,6 +159,11 @@ export const journalEntriesSlice = createSlice({
       dirtiedEntry.dirtiness = 'DIRTY'
     },
     'journalArticles/addAgendaTask': (state, action) => {
+      const { articleId } = action.payload
+      const dirtiedEntry = selectEntryByArticleId(state, articleId)
+      dirtiedEntry.dirtiness = 'DIRTY'
+    },
+    'journalArticles/removeAgendaTask': (state, action) => {
       const { articleId } = action.payload
       const dirtiedEntry = selectEntryByArticleId(state, articleId)
       dirtiedEntry.dirtiness = 'DIRTY'

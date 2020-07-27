@@ -51,7 +51,7 @@ export const JournalEntry = ({ entryId }) => {
         dataSource={articleIds}
         itemLayout="vertical"
         renderItem={articleId =>
-          <List.Item key={articleId} style={{ borderBottom: 'none' }}>
+          <List.Item key={articleId} style={{ borderBottom: 'none', paddingBottom: '6px', paddingTop: '6px' }}>
             <JournalArticle articleId={articleId} />
           </List.Item>
         }
