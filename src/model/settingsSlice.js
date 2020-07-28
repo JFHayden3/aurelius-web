@@ -30,7 +30,7 @@ const dummyState = {
     },
     GRATITUDE: {
       title: "Gratitude",
-      hintText: "Anything happen recently that you'd like to express something positive about?s",
+      hintText: "Anything happen recently that you'd like to express something positive about?",
       promptFrequency: "DAILY",
       ordering: 5,
       isUserCreated: false,

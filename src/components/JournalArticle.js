@@ -4,14 +4,13 @@
 // Depending on the type of the article, will render the appropriate
 // *ArticleContent defined below.
 
-import React, { Component } from 'react'
+import React from 'react'
 import { AgendaArticleContent } from './AgendaArticleContent'
 import { selectArticleById, removeArticle } from '../model/journalArticlesSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { Button, Divider } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons';
 import { WrittenArticleContent } from './WrittenArticleContent'
-
 
 export const JournalArticle = ({ articleId }) => {
   const article = useSelector((state) => selectArticleById(state, articleId))

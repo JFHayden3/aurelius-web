@@ -6,6 +6,7 @@ import { JournalArticle } from './JournalArticle'
 import { List, Divider, Dropdown, Button, Menu } from 'antd';
 import { selectEntryById, computeNextArticleId } from '../model/journalEntriesSlice'
 import { addArticle, selectArticleById } from '../model/journalArticlesSlice'
+import { PlusOutlined } from '@ant-design/icons';
 import { selectAllArticleSettings, selectArticleSettingByArticleKind } from '../model/settingsSlice'
 import { useSelector, useStore, useDispatch } from 'react-redux'
 import { apiDateToFe } from "../kitchenSink"
@@ -58,7 +59,7 @@ export const JournalEntry = ({ entryId }) => {
       >
       </List>
       <Dropdown overlay={menu} trigger={['click']}>
-        <Button block size="large" type="dashed">Add Section</Button>
+        <Button block size="large" type="dashed"><PlusOutlined/>Add Section</Button>
       </Dropdown>
     </div>
   )

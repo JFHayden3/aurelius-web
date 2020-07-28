@@ -1,14 +1,22 @@
 import React, { Component } from 'react'
 import { Provider } from 'react-redux'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  Redirect,
+} from 'react-router-dom'
 import store from '../configureStore'
-import JournalApp from './JournalApp'
 import { Layout, Menu } from 'antd';
 import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId } from "../model/journalEntriesSlice";
 import { addArticle } from "../model/journalArticlesSlice";
 import { getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 
 import 'antd/dist/antd.css';
-import ActionButton from 'antd/lib/modal/ActionButton';
+import { LifeJournal } from '../components/LifeJournal'
+import { ViceBank } from '../components/ViceBank'
+import { ViceEditor } from '../components/ViceEditor'
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -119,35 +127,41 @@ export default class Root extends Component {
   render() {
     return (
       <Provider store={store}>
-        <Layout style={{ minHeight: '100vh' }}>
-          <Sider style={{
-            overflow: 'auto',
-            height: '100vh',
-            position: 'fixed',
-            left: 0,
-          }}>
-            <div className="logo" />
-            <Menu defaultSelectedKeys={["journal"]} mode="inline">
-              <Menu.Item key="journal">
-                Journal
-              </Menu.Item>
-              <Menu.Item key="vices">
-                Vices
-              </Menu.Item>
-              <Menu.Item key="virtues">
-                Virtues
-              </Menu.Item>
-            </Menu>
-          </Sider>
-          <Layout className="site-layout" style={{ marginLeft: '200px' }}>
-            <Content style={{ margin: '0 16px' }}>
-              <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
-                <JournalApp />
-              </div>
-            </Content>
-            <Footer style={{ textAlign: 'center' }}>Aurelius ©2020 Created by Two Carls LLC</Footer>
+        <Router>
+          <Layout style={{ minHeight: '100vh' }}>
+            <Sider style={{
+              overflow: 'auto',
+              height: '100vh',
+              position: 'fixed',
+              left: 0,
+            }}>
+              <div className="logo" />
+              <Menu defaultSelectedKeys={["journal"]} mode="inline">
+                <Menu.Item key="journal" >
+                  <Link to={`/journal`}>Journal</Link>
+                </Menu.Item>
+                <Menu.Item key="vices">
+                  <Link to={`/vices`}>Vices</Link>
+                </Menu.Item>
+                <Menu.Item key="virtues">
+                  <Link to={`/virtues`}>Virtues</Link>
+                </Menu.Item>
+              </Menu>
+            </Sider>
+            <Layout className="site-layout" style={{ marginLeft: '200px' }}>
+              <Content style={{ margin: '0 16px' }}>
+                <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
+                  <Switch>
+                    <Route exact path="/journal" component={LifeJournal} />
+                    <Route exact path="/vices" component={ViceBank} />
+                    <Route exact path="/vices/edit/:viceId" component={ViceEditor}/>
+                  </Switch>
+                </div>
+              </Content>
+              <Footer style={{ textAlign: 'center' }}>Aurelius ©2020 Created by Two Carls LLC</Footer>
+            </Layout>
           </Layout>
-        </Layout>
+        </Router>
       </Provider>
     )
   }
