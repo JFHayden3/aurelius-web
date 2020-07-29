@@ -50,7 +50,7 @@ export const ViceBank = () => {
     history.push(`/vices/edit/${newViceId}`)
   }
   return (
-    <div>
+    <div style={{margin:16}}>
       <div style={{ gridTemplateColumns: 'repeat(auto-fill, 250px)', display: 'grid' }}>
         {vices.map(viceId =>
           <div key={viceId} style={{ margin: '4px' }}>

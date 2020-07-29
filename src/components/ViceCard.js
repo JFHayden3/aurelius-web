@@ -1,7 +1,7 @@
 import React from 'react'
 import { selectViceById } from '../model/viceSlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { Typography, List } from 'antd';
+import { Typography, List, Row, Col } from 'antd';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -15,24 +15,21 @@ export const ViceCard = ({ viceId }) => {
       borderRadius: '6px',
       padding: '4px',
       background: '#fbdfe1',
-      maxHeight: '140px', 
+      height: '140px',
       overflow: 'hidden'
     }}>
-      <Title level={3} >
-        {vice.name}
-      </Title>
-      <Text code={true}>{vice.refTag}</Text>
-
-      <Paragraph>{vice.description}</Paragraph>
-      <Paragraph>{vice.defaultEngagementRestriction}</Paragraph>
-      <Paragraph>{vice.negativeImpactDescription}</Paragraph>
-      <Paragraph>{vice.seductionDescription}</Paragraph>
-      <List dataSource={vice.mitigationTactics}
-        itemLayout="vertical"
-        renderItem={tactic =>
-          <Text>{tactic}</Text>
-        }>
-      </List>
+      <Row>
+        <Col>
+          <Title level={3} >
+            {vice.name}
+          </Title>
+        </Col>
+        <Col flex="auto">
+          <Text style={{float:"right"}} code={true}>{vice.refTag}</Text>
+        </Col>
+      </Row>
+      <Paragraph ellipsis={{rows:3}}>{vice.description}</Paragraph>
+     
     </div>
   )
 }

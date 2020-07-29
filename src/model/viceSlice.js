@@ -17,8 +17,8 @@ const dummyState =
     negativeImpactDescription: "A brief distraction that opens a gateway to worse and makes it difficult to get anything done. Shortens my attention span in a way that's hard to recover from",
     seductionDescription: "Usually just an automatic reflex after opening the phone. Sometimes it's in response to a major news event",
     mitigationTactics: [
-      "Keep phone away during day",
-      "Delete account",
+      { id: 1, text: "Keep phone away during day" },
+      { id: 2, text: "Delete account" },
     ]
   },
   2: {
@@ -30,9 +30,9 @@ const dummyState =
     negativeImpactDescription: "I've lost countless days to falling down youtube holes. Also makes me weird and unable to carry on normal conversations because I have all this fragmentary knowledge",
     seductionDescription: "Usually happens because I'm unwilling to seriouslly commit to any particular activity for a serious length of time.",
     mitigationTactics: [
-      "Getting rid of youtube premium",
-      "Deleting youtube mobile app",
-      "Being more mindful of how I spend my free time -- deciding ahead of time"
+      { id: 1, text: "Getting rid of youtube premium" },
+      { id: 2, text: "Deleting youtube mobile app" },
+      { id: 3, text: "Being more mindful of how I spend my free time -- deciding ahead of time" }
     ]
   },
   3: {
@@ -44,10 +44,10 @@ const dummyState =
     negativeImpactDescription: "Sort of a combination of the negatives of youtube and news media: kills my attention span, wastes non-trivial amounts of time, and fills my brain with useless fagmentary knowledge I can't talk about",
     seductionDescription: "Easy compulsion to fall into when I can't think of anything better to do with my time",
     mitigationTactics: [
-      "Deleting the reddit app",
-      "Signing out on the browser",
-      "Blocking the website",
-      "Screen-time monitoring on my phone"
+      { id: 1, text: "Deleting the reddit app" },
+      { id: 2, text: "Signing out on the browser" },
+      { id: 3, text: "Blocking the website" },
+      { id: 4, text: "Screen-time monitoring on my phone" },
     ]
   },
 }
@@ -78,11 +78,16 @@ export const viceSlice = createSlice({
       }
       vicesAdapter.upsertOne(state, newVice)
     },
+    updateVice(state, action) {
+      const { viceId, changedFields } = action.payload
+      const vice = state.entities[viceId]
+      Object.entries(changedFields).forEach(([field, value]) => vice[field] = value)
+    },
   },
   extraReducers: {}
 })
 
-export const { createNewVice } = viceSlice.actions
+export const { createNewVice, updateVice } = viceSlice.actions
 
 export default viceSlice.reducer
 

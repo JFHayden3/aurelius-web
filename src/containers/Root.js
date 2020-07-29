@@ -134,9 +134,10 @@ export default class Root extends Component {
               height: '100vh',
               position: 'fixed',
               left: 0,
-            }}>
+            }}
+            theme="light">
               <div className="logo" />
-              <Menu defaultSelectedKeys={["journal"]} mode="inline">
+              <Menu  defaultSelectedKeys={["journal"]} mode="inline">
                 <Menu.Item key="journal" >
                   <Link to={`/journal`}>Journal</Link>
                 </Menu.Item>
@@ -148,9 +149,9 @@ export default class Root extends Component {
                 </Menu.Item>
               </Menu>
             </Sider>
-            <Layout className="site-layout" style={{ marginLeft: '200px' }}>
-              <Content style={{ margin: '0 16px' }}>
-                <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
+            <Layout theme="light" className="site-layout" style={{ marginLeft: '200px' }}>
+              <Content>
+                <div className="site-layout-background" style={{  minHeight: 360 }}>
                   <Switch>
                     <Route exact path="/journal" component={LifeJournal} />
                     <Route exact path="/vices" component={ViceBank} />
