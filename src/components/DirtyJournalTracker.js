@@ -4,7 +4,7 @@
 import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusCircleOutlined } from '@ant-design/icons';
 
-import { selectDirtyEntries, dispatchSyncDirtyEntitiesWithDelay, selectByDirtiness } from '../model/journalEntriesSlice'
+import { selectDirtyEntries, selectByDirtiness } from '../model/journalEntriesSlice'
 import React, { Component } from 'react'
 
 export const DirtyJournalTracker = () => {
@@ -14,7 +14,7 @@ export const DirtyJournalTracker = () => {
   const isDirty = dirtyEntries.length > 0
   const isSaving = useSelector((state)=>selectByDirtiness(state,'SAVING')).length > 0
   if (isDirty) {
-    dispatchSyncDirtyEntitiesWithDelay()(useThunkDispatch, getState)
+    //dispatchSyncDirtyEntitiesWithDelay()(useThunkDispatch, getState)
   }
   return (
     <div>

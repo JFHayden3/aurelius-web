@@ -1,7 +1,8 @@
 import React from 'react'
 import { selectViceById, updateVice } from '../model/viceSlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons'
+import { DirtyViceTracker } from './DirtyViceTracker'
 import { Typography, List, Row, Col, Input, Button } from 'antd';
 
 const { TextArea } = Input
@@ -32,7 +33,7 @@ export const ViceEditor = ({ match }) => {
 
   const onAddTacticClick = e => {
     const newId = vice.mitigationTactics.length > 0 ?
-      Math.max.apply(null, Object.keys(vice.mitigationTactics)) + 1
+      (Math.max.apply(null, vice.mitigationTactics.map(mt => mt.id)) + 1)
       : 0
     const newTactics = vice.mitigationTactics.concat({ id: newId, text: "" })
     dispatch(updateVice({ viceId, changedFields: { mitigationTactics: newTactics } }))
@@ -56,9 +57,10 @@ export const ViceEditor = ({ match }) => {
     )
   }
   return (
-    <div style={{margin:16}}>
+    <div style={{ margin: 16 }}>
       <Row >
         <Title level={2}>{vice.name}</Title>
+        <DirtyViceTracker viceId={viceId}/>
       </Row>
       <Row gutter={gutter}>
         <Col>
@@ -99,7 +101,7 @@ export const ViceEditor = ({ match }) => {
             style={{ backgroundColor: '#fff' }}
             renderItem={tactic =>
               <List.Item key={tactic.id}>
-                <Text editable={{onChange:onTacticTextChange(tactic.id)}}>{tactic.text}</Text>
+                <Text editable={{ onChange: onTacticTextChange(tactic.id) }}>{tactic.text}</Text>
               </List.Item>
             } >
             <List.Item>

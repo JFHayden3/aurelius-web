@@ -1,8 +1,9 @@
 import React from 'react'
 import { selectViceById } from '../model/viceSlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { Typography, List, Row, Col } from 'antd';
-
+import { Typography, List, Row, Col, Button } from 'antd';
+import { EditOutlined } from '@ant-design/icons';
+import { Link } from 'react-router-dom'
 const { Title, Text, Paragraph } = Typography;
 
 export const ViceCard = ({ viceId }) => {
@@ -25,11 +26,14 @@ export const ViceCard = ({ viceId }) => {
           </Title>
         </Col>
         <Col flex="auto">
-          <Text style={{float:"right"}} code={true}>{vice.refTag}</Text>
+          <Button style={{ float: "right" }} type="text">
+            <Link to={`/vices/edit/${viceId}`}><EditOutlined /></Link>
+          </Button>
         </Col>
       </Row>
-      <Paragraph ellipsis={{rows:3}}>{vice.description}</Paragraph>
-     
+      <Text  code={true}>{vice.refTag}</Text>
+      <Paragraph ellipsis={{ rows: 3 }}>{vice.description}</Paragraph>
+
     </div>
   )
 }

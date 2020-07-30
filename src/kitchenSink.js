@@ -19,6 +19,8 @@ export function apiDateToFe(apiDate) {
     .toLocaleDateString("en-US", options)
 }
 
+export const apiUrl = "https://mjsjd63379.execute-api.us-east-1.amazonaws.com/dev"
+
 /**
  * Allows two numbers to be compared in a sort operation. If a > b returns positive;
  * if a < b returns negative; otherwise returns 0. I can't believe I have to write this

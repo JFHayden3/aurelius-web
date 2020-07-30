@@ -9,8 +9,9 @@ import {
 } from 'react-router-dom'
 import store from '../configureStore'
 import { Layout, Menu } from 'antd';
-import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId } from "../model/journalEntriesSlice";
+import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId, syncDirtyEntries } from "../model/journalEntriesSlice";
 import { addArticle } from "../model/journalArticlesSlice";
+import { fetchVices, syncDirtyVices } from "../model/viceSlice"
 import { getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 
 import 'antd/dist/antd.css';
@@ -19,72 +20,6 @@ import { ViceBank } from '../components/ViceBank'
 import { ViceEditor } from '../components/ViceEditor'
 
 const { Header, Content, Footer, Sider } = Layout;
-
-const dummyState = {
-  entries: [
-    {
-      date: new Date(Date.now()),
-      articles: [
-        {
-          id: 1,
-          kind: 'REFLECTION',
-          title: 'Reflections',
-          content: {
-            hint: "How have things been going?",
-            text: "Blah, blah, dildoes"
-          }
-        },
-        {
-          id: 2,
-          kind: 'INTENTION',
-          title: 'Intentions',
-          content: {
-            hint: "What would you like to make out of this day?",
-            text: "Blah, blah, want to do important stuff"
-          }
-        },
-        {
-          id: 3,
-          kind: 'AGENDA',
-          title: 'Agenda',
-          content: {
-            vow: "In order to step closer to my potential I vow to do the following today",
-            items: [
-              {
-                id: 1,
-                activity: {
-                  kind: "GROWTH",
-                  content: "#growth-activity1"
-                },
-                optDuration: {},
-                optTime: {},
-                optNotes: "Some special notes about growth activity 1"
-              },
-              {
-                id: 2,
-                activity: {
-                  kind: "CUSTOM",
-                  content: "Pick up the mail"
-                },
-                optDuration: {},
-                optTime: {},
-                optNotes: "details about picking up mail"
-              },
-            ]
-          }
-        },
-      ]
-    },
-    {
-      date: new Date(Date.parse("2020-10-30")),
-      articles: []
-    },
-    {
-      date: new Date(Date.parse("2020-10-28")),
-      articles: []
-    }
-  ]
-}
 
 function todayAsYyyyMmDd() {
   const now = new Date(Date.now())
@@ -96,6 +31,7 @@ function todayAsYyyyMmDd() {
 }
 
 // TODO this logic should probably be moved into a dedicated start-up coordinator 
+store.dispatch(fetchVices({ user: 'testUser'}))
 store.dispatch(
   fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
   .then((action) => {
@@ -123,6 +59,11 @@ store.dispatch(
     }
   })
 
+setInterval(() => {
+  store.dispatch(syncDirtyEntries())
+  store.dispatch(syncDirtyVices())
+}, 2500)
+
 export default class Root extends Component {
   render() {
     return (
@@ -135,9 +76,9 @@ export default class Root extends Component {
               position: 'fixed',
               left: 0,
             }}
-            theme="light">
+              theme="light">
               <div className="logo" />
-              <Menu  defaultSelectedKeys={["journal"]} mode="inline">
+              <Menu defaultSelectedKeys={["journal"]} mode="inline">
                 <Menu.Item key="journal" >
                   <Link to={`/journal`}>Journal</Link>
                 </Menu.Item>
@@ -151,11 +92,11 @@ export default class Root extends Component {
             </Sider>
             <Layout theme="light" className="site-layout" style={{ marginLeft: '200px' }}>
               <Content>
-                <div className="site-layout-background" style={{  minHeight: 360 }}>
+                <div className="site-layout-background" style={{ minHeight: 360 }}>
                   <Switch>
                     <Route exact path="/journal" component={LifeJournal} />
                     <Route exact path="/vices" component={ViceBank} />
-                    <Route exact path="/vices/edit/:viceId" component={ViceEditor}/>
+                    <Route exact path="/vices/edit/:viceId" component={ViceEditor} />
                   </Switch>
                 </div>
               </Content>
