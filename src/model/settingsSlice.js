@@ -6,6 +6,24 @@ import {
 
 const dummyState = {
   // Also defines set of available article kinds
+  savedViceRestrictions: {
+    NONE: {
+      displayName:"Unrestricted",
+      isUserCreated:false,
+      spec: []
+    },
+    FORBIDDEN: {
+      displayName:"Forbidden",
+      isUserCreated:false,
+      spec: [
+        {
+          restriction:"Total abstinence",
+          appliesOn:[0, 1, 2, 3, 4, 5, 6],
+          notes:""
+        }
+      ]
+    },
+  },
   articleSettings: {
     INTENTION: {
       title: "Intentions",
@@ -78,4 +96,8 @@ export function selectArticleSettingByArticleKind(state, articleKind) {
 
 export function selectAllArticleSettings(state) {
   return state.settings.articleSettings
+}
+
+export function selectViceRestrictions(state) {
+  return state.settings.savedViceRestrictions
 }
