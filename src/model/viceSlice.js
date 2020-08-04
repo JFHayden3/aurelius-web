@@ -137,8 +137,7 @@ export const viceSlice = createSlice({
         refTag: tag,
         description: "",
         defaultEngagementRestriction: {
-          kind: "NONE", // If anything but CUSTOM, look for specs in settings
-          specs: [],
+          kind: 0, 
         },
         negativeImpactDescription: "",
         seductionDescription: "",

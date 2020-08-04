@@ -12,7 +12,7 @@ import { Layout, Menu } from 'antd';
 import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId, syncDirtyEntries } from "../model/journalEntriesSlice";
 import { addArticle } from "../model/journalArticlesSlice";
 import { fetchVices, syncDirtyVices } from "../model/viceSlice"
-import { getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
+import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 
 import 'antd/dist/antd.css';
 import { LifeJournal } from '../components/LifeJournal'
@@ -23,22 +23,33 @@ const { Header, Content, Footer, Sider } = Layout;
 
 function todayAsYyyyMmDd() {
   const now = new Date(Date.now())
+  function makeNumTwoDigit(num) {
+    return num < 10 ? "0" + num : num.toString()
+  }
   function monthStr(date) {
     const monthNum = date.getMonth() + 1
-    return monthNum < 10 ? "0" + monthNum : monthNum.toString()
+    return makeNumTwoDigit(monthNum)
   }
-  return Number.parseInt("" + now.getFullYear() + monthStr(now) + now.getDate())
+  return Number.parseInt("" + now.getFullYear() + monthStr(now) + makeNumTwoDigit(now.getDate()))
 }
 
 // TODO this logic should probably be moved into a dedicated start-up coordinator 
-store.dispatch(fetchVices({ user: 'testUser'}))
-store.dispatch(
+// TODO: I need a piece of state referenced at the root level that prevents *any* rendering
+// from taking place until all init fetches have completed successfully. Have race conditions
+// that can break the UI currently
+
+const doFetchSettings = store.dispatch(fetchSettings({ user: 'testUser' }))
+const doFetchJournalEntries = store.dispatch(
   fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
+Promise.allSettled([doFetchSettings, doFetchJournalEntries])
   .then((action) => {
     if (action.error) {
       // TODO retry and/or put the UI into an error state
       console.log("\n\nINITIAL FETCH FAILED\n\n")
     } else {
+      // TODO see note above about root level reference. Right now this is less efficient 
+      // than it could be as we only depend on settings being present for the render.
+      store.dispatch(fetchVices({ user: 'testUser' }))
       const payload = { dateId: todayAsYyyyMmDd() }
       if (!selectEntryById(store.getState(), payload.dateId)) {
         store.dispatch(createNewEntry(payload))
@@ -53,8 +64,7 @@ store.dispatch(
                 articleKind,
                 articleSettings
               }))
-          }
-          )
+          })
       }
     }
   })
