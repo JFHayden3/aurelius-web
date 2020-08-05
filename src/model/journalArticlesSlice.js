@@ -26,6 +26,7 @@ export const journalArticlesSlice = createSlice({
       }
       if (articleKind === 'AGENDA') {
         newArticle.content.tasks = []
+        newArticle.content.restrictions = []
       } else {
         newArticle.content.text = ""
       }
@@ -64,6 +65,31 @@ export const journalArticlesSlice = createSlice({
       const agendaArticle = state.entities[articleId]
       const taskToUpdate = agendaArticle.content.tasks.find(task => task.id === taskId)
       Object.entries(changedFields).forEach(([field, value]) => taskToUpdate[field] = value)
+    },
+    addAgendaRestriction(state, action) {
+      const { articleId } = action.payload
+      const agendaArticle = state.entities[articleId]
+      const newId = agendaArticle.content.restrictions.length > 0 ?
+        Math.max.apply(null, agendaArticle.content.restrictions.map(r => r.id)) + 1
+        : 0
+      const newRestriction = {
+        id: newId,
+        restriction: "",
+        activities: [""],
+        optNote: null
+      }
+      agendaArticle.content.restrictions.push(newRestriction)
+    },
+    removeAgendaRestriction(state, action) {
+      const { articleId, removeId } = action.payload
+      const agendaArticle = state.entities[articleId]
+      agendaArticle.content.restrictions = agendaArticle.content.restrictions.filter(r => r.id != removeId)
+    },
+    updateAgendaRestriction(state, action) {
+      const { articleId, restrictionId, changedFields } = action.payload
+      const agendaArticle = state.entities[articleId]
+      const restrictionToUpdate = agendaArticle.content.restrictions.find(r => r.id === restrictionId)
+      Object.entries(changedFields).forEach(([field, value]) => restrictionToUpdate[field] = value)
     }
   },
   extraReducers: {
@@ -77,7 +103,15 @@ export const journalArticlesSlice = createSlice({
   }
 })
 
-export const { textUpdated, createDefaultArticles, addArticle, removeArticle, addAgendaTask, removeAgendaTask, updateAgendaTask } = journalArticlesSlice.actions
+export const { textUpdated,
+  addArticle,
+  removeArticle,
+  addAgendaTask,
+  removeAgendaTask,
+  updateAgendaTask,
+  addAgendaRestriction,
+  removeAgendaRestriction,
+  updateAgendaRestriction } = journalArticlesSlice.actions
 
 export default journalArticlesSlice.reducer
 
@@ -97,4 +131,9 @@ export const selectArticlesByDate = createSelector(
 export const selectTaskById = createSelector(
   [selectArticleById, (state, articleId, taskId) => (articleId, taskId)],
   (article, taskId) => article.content.tasks.find(task => task.id === taskId)
+)
+
+export const selectRestrictionById = createSelector(
+  [selectArticleById, (state, articleId, restrictionId) => (articleId, restrictionId)],
+  (article, restrictionId) => article.content.restrictions.find(r => r.id === restrictionId)
 )

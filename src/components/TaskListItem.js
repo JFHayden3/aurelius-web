@@ -6,7 +6,6 @@ import React from 'react'
 import { Typography, Button, Tooltip, Divider, TimePicker, Select, AutoComplete, Input } from 'antd';
 import { ClockCircleOutlined, HourglassOutlined, MessageOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux'
-import TaskEditor from './TaskEditor'
 import moment from 'moment';
 import { selectTaskById, updateAgendaTask, removeAgendaTask } from '../model/journalArticlesSlice'
 const { Text } = Typography;

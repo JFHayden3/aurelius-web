@@ -4,13 +4,9 @@ import { ViceCard } from './ViceCard'
 import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons';
 import { useHistory } from 'react-router-dom'
-
-
 import { Affix, Button, Tooltip, Modal, Form, Input, Typography } from 'antd';
+
 const { Text } = Typography
-//<Link to={`/vices/createNew`} >
-//              <PlusOutlined />
-//            </Link>
 
 export const ViceBank = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false)

@@ -189,3 +189,8 @@ export const {
   selectIds: selectViceIds
   // Pass in a selector that returns the posts slice of state
 } = vicesAdapter.getSelectors(state => state.vices)
+
+export const selectViceByRefTag = createSelector(
+  [selectAllVices, (state, refTag) => refTag],
+  (vices, refTag) => vices.find(v => v.refTag === refTag)
+)
