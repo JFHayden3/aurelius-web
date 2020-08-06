@@ -13,22 +13,12 @@ export const journalArticlesSlice = createSlice({
   initialState,
   reducers: {
     addArticle(state, action) {
-      const { entryId, articleId, articleKind, articleSettings } = action.payload
+      const { entryId, articleId, articleKind, articleTitle, defaultContent } = action.payload
       const newArticle = {
         id: articleId,
         kind: articleKind,
-        title: articleSettings.title,
-        // TODO: eventually need to be smarter about non-text article content creation
-        // and reading from settings
-        content: {
-          hint: articleSettings.hintText,
-        },
-      }
-      if (articleKind === 'AGENDA') {
-        newArticle.content.tasks = []
-        newArticle.content.restrictions = []
-      } else {
-        newArticle.content.text = ""
+        title: articleTitle,
+        content: defaultContent 
       }
       articlesAdapter.upsertOne(state, newArticle)
     },

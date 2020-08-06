@@ -13,7 +13,7 @@ import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId, sy
 import { addArticle } from "../model/journalArticlesSlice";
 import { fetchVices, syncDirtyVices } from "../model/viceSlice"
 import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
-
+import { getStartingContent } from '../model/newArticleStartingContentArbiter'
 import 'antd/dist/antd.css';
 import { LifeJournal } from '../components/LifeJournal'
 import { ViceBank } from '../components/ViceBank'
@@ -41,7 +41,9 @@ function todayAsYyyyMmDd() {
 const doFetchSettings = store.dispatch(fetchSettings({ user: 'testUser' }))
 const doFetchJournalEntries = store.dispatch(
   fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
-Promise.allSettled([doFetchSettings, doFetchJournalEntries])
+const doFetchVices = store.dispatch(fetchVices({ user: 'testUser' }))
+
+Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices])
   .then((action) => {
     if (action.error) {
       // TODO retry and/or put the UI into an error state
@@ -49,20 +51,22 @@ Promise.allSettled([doFetchSettings, doFetchJournalEntries])
     } else {
       // TODO see note above about root level reference. Right now this is less efficient 
       // than it could be as we only depend on settings being present for the render.
-      store.dispatch(fetchVices({ user: 'testUser' }))
       const payload = { dateId: todayAsYyyyMmDd() }
       if (!selectEntryById(store.getState(), payload.dateId)) {
         store.dispatch(createNewEntry(payload))
         getDefaultArticleKindsForToday(store.getState())
           .forEach((articleKind) => {
-            const nextArticleId = computeNextArticleId(store.getState(), payload.dateId)
-            const articleSettings = selectArticleSettingByArticleKind(store.getState(), articleKind)
+            const state = store.getState()
+            const nextArticleId = computeNextArticleId(state, payload.dateId)
+            const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
+            const defaultContent = getStartingContent(articleKind, state)
             store.dispatch(addArticle(
               {
                 entryId: payload.dateId,
                 articleId: nextArticleId,
                 articleKind,
-                articleSettings
+                articleTitle,
+                defaultContent,
               }))
           })
       }

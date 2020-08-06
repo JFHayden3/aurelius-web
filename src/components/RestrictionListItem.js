@@ -11,14 +11,17 @@ const { Option } = Select
 
 export const RestrictionListItem = ({ articleId, restrictionId }) => {
   const dispatch = useDispatch()
-  const restriction = useSelector((state) => selectRestrictionById(state, articleId, restrictionId))
-  const { restrictionText, activities, optNote } = restriction
+  const activityRestriction = useSelector((state) => selectRestrictionById(state, articleId, restrictionId))
+  const { restriction, activities, optNote } = activityRestriction
   const allVices = useSelector(selectAllVices)
-  const onActivityTextChange = e => {
-    //dispatch(updateAgendaRestriction({ articleId, restrictionId, changedFields: { activity: { content: e.target.value } } }))
+  const onActivitySelectionChange = val => {
+    dispatch(updateAgendaRestriction({ articleId, restrictionId, changedFields: { activities: val } }))
   };
   const onNotesTextChange = str => {
     dispatch(updateAgendaRestriction({ articleId, restrictionId, changedFields: { optNote: str } }))
+  }
+  const onRestrictionChange = str => {
+    dispatch(updateAgendaRestriction({ articleId, restrictionId, changedFields: { restriction: str } }))
   }
   const onAddNotesClick = e => {
     e.preventDefault()
@@ -32,26 +35,28 @@ export const RestrictionListItem = ({ articleId, restrictionId }) => {
 
   const shape = "default"
   const type = "default"
-  return (
+  return (    
     <div>
       <span>
         <Select
           mode="tags"
-          onChange={onActivityTextChange} defaultValue={null} >
+          style={{ minWidth: "250px" }}
+          onChange={onActivitySelectionChange} defaultValue={activities} >
           {allVices.map(vice =>
             <Option key={vice.refTag}>{vice.name}</Option>
           )}
         </Select>
+        <Text editable={{onChange: onRestrictionChange}}>{restriction}</Text>
+
         {optNote &&
           <Text editable={{ onChange: onNotesTextChange }}>{optNote}</Text>
         }
-
         <Divider type="vertical" />
         {!optNote &&
           <Tooltip title="Add description">
             <Button shape={shape} type={type} onClick={onAddNotesClick} size="small" icon={<MessageOutlined />} />
           </Tooltip>}
-        
+
         <Tooltip title="Delete restriction">
           <Button shape={shape} type={type} onClick={onDeleteClick} size="small" icon={<DeleteOutlined />} />
         </Tooltip>

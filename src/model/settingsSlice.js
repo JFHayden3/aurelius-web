@@ -69,7 +69,7 @@ export function computeNewSavedViceRestrictionId(state) {
   const numericalKeys = Object.keys(state.settings.savedViceRestrictions)
     .map(viceKey => Number.parseInt(viceKey))
     .filter(e => e)
-  return Math.max.apply(null, numericalKeys) + 1
+  return "" + Math.max.apply(null, numericalKeys) + 1
 }
 
 function convertApiToFe(apiItems) {
@@ -187,6 +187,11 @@ export function selectArticleSettingByArticleKind(state, articleKind) {
 }
 
 export function selectAllArticleSettings(state) {
+  // TODO: better init logic. This shoudln't be necessary and its probably dangerous
+  if (!state.settings.articleSettings) {
+    console.error("BLAH REMEMBER TO FIX THIS")
+    return {}
+  }
   return state.settings.articleSettings
 }
 

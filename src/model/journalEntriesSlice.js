@@ -150,28 +150,21 @@ export const journalEntriesSlice = createSlice({
       entry.articleIds = entry.articleIds.filter(id => id != articleId)
       entry.dirtiness = 'DIRTY'
     },
-    'journalArticles/textUpdated': (state, action) => {
-      const { articleId } = action.payload
-      const dirtiedEntry = selectEntryByArticleId(state, articleId)
-      dirtiedEntry.dirtiness = 'DIRTY'
-    },
-    'journalArticles/addAgendaTask': (state, action) => {
-      const { articleId } = action.payload
-      const dirtiedEntry = selectEntryByArticleId(state, articleId)
-      dirtiedEntry.dirtiness = 'DIRTY'
-    },
-    'journalArticles/removeAgendaTask': (state, action) => {
-      const { articleId } = action.payload
-      const dirtiedEntry = selectEntryByArticleId(state, articleId)
-      dirtiedEntry.dirtiness = 'DIRTY'
-    },
-    'journalArticles/updateAgendaTask': (state, action) => {
-      const { articleId } = action.payload
-      const dirtiedEntry = selectEntryByArticleId(state, articleId)
-      dirtiedEntry.dirtiness = 'DIRTY'
-    }
+    'journalArticles/textUpdated': makeDirtyByArticleId,
+    'journalArticles/addAgendaTask': makeDirtyByArticleId,
+    'journalArticles/removeAgendaTask': makeDirtyByArticleId,
+    'journalArticles/updateAgendaTask': makeDirtyByArticleId,
+    'journalArticles/addAgendaRestriction': makeDirtyByArticleId,
+    'journalArticles/removeAgendaRestriction': makeDirtyByArticleId,
+    'journalArticles/updateAgendaRestriction': makeDirtyByArticleId,
   },
 })
+
+function makeDirtyByArticleId(state, action) {
+  const { articleId } = action.payload
+  const dirtiedEntry = selectEntryByArticleId(state, articleId)
+  dirtiedEntry.dirtiness = 'DIRTY'
+}
 
 function selectEntryByArticleId(state, articleId) {
   // PERFNOTE: This could be made much more efficient by creating a back reference

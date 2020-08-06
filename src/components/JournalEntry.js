@@ -6,6 +6,7 @@ import { JournalArticle } from './JournalArticle'
 import { List, Divider, Dropdown, Button, Menu } from 'antd';
 import { selectEntryById, computeNextArticleId } from '../model/journalEntriesSlice'
 import { addArticle, selectArticleById } from '../model/journalArticlesSlice'
+import { getStartingContent } from '../model/newArticleStartingContentArbiter'
 import { PlusOutlined } from '@ant-design/icons';
 import { selectAllArticleSettings, selectArticleSettingByArticleKind } from '../model/settingsSlice'
 import { useSelector, useStore, useDispatch } from 'react-redux'
@@ -19,13 +20,16 @@ export const JournalEntry = ({ entryId }) => {
   const store = useStore()
   function handleAddArticleClick(e) {
     const articleKind = e.key
-    const articleSettings = selectArticleSettingByArticleKind(store.getState(), articleKind)
-    const articleId = computeNextArticleId(store.getState(), entryId)
+    const state = store.getState()
+    const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
+    const articleId = computeNextArticleId(state, entryId)
+    const defaultContent = getStartingContent(articleKind, state)
     const payload = {
       entryId
       , articleId
       , articleKind
-      , articleSettings
+      , articleTitle
+      , defaultContent
     }
     dispatch(addArticle(payload))
   }

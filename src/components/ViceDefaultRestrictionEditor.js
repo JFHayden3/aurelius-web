@@ -28,7 +28,7 @@ export const ViceDefaultRestrictionEditor = ({ vice }) => {
       viceId: vice.id,
       changedFields: {
         // reset to default
-        defaultEngagementRestriction: { kind: 0 }
+        defaultEngagementRestriction: { kind: "0" }
       },
     }))
     return (<div></div>)
