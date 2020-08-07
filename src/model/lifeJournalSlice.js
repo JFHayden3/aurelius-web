@@ -10,6 +10,4 @@ export const lifeJournalSlice = createSlice({
   }
 })
 
-//export const { increment, decrement, incrementByAmount } = counterSlice.actions
-
 export default lifeJournalSlice.reducer

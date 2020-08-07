@@ -19,6 +19,17 @@ export function apiDateToFe(apiDate) {
     .toLocaleDateString("en-US", options)
 }
 
+export function dateAsYyyyMmDd(date) {
+  function makeNumTwoDigit(num) {
+    return num < 10 ? "0" + num : num.toString()
+  }
+  function monthStr(date) {
+    const monthNum = date.getMonth() + 1
+    return makeNumTwoDigit(monthNum)
+  }
+  return Number.parseInt("" + date.getFullYear() + monthStr(date) + makeNumTwoDigit(date.getDate()))
+}
+
 export const apiUrl = "https://mjsjd63379.execute-api.us-east-1.amazonaws.com/dev"
 
 /**

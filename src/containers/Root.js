@@ -9,6 +9,7 @@ import {
 } from 'react-router-dom'
 import store from '../configureStore'
 import { Layout, Menu } from 'antd';
+import { dateAsYyyyMmDd } from '../kitchenSink'
 import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId, syncDirtyEntries } from "../model/journalEntriesSlice";
 import { addArticle } from "../model/journalArticlesSlice";
 import { fetchVices, syncDirtyVices } from "../model/viceSlice"
@@ -22,15 +23,7 @@ import { ViceEditor } from '../components/ViceEditor'
 const { Header, Content, Footer, Sider } = Layout;
 
 function todayAsYyyyMmDd() {
-  const now = new Date(Date.now())
-  function makeNumTwoDigit(num) {
-    return num < 10 ? "0" + num : num.toString()
-  }
-  function monthStr(date) {
-    const monthNum = date.getMonth() + 1
-    return makeNumTwoDigit(monthNum)
-  }
-  return Number.parseInt("" + now.getFullYear() + monthStr(now) + makeNumTwoDigit(now.getDate()))
+  return dateAsYyyyMmDd(new Date(Date.now()))
 }
 
 // TODO this logic should probably be moved into a dedicated start-up coordinator 
