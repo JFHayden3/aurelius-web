@@ -17,13 +17,44 @@ const dummyState =
     refTag: "exercise",
     description: "Could take many forms these days, but just something to get my blood moving and my muscles flexing",
     engagementSchedule: [
-      { days: [1, 2, 3, 4, 5], times: [{ optTime: null, optDuration: null }] },
+      { days: [1, 2, 3, 4, 5], instances: [{ optTime: null, optDuration: null }] },
     ],
     positiveImpactDescription: "Doob exercise important",
+    engagementTactics: [
+      { id: 1, text: "Pre-workout" },
+    ],
+  },
+  2: {
+    id: 2,
+    name: "Self-authoring",
+    refTag: "self-authoring",
+    description: "Making some progress in the self-authoring suite",
+    engagementSchedule: [
+      { days: [0, 6], instances: [{ optTime: null, optDuration: { hour: 1, minute: 0 } }] },
+    ],
+    positiveImpactDescription: "Helping to put my psyche back together",
+    engagementTactics: [
+      { id: 1, text: "Setting aside time in the morning to work on this with reasonable milestones" }
+    ]
+  },
+  3: {
+    id: 3,
+    name: "Music practice",
+    refTag: "music-practice",
+    description: "Practicing drums or piano",
+    engagementSchedule: [
+      { days: [1, 3], instances: [{ optTime: { hour: 17, minute: 30 }, optDuration: { hour: 0, minute: 25 } }] },
+      { days: [6], instances: [{ optTime: null, optDuration: { hour: 0, minute: 25 } }] },
+    ],
+    positiveImpactDescription: "It's hard, brings me closer to some people, makes me appreciate music more",
+    engagementTactics: [
+      { id: 1, text: "Fuck if I know man, it's hard" },
+      { id: 2, text: "Reward self with vice after some minimum practice session time" },
+    ]
   },
 }
 
-const initialState = virtuesAdapter.getInitialState()
+const initialState = virtuesAdapter.getInitialState({ ids: Object.keys(dummyState), entities: dummyState })
 
 export function computeNextVirtueId(state) {
   const existingIds = selectVirtueIds(state)
@@ -41,6 +72,7 @@ function convertApiToFe(apiItems) {
       description: apiVirtue.description,
       engagementSchedule: apiVirtue.engagementSchedule,
       positiveImpactDescription: apiVirtue.positiveImpactDescription,
+      engagementTactics: apiVirtue.engagementTactics,
       dirtiness: 'CLEAN'
     }
   })
@@ -57,6 +89,7 @@ function convertFeToApi(feItem) {
     description: feItem.description,
     engagementSchedule: feItem.engagementSchedule,
     positiveImpactDescription: feItem.positiveImpactDescription,
+    engagementTactics: feItem.engagementTactics,
   }
 }
 
@@ -100,12 +133,9 @@ export const virtueSlice = createSlice({
         name,
         refTag: tag,
         description: "",
-        defaultEngagementRestriction: {
-          kind: 0,
-        },
-        negativeImpactDescription: "",
-        seductionDescription: "",
-        mitigationTactics: [],
+        engagementSchedule: [],
+        positiveImpactDescription: "",
+        engagementTactics: [],
         dirtiness: 'DIRTY'
       }
       virtuesAdapter.upsertOne(state, newVirtue)

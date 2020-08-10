@@ -19,6 +19,8 @@ import 'antd/dist/antd.css';
 import { LifeJournal } from '../components/LifeJournal'
 import { ViceBank } from '../components/ViceBank'
 import { ViceEditor } from '../components/ViceEditor'
+import { VirtueBank } from '../components/VirtueBank'
+import { VirtueEditor } from '../components/VirtueEditor'
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -104,6 +106,8 @@ export default class Root extends Component {
                     <Route exact path="/journal" component={LifeJournal} />
                     <Route exact path="/vices" component={ViceBank} />
                     <Route exact path="/vices/edit/:viceId" component={ViceEditor} />
+                    <Route exact path="/virtues" component={VirtueBank} />
+                    <Route exact path="/virtues/edit/:virtueId" component={VirtueEditor} />
                   </Switch>
                 </div>
               </Content>

@@ -1,41 +1,20 @@
 import React from 'react'
 import { selectViceById, updateVice } from '../model/viceSlice'
-import { selectViceRestrictions } from '../model/settingsSlice'
-import { useSelector, useDispatch, useStore } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons'
 import { ViceDefaultRestrictionEditor } from './ViceDefaultRestrictionEditor'
 import { DirtyViceTracker } from './DirtyViceTracker'
-import { Typography, List, Row, Col, Input, Button, Select, TreeSelect } from 'antd';
-
-const { TextArea } = Input
-const { Option } = Select
-const { TreeNode } = TreeSelect
-const { Title, Text, Paragraph } = Typography;
-const gutter = [24, 24]
-const colSpan = 18
-
-const WrittenResponse = ({ text, vice, fieldName, minRows = 6 }) => {
-  const dispatch = useDispatch()
-  const onTextChange = e => {
-    dispatch(updateVice({ viceId: vice.id, changedFields: { [fieldName]: e.target.value } }))
-  }
-  return (
-    <Row gutter={gutter}>
-      <Col span={colSpan}>
-        <div>
-          <Text strong={true}>{text}</Text>
-          <TextArea autoSize={{ minRows }} value={vice[fieldName]} onChange={onTextChange} />
-        </div>
-      </Col>
-    </Row>
-  )
-}
+import { Typography, List, Row, Col, Button } from 'antd';
+import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
+const { Title, Text } = Typography;
 
 export const ViceEditor = ({ match }) => {
   const { viceId } = match.params
   const vice = useSelector(state => selectViceById(state, viceId))
   const dispatch = useDispatch()
-
+  const onTextFieldChange = ({ fieldName, value }) => {
+    dispatch(updateVice({ viceId: vice.id, changedFields: { [fieldName]: value } }))
+  }
   const onAddTacticClick = e => {
     const newId = vice.mitigationTactics.length > 0 ?
       (Math.max.apply(null, vice.mitigationTactics.map(mt => mt.id)) + 1)
@@ -85,17 +64,23 @@ export const ViceEditor = ({ match }) => {
       </Row>
       <WrittenResponse
         text="Description"
-        vice={vice}
+        entity={vice}
         fieldName="description"
-        minRows={3} />
+        minRows={3}
+        onValueChange={onTextFieldChange}
+      />
       <WrittenResponse
         text="Describe how this behavior negatively impacts your life"
-        vice={vice}
-        fieldName="negativeImpactDescription" />
+        entity={vice}
+        fieldName="negativeImpactDescription"
+        onValueChange={onTextFieldChange}
+      />
       <WrittenResponse
         text="Describe how you fall into this behavior -- what leads up to you engaging in this?"
-        vice={vice}
-        fieldName="seductionDescription" />
+        entity={vice}
+        fieldName="seductionDescription"
+        onValueChange={onTextFieldChange}
+      />
       <Row gutter={gutter}>
         <Col span={colSpan}>
           <Text strong={true}>What are some tactics you can take to make it more difficult to engage in this behavior or to divert yourself when you feel a strong urge?</Text>
