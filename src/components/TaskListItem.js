@@ -27,7 +27,7 @@ export const TaskListItem = ({ articleId, taskId }) => {
   }
   const onAddDurationClick = e => {
     e.preventDefault()
-    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optDuration: { hours: 0, minutes: 0 } } }))
+    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optDuration: { hour: 0, minute: 0 } } }))
   };
   const onAddTimeClick = e => {
     e.preventDefault()
@@ -40,7 +40,7 @@ export const TaskListItem = ({ articleId, taskId }) => {
   const onDurationChange = (time, timeString) => {
     let newDuration = null
     if (time) {
-      newDuration = { hours: time.hours(), minutes: time.minute() }
+      newDuration = { hour: time.hours(), minute: time.minute() }
     }
     dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optDuration: newDuration } }))
   }
@@ -70,7 +70,7 @@ export const TaskListItem = ({ articleId, taskId }) => {
           <Tooltip title="Set duration">
             <TimePicker
               onChange={onDurationChange}
-              defaultValue={moment(optDuration.hours + ':' + optDuration.minutes, "HH:mm")}
+              defaultValue={moment(optDuration.hour + ':' + optDuration.minute, "HH:mm")}
               format="HH\hr mm\min"
               minuteStep={5}
               placeholder="Select duration"

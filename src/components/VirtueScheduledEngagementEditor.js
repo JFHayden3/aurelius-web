@@ -49,6 +49,20 @@ export const VirtueScheduledEngagementEditor = ({ virtue }) => {
     changeScheduleComponentField(appt, "instances", newInstanceList)
   }
 
+  function onAddInstanceClick(appt) {
+    return e => {
+      const newEngagementInstance = { optTime: null, optDuration: null }
+      const newInstances = appt.instances.concat(newEngagementInstance)
+      changeScheduleComponentField(appt, "instances", newInstances)
+    }
+  }
+
+  function onAddRecurringAppointmentClick(e) {
+    const newRecurringAppointment = { days: [], instances:[] }
+    const newEngagementSchedule = virtue.engagementSchedule.concat(newRecurringAppointment)
+    dispatch(updateVirtue({ virtueId: virtue.id, changedFields: { engagementSchedule: newEngagementSchedule } }))
+  }
+
   function onSetTimeClick(appt, instance) {
     return (e) => changeEngagementInstanceField(appt, instance, "optTime", { hour: 9, minute: 0 })
   }
@@ -68,6 +82,7 @@ export const VirtueScheduledEngagementEditor = ({ virtue }) => {
       const newDuration = time ? { hour: time.hour(), minute: time.minute() } : null
       changeEngagementInstanceField(appt, instance, "optDuration", newDuration)    }
   }
+ 
   return (
     <Col flex='auto'>
       <div>
@@ -76,7 +91,7 @@ export const VirtueScheduledEngagementEditor = ({ virtue }) => {
             <Col >
               <TreeSelect
                 showSearch
-                style={{}}
+                style={{minWidth:200}}
                 value={sched.days}
                 dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                 placeholder="Days"
@@ -99,7 +114,7 @@ export const VirtueScheduledEngagementEditor = ({ virtue }) => {
                 <div>
                   {!instance.optTime &&
                     <Tooltip title="Set time">
-                      <Button onClick={onSetTimeClick(sched, instance)} size="small" icon={<ClockCircleOutlined />} />
+                      <Button onClick={onSetTimeClick(sched, instance)}  icon={<ClockCircleOutlined />} />
                     </Tooltip>}
                   {instance.optTime &&
                     <Tooltip title="Set time">
@@ -133,12 +148,12 @@ export const VirtueScheduledEngagementEditor = ({ virtue }) => {
                   }
                 </div>
               )}
-              <Button type="dashed"><PlusOutlined />Add Instance</Button>
+              <Button type="dashed" onClick={onAddInstanceClick(sched)}><PlusOutlined />Add Instance</Button>
             </Col>
             <Divider></Divider>
           </Row>
         )}
-        <Button type="dashed"><PlusOutlined />Add Recurring Appointment</Button>
+        <Button type="dashed" onClick={onAddRecurringAppointmentClick}><PlusOutlined />Add Recurring Appointment</Button>
       </div>
     </Col>
   )
