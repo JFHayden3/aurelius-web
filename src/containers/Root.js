@@ -12,6 +12,7 @@ import { Layout, Menu } from 'antd';
 import { dateAsYyyyMmDd } from '../kitchenSink'
 import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId, syncDirtyEntries } from "../model/journalEntriesSlice";
 import { addArticle } from "../model/journalArticlesSlice";
+import { fetchVirtues, syncDirtyVirtues } from "../model/virtueSlice"
 import { fetchVices, syncDirtyVices } from "../model/viceSlice"
 import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
@@ -37,8 +38,8 @@ const doFetchSettings = store.dispatch(fetchSettings({ user: 'testUser' }))
 const doFetchJournalEntries = store.dispatch(
   fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
 const doFetchVices = store.dispatch(fetchVices({ user: 'testUser' }))
-
-Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices])
+const doFetchVirtues = store.dispatch(fetchVirtues({ user: 'testUser' }))
+Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues])
   .then((action) => {
     if (action.error) {
       // TODO retry and/or put the UI into an error state
@@ -71,6 +72,7 @@ Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices])
 setInterval(() => {
   store.dispatch(syncDirtyEntries())
   store.dispatch(syncDirtyVices())
+  store.dispatch(syncDirtyVirtues())
 }, 2500)
 
 export default class Root extends Component {

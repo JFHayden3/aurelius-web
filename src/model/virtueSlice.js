@@ -54,7 +54,7 @@ const dummyState =
   },
 }
 
-const initialState = virtuesAdapter.getInitialState({ ids: Object.keys(dummyState), entities: dummyState })
+const initialState = virtuesAdapter.getInitialState()
 
 export function computeNextVirtueId(state) {
   const existingIds = selectVirtueIds(state)
