@@ -193,3 +193,7 @@ export const selectDirtyEntries = createSelector(
   [selectAllEntries, (state, dirtiness) => dirtiness],
   (entries) => entries.filter((entry) => entry.dirtiness === 'DIRTY')
 )
+
+export const selectArticleIdsForEntry = createSelector(
+  [selectEntryById],
+  (entry) => entry.articleIds)

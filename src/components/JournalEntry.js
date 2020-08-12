@@ -4,9 +4,10 @@
 import React, { Component } from 'react'
 import { JournalArticle } from './JournalArticle'
 import { List, Divider, Dropdown, Button, Menu } from 'antd';
-import { selectEntryById, computeNextArticleId } from '../model/journalEntriesSlice'
+import { selectArticleIdsForEntry, computeNextArticleId } from '../model/journalEntriesSlice'
 import { addArticle, selectArticleById } from '../model/journalArticlesSlice'
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
+import {EntryWordCountDisplay} from "./EntryWordCountDisplay"
 import { PlusOutlined } from '@ant-design/icons';
 import { selectAllArticleSettings, selectArticleSettingByArticleKind } from '../model/settingsSlice'
 import { useSelector, useStore, useDispatch } from 'react-redux'
@@ -14,8 +15,7 @@ import { apiDateToFe } from "../kitchenSink"
 
 
 export const JournalEntry = ({ entryId }) => {
-  const entry = useSelector((state) => selectEntryById(state, entryId))
-  const articleIds = entry.articleIds
+  const articleIds = useSelector((state) => selectArticleIdsForEntry(state, entryId))
   const dispatch = useDispatch()
   const store = useStore()
   function handleAddArticleClick(e) {
@@ -51,7 +51,7 @@ export const JournalEntry = ({ entryId }) => {
   )
   return (
     <div>
-      <h2>{apiDateToFe(entry.date)}</h2>
+      <span><h2>{apiDateToFe(entryId)}</h2> <EntryWordCountDisplay entryId={entryId}/></span>
       <List
         dataSource={articleIds}
         itemLayout="vertical"

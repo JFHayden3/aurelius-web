@@ -18,7 +18,7 @@ export const journalArticlesSlice = createSlice({
         id: articleId,
         kind: articleKind,
         title: articleTitle,
-        content: defaultContent 
+        content: defaultContent
       }
       articlesAdapter.upsertOne(state, newArticle)
     },
@@ -113,6 +113,21 @@ export const {
   // Pass in a selector that returns the posts slice of state
 } = articlesAdapter.getSelectors(state => state.journalArticles)
 
+export const selectArticlesByIds =
+  (state, articleIds) => {
+    return articleIds.map(id => state.journalArticles.entities[id])
+  }
+
+export const selectArticleTitleById = createSelector(
+ [selectArticleById],
+ (article) => article ? article.title : null
+)
+
+export const selectArticleKindById = createSelector(
+  [selectArticleById],
+  (article) => article ? article.kind : null
+)
+
 export const selectArticlesByDate = createSelector(
   [selectAllArticles, (state, date) => date],
   (articles, date) => articles.filter((entry) => entry.date === date)
@@ -126,4 +141,27 @@ export const selectTaskById = createSelector(
 export const selectRestrictionById = createSelector(
   [selectArticleById, (state, articleId, restrictionId) => (articleId, restrictionId)],
   (article, restrictionId) => article.content.restrictions.find(r => r.id === restrictionId)
+)
+
+function getWordCount(article) {
+  function countWords(s) {
+    s = s.replace(/(^\s*)|(\s*$)/gi, "");//exclude  start and end white-space
+    s = s.replace(/[ ]{2,}/gi, " ");//2 or more space to 1
+    s = s.replace(/\n /, "\n"); // exclude newline with a start spacing
+    return s.split(' ').filter(String).length;
+  }
+  if (article.kind === 'AGENDA') {
+    const textCount = countWords(article.content.text ?? "")
+    const taskCount = article.content.tasks.reduce((total, task) => total + countWords(task.optNotes ?? ""), 0)
+    // Me being lazy to avoid deleting old entries created before there were restrictions
+    const restrictionCount = (article.content.restrictions ?? []).reduce((total, r) => total + countWords(r.optNote ?? ""), 0)
+    return textCount + taskCount + restrictionCount
+  } else {
+    return countWords(article.content.text)
+  }
+}
+
+export const selectWordCount = createSelector(
+  [selectArticlesByIds],
+  (articles) => articles.reduce((total, article) => total + getWordCount(article), 0)
 )

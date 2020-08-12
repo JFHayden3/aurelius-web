@@ -6,17 +6,17 @@
 
 import React from 'react'
 import { AgendaArticleContent } from './AgendaArticleContent'
-import { selectArticleById, removeArticle } from '../model/journalArticlesSlice'
+import { selectArticleKindById, selectArticleTitleById, removeArticle } from '../model/journalArticlesSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { Button, Divider } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons';
 import { WrittenArticleContent } from './WrittenArticleContent'
 
 export const JournalArticle = ({ articleId }) => {
-  const article = useSelector((state) => selectArticleById(state, articleId))
+  const title = useSelector((state) => selectArticleTitleById(state, articleId))
+  const kind = useSelector((state) => selectArticleKindById(state, articleId))
   const dispatch = useDispatch()
-  if (article) {
-    const { title, kind, content } = article
+  if (kind) {
     return (
       <div>
         <Divider orientation="left">

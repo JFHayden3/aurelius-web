@@ -6,7 +6,8 @@ import {
 import { apiUrl } from '../kitchenSink'
 import { client } from '../api/client'
 
-const defaultInitialSettings = {
+const systemSettings = {
+  targetDailyWordCount: 500,
   savedViceRestrictions: {
     0: {
       displayName: "Unrestricted",
@@ -72,17 +73,37 @@ export function computeNewSavedViceRestrictionId(state) {
   return "" + Math.max.apply(null, numericalKeys) + 1
 }
 
+function mergeSystemSettingsWithUserSettings(userSettings) {
+  // Pull in any missing top-level settings
+  Object.entries(systemSettings).forEach(([key, value]) => {
+    if (!(key in userSettings)) {
+      userSettings[key] = value
+    }
+  })
+  // Blast over the system-defined savedViceRestrictions that user might have in their
+  // settings with the new hotness and add any new ones
+  Object.entries(systemSettings.savedViceRestrictions).forEach(([key, settings]) => {
+    userSettings.savedViceRestrictions[key] = settings
+  })
+
+  // Merge in the article settings if missing, though not overriding what the user may have 
+  // changed for ordering or promptFrequency
+  Object.entries(systemSettings.articleSettings).forEach(([key, systemArticleSetting]) => {
+    if (key in userSettings.articleSettings) {
+      // Article setting exists but might not have the most up-to-date info for title/hint text
+      userSettings.articleSettings[key].title = systemArticleSetting.title
+      userSettings.articleSettings[key].hintText = systemArticleSetting.hintText
+    } else {
+      userSettings.articleSettings[key] = systemArticleSetting
+    }
+  })
+}
+
 function convertApiToFe(apiItems) {
-  // TODO (IMPORTANT): just merging in the default settings here is problematic.
-  // I won't have a way to introduce new defualt settings after a user first creats
-  // an account and there's also a risk of colliding keys. Probably going to need to
-  // keep user and system settings separate in here and merge them together whenever 
-  // I need to display something
-  if (apiItems.length === 0) {
-    return defaultInitialSettings
-  } else if (apiItems.length === 1) {
-    return JSON.parse(apiItems[0].Settings)
-  } else {
+  let userArticleSettings = {}
+  if (apiItems.length === 1) {
+    userArticleSettings = JSON.parse(apiItems[0].Settings)
+  } else if (apiItems.length > 1) {
     // Shouldn't be possible.
     // TODO good way to log this error so I'll be notified
     console.log("MULTIPLE SETTINGS!" + apiItems)
@@ -94,8 +115,10 @@ function convertApiToFe(apiItems) {
         longestSettingsLen = item.length
       }
     })
-    return JSON.parse(longestSettings)
+    userArticleSettings = JSON.parse(longestSettings)
   }
+  mergeSystemSettingsWithUserSettings(userArticleSettings)
+  return userArticleSettings
 }
 
 function convertFeToApi(feSettings) {
@@ -157,7 +180,7 @@ export const settingsSlice = createSlice({
         displayName,
         isUserCreated: true,
         spec: state.savedViceRestrictions[customRestrictionKey].spec
-      } 
+      }
       state.savedViceRestrictions[newKey] = savedRestriction
       delete state.savedViceRestrictions[customRestrictionKey]
     },
@@ -172,8 +195,9 @@ export const settingsSlice = createSlice({
   },
   extraReducers: {
     [fetchSettings.fulfilled]: (state, action) => {
-      state.savedViceRestrictions = action.payload.savedViceRestrictions
-      state.articleSettings = action.payload.articleSettings
+      Object.entries(action.payload).forEach(([key, value]) => {
+        state[key] = value
+      })
     },
   },
 })
@@ -198,4 +222,10 @@ export function selectAllArticleSettings(state) {
 export const selectViceRestrictions =
   (state) => state.settings.savedViceRestrictions
 
+export const selectTargetDailyWordCount =
+  (state) => {
+    console.log(JSON.stringify(state))
+    const poop = state.settings.targetDailyWordCount
+    return poop
+  }
 
