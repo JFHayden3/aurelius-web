@@ -22,6 +22,7 @@ import { ViceBank } from '../components/ViceBank'
 import { ViceEditor } from '../components/ViceEditor'
 import { VirtueBank } from '../components/VirtueBank'
 import { VirtueEditor } from '../components/VirtueEditor'
+import { SettingsSetter } from '../components/SettingsSetter'
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -99,6 +100,9 @@ export default class Root extends Component {
                 <Menu.Item key="virtues">
                   <Link to={`/virtues`}>Virtues</Link>
                 </Menu.Item>
+                <Menu.Item key="settings">
+                  <Link to={`/settings`}>Settings</Link>
+                </Menu.Item>
               </Menu>
             </Sider>
             <Layout theme="light" className="site-layout" style={{ marginLeft: '200px' }}>
@@ -110,6 +114,7 @@ export default class Root extends Component {
                     <Route exact path="/vices/edit/:viceId" component={ViceEditor} />
                     <Route exact path="/virtues" component={VirtueBank} />
                     <Route exact path="/virtues/edit/:virtueId" component={VirtueEditor} />
+                    <Route exact path="/settings" component={SettingsSetter} />
                   </Switch>
                 </div>
               </Content>

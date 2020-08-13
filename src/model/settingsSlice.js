@@ -28,13 +28,6 @@ const systemSettings = {
   },
   // Also defines set of available article kinds
   articleSettings: {
-    INTENTION: {
-      title: "Intentions",
-      hintText: "What kind of day would you like to have? When you're in bed tonight reflecting on the day, what will make you feel proud -- like the day was worth showing up for?",
-      promptFrequency: "DAILY",
-      ordering: 3,
-      isUserCreated: false,
-    },
     REFLECTION: {
       title: "Reflections",
       hintText: "How have things been going lately? Spend some time thinking about recent triumphs, troubles, concerns, etc",
@@ -53,14 +46,14 @@ const systemSettings = {
       title: "Gratitude",
       hintText: "Anything happen recently that you'd like to express something positive about?",
       promptFrequency: "DAILY",
-      ordering: 5,
+      ordering: 4,
       isUserCreated: false,
     },
     AGENDA: {
-      title: "Agenda",
-      hintText: "A specific plan to accomplish today's intentions.",
+      title: "Intentions",
+      hintText: "What kind of day would you like to have? When you're in bed tonight reflecting on the day, what will make you feel proud -- like the day was worth showing up for?",
       promptFrequency: "DAILY",
-      ordering: 4,
+      ordering: 3,
       isUserCreated: false,
     },
   }
@@ -124,6 +117,7 @@ function convertApiToFe(apiItems) {
 function convertFeToApi(feSettings) {
   const api =
   {
+    targetDailyWordCount: feSettings.targetDailyWordCount,
     savedViceRestrictions: feSettings.savedViceRestrictions,
     articleSettings: feSettings.articleSettings
   }
@@ -172,6 +166,11 @@ export const settingsSlice = createSlice({
   name: 'settings',
   initialState: {},
   reducers: {
+    updateArticleSetting(state, action) {
+      const { articleKind, updates } = action.payload
+      Object.entries(updates)
+        .forEach(([field, value]) => state.articleSettings[articleKind][field] = value)
+    },
     makeCustomViceRestrictionSaved(state, action) {
       // Takes a '**custom**' restriction and makes it saved so it can be shared
       // across other vices (I have no idea why I've spent two days on this...)
@@ -192,6 +191,10 @@ export const settingsSlice = createSlice({
         spec
       }
     },
+    updateTargetDailyWordCount(state, action) {
+      const { newWordCount } = action.payload
+      state.targetDailyWordCount = newWordCount
+    },
   },
   extraReducers: {
     [fetchSettings.fulfilled]: (state, action) => {
@@ -202,7 +205,11 @@ export const settingsSlice = createSlice({
   },
 })
 
-export const { updateViceRestriction, makeCustomViceRestrictionSaved } = settingsSlice.actions
+export const { 
+  updateViceRestriction,
+  makeCustomViceRestrictionSaved,
+  updateTargetDailyWordCount,
+  updateArticleSetting } = settingsSlice.actions
 
 export default settingsSlice.reducer
 
@@ -223,9 +230,4 @@ export const selectViceRestrictions =
   (state) => state.settings.savedViceRestrictions
 
 export const selectTargetDailyWordCount =
-  (state) => {
-    console.log(JSON.stringify(state))
-    const poop = state.settings.targetDailyWordCount
-    return poop
-  }
-
+  (state) => state.settings.targetDailyWordCount

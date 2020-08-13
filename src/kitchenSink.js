@@ -46,3 +46,10 @@ export function numberComparer(a, b) {
     return 0
   }
 }
+
+export const journalPromptFrequencies = {
+  DAILY: "Daily",
+  SPECIFIC_DOW: "Specific days",
+  NEVER: "Never",
+  RANDOMLY: "Sporadically"
+}

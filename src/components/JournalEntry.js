@@ -3,16 +3,17 @@
 
 import React, { Component } from 'react'
 import { JournalArticle } from './JournalArticle'
-import { List, Divider, Dropdown, Button, Menu } from 'antd';
+import { List, Typography, Dropdown, Button, Menu, Row, Col } from 'antd';
 import { selectArticleIdsForEntry, computeNextArticleId } from '../model/journalEntriesSlice'
 import { addArticle, selectArticleById } from '../model/journalArticlesSlice'
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
-import {EntryWordCountDisplay} from "./EntryWordCountDisplay"
+import { EntryWordCountDisplay } from "./EntryWordCountDisplay"
 import { PlusOutlined } from '@ant-design/icons';
 import { selectAllArticleSettings, selectArticleSettingByArticleKind } from '../model/settingsSlice'
 import { useSelector, useStore, useDispatch } from 'react-redux'
 import { apiDateToFe } from "../kitchenSink"
 
+const { Title } = Typography
 
 export const JournalEntry = ({ entryId }) => {
   const articleIds = useSelector((state) => selectArticleIdsForEntry(state, entryId))
@@ -51,7 +52,16 @@ export const JournalEntry = ({ entryId }) => {
   )
   return (
     <div>
-      <span><h2>{apiDateToFe(entryId)}</h2> <EntryWordCountDisplay entryId={entryId}/></span>
+      <Row>
+        <Col span={12}>
+          <Title level={3}>{apiDateToFe(entryId)}</Title>
+        </Col>
+        <Col span={12}>
+          <div style={{ float: 'right' }}>
+            <EntryWordCountDisplay entryId={entryId} />
+          </div>
+        </Col>
+      </Row>
       <List
         dataSource={articleIds}
         itemLayout="vertical"
@@ -63,7 +73,7 @@ export const JournalEntry = ({ entryId }) => {
       >
       </List>
       <Dropdown overlay={menu} trigger={['click']}>
-        <Button block size="large" type="dashed"><PlusOutlined/>Add Section</Button>
+        <Button block size="large" type="dashed"><PlusOutlined />Add Section</Button>
       </Dropdown>
     </div>
   )
