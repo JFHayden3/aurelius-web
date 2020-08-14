@@ -26,8 +26,7 @@ export const JournalArticle = ({ articleId }) => {
           </span>
         </Divider>
         <div>
-          {['REFLECTION', 'INTENTION', 'GRATITUDE', 'DREAMS'].includes(kind)
-            && <WrittenArticleContent articleId={articleId} />}
+          {kind !== 'AGENDA' && <WrittenArticleContent articleId={articleId} />}
           {kind === 'AGENDA' && <AgendaArticleContent articleId={articleId} />}
         </div>
       </div>

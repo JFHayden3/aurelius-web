@@ -49,7 +49,6 @@ export const VirtueBank = () => {
         </Tooltip>
       </Affix>
       <AddNewModal
-        title="New Virtue"
         visible={createModalVisible}
         onOk={onAddNewConfirm}
         onCancel={onAddNewCancel}

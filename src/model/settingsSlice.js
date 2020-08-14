@@ -31,28 +31,28 @@ const systemSettings = {
     REFLECTION: {
       title: "Reflections",
       hintText: "How have things been going lately? Spend some time thinking about recent triumphs, troubles, concerns, etc",
-      promptFrequency: "DAILY",
+      promptFrequency: { kind: "DAILY", details: null },
       ordering: 1,
       isUserCreated: false,
     },
     DREAMS: {
       title: "Dreams",
       hintText: "Any dreams last night you'd like to record?",
-      promptFrequency: "DAILY",
+      promptFrequency: { kind: "DAILY", details: null },
       ordering: 2,
       isUserCreated: false,
     },
     GRATITUDE: {
       title: "Gratitude",
       hintText: "Anything happen recently that you'd like to express something positive about?",
-      promptFrequency: "DAILY",
+      promptFrequency: { kind: "DAILY", details: null },
       ordering: 4,
       isUserCreated: false,
     },
     AGENDA: {
       title: "Intentions",
       hintText: "What kind of day would you like to have? When you're in bed tonight reflecting on the day, what will make you feel proud -- like the day was worth showing up for?",
-      promptFrequency: "DAILY",
+      promptFrequency: { kind: "DAILY", details: null },
       ordering: 3,
       isUserCreated: false,
     },
@@ -79,8 +79,8 @@ function mergeSystemSettingsWithUserSettings(userSettings) {
     userSettings.savedViceRestrictions[key] = settings
   })
 
-  // Merge in the article settings if missing, though not overriding what the user may have 
-  // changed for ordering or promptFrequency
+  // Merge in the system-defined article settings if missing, though not overriding what the 
+  // user may have changed for ordering or promptFrequency
   Object.entries(systemSettings.articleSettings).forEach(([key, systemArticleSetting]) => {
     if (key in userSettings.articleSettings) {
       // Article setting exists but might not have the most up-to-date info for title/hint text
@@ -152,7 +152,7 @@ export function getDefaultArticleKindsForToday(state) {
   return Object.entries(state.settings.articleSettings).filter(
     ([articleKind, settings]) => {
       // TODO support other frequency types such as only on specific days
-      if (settings.promptFrequency === 'DAILY') {
+      if (settings.promptFrequency.kind === 'DAILY') {
         return true
       } else {
         return false
@@ -166,6 +166,14 @@ export const settingsSlice = createSlice({
   name: 'settings',
   initialState: {},
   reducers: {
+    addUserCreatedArticleSettings(state, action) {
+      const { title, hintText, promptFrequency } = action.payload
+      const ordering = Math.max.apply(null, (Object.values(state.articleSettings).map(as => as.ordering))) + 1
+      const key = Math.max.apply(null, 
+        Object.keys(state.articleSettings)
+        .map(key => Number.isNaN(Number.parseInt(key)) ? 0 : Number.parseInt(key))) + 1
+      state.articleSettings[key] = { title, hintText, promptFrequency, ordering, isUserCreated:true }
+    },
     updateArticleSetting(state, action) {
       const { articleKind, updates } = action.payload
       Object.entries(updates)
@@ -205,7 +213,8 @@ export const settingsSlice = createSlice({
   },
 })
 
-export const { 
+export const {
+  addUserCreatedArticleSettings,
   updateViceRestriction,
   makeCustomViceRestrictionSaved,
   updateTargetDailyWordCount,

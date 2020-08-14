@@ -1,11 +1,6 @@
 
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { selectViceById, updateVice } from '../model/viceSlice'
-import { PlusOutlined } from '@ant-design/icons'
-import { ViceDefaultRestrictionEditor } from './ViceDefaultRestrictionEditor'
-import { DirtyViceTracker } from './DirtyViceTracker'
-import { Typography, List, Row, Col, Input, Modal, Button, Select, TreeSelect } from 'antd';
+import { Typography, Row, Col, Input, Modal } from 'antd';
 
 const { TextArea } = Input
 const { Text } = Typography;
@@ -29,7 +24,7 @@ export const WrittenResponse = ({ text, entity, fieldName, minRows = 6, onValueC
   )
 }
 
-export const AddNewModal = ({ title, visible, onOk, onCancel }) => {
+export const AddNewModal = ({ visible, onOk, onCancel }) => {
   const [newName, setNewName] = useState("")
   const [newTag, setNewTag] = useState("")
   function changeNewName(str) {
@@ -56,7 +51,7 @@ export const AddNewModal = ({ title, visible, onOk, onCancel }) => {
   }
 
   return (
-    <Modal title={title}
+    <Modal 
       visible={visible}
       onOk={onAddNewConfirm}
       onCancel={onCancelClick}

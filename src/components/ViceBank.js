@@ -47,7 +47,6 @@ export const ViceBank = () => {
         </Tooltip>
       </Affix>
       <AddNewModal
-        title="New Vice"
         visible={createModalVisible}
         onOk={onAddNewConfirm}
         onCancel={onAddNewCancel}
