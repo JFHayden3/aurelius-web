@@ -121,6 +121,14 @@ export const syncDirtyVirtues = createAsyncThunk(
   }
 )
 
+export const deleteVirtue = createAsyncThunk(
+  'vices/deleteVirtue',
+  async (payload) => {
+    return client.delete(
+      apiUrl + '/virtues' + '?userId=testUser' + '&virtueId=' + payload.virtueId + '')
+  }
+)
+
 export const virtueSlice = createSlice({
   name: 'virtues',
   initialState,
@@ -169,6 +177,9 @@ export const virtueSlice = createSlice({
       virtuesInFlight
         .filter((virtue) => virtue.dirtiness === 'SAVING')
         .forEach((virtue) => virtue.dirtiness = 'DIRTY')
+    },
+    [deleteVirtue.fulfilled]: (state, action) => {
+      virtuesAdapter.removeOne(state, action.meta.arg.virtueId)
     },
   }
 })

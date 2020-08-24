@@ -97,7 +97,7 @@ export const journalEntriesSlice = createSlice({
       const { dateId } = action.payload
       // check if the entry already exists for this date
       if (state.entities[dateId]) {
-        console.log("\n\nATTEMPTED TO CREATE ENTITY THAT ALREADY EXISTS: " + dateId)
+        console.log("\n\nATTEMPTED TO CREATE ENTRY THAT ALREADY EXISTS: " + dateId)
         return;
       }
       // TODO: figure out how best to do article creation and ID-uniqueness

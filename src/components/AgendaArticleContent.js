@@ -29,7 +29,7 @@ export const AgendaArticleContent = ({ articleId }) => {
       />
       <Divider plain orientation="left">Agenda</Divider>
       <TaskList articleId={articleId} />
-      <Divider plain orientation="left">Anti-Agenda</Divider>
+      <Divider plain orientation="left">Restrictions</Divider>
       <RestrictionList articleId={articleId} />
     </div>
   )

@@ -65,7 +65,7 @@ export const journalArticlesSlice = createSlice({
       const newRestriction = {
         id: newId,
         restriction: "",
-        activities: [""],
+        activities: [],
         optNote: null
       }
       agendaArticle.content.restrictions.push(newRestriction)

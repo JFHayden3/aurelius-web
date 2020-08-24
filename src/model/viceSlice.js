@@ -78,6 +78,14 @@ export const syncDirtyVices = createAsyncThunk(
   }
 )
 
+export const deleteVice = createAsyncThunk(
+  'vices/deleteVice',
+  async (payload) => {
+    return client.delete(
+      apiUrl + '/vices' + '?userId=testUser' + '&viceId=' + payload.viceId + '')
+  }
+)
+
 export const viceSlice = createSlice({
   name: 'vices',
   initialState,
@@ -129,6 +137,9 @@ export const viceSlice = createSlice({
       vicesInFlight
         .filter((vice) => vice.dirtiness === 'SAVING')
         .forEach((vice) => vice.dirtiness = 'DIRTY')
+    },
+    [deleteVice.fulfilled]: (state, action) => {
+      vicesAdapter.removeOne(state, action.meta.arg.viceId)
     },
   }
 })

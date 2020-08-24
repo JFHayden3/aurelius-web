@@ -1,13 +1,18 @@
 import React from 'react'
-import { selectViceById } from '../model/viceSlice'
+import { selectViceById, deleteVice } from '../model/viceSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { Typography, List, Row, Col, Button } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom'
 const { Title, Text, Paragraph } = Typography;
 
 export const ViceCard = ({ viceId }) => {
   const vice = useSelector(state => selectViceById(state, viceId))
+  const dispatch = useDispatch()
+  const onDeleteClick = e => {
+    e.preventDefault()
+    dispatch(deleteVice({ viceId }))
+  }
   return (
     <div style={{
       borderWidth: '1px',
@@ -26,12 +31,17 @@ export const ViceCard = ({ viceId }) => {
           </Title>
         </Col>
         <Col flex="auto">
-          <Button style={{ float: "right" }} type="text">
-            <Link to={`/vices/edit/${viceId}`}><EditOutlined /></Link>
-          </Button>
+          <div style={{ float: "right" }}>
+            <Button type="text">
+              <Link to={`/vices/edit/${viceId}`}><EditOutlined /></Link>
+            </Button>
+            <Button type="text" onClick={onDeleteClick}>
+              <DeleteOutlined />
+            </Button>
+          </div>
         </Col>
       </Row>
-      <Text  code={true}>{vice.refTag}</Text>
+      <Text code={true}>{vice.refTag}</Text>
       <Paragraph ellipsis={{ rows: 3 }}>{vice.description}</Paragraph>
 
     </div>

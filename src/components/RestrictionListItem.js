@@ -46,7 +46,7 @@ export const RestrictionListItem = ({ articleId, restrictionId }) => {
             <Option key={vice.refTag}>{vice.name}</Option>
           )}
         </Select>
-        <Text editable={{onChange: onRestrictionChange}}>{restriction}</Text>
+        <Text editable={{onChange: onRestrictionChange}}>{restriction === "" ? "Set restriction" : restriction}</Text>
 
         {optNote &&
           <Text editable={{ onChange: onNotesTextChange }}>{optNote}</Text>

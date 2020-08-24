@@ -148,14 +148,25 @@ export const saveSettings = createAsyncThunk(
   }
 )
 
-export function getDefaultArticleKindsForToday(state) {
+export function getDefaultArticleKindsForToday(state, today) {
   return Object.entries(state.settings.articleSettings).filter(
     ([articleKind, settings]) => {
-      // TODO support other frequency types such as only on specific days
-      if (settings.promptFrequency.kind === 'DAILY') {
-        return true
-      } else {
-        return false
+      switch (settings.promptFrequency.kind) {
+        case 'DAILY':
+          return true
+        case 'SPECIFIC_DOW':
+          const todayDoW = today.getDay()
+          const specificDays = settings.promptFrequency.details
+          return specificDays.includes(todayDoW)
+        case 'NEVER':
+          return false
+        case 'RANDOMLY':
+          const probability = settings.promptFrequency.details
+          return (Math.floor((Math.random() * 100) + 1)) <= probability
+        default:
+          // TODO Shouldn't be possible and should log an error to an online console somewhere
+          console.log("Unsupported prompt frequency: " + settings.promptFrequency.kind)
+          return false
       }
     }
   ).sort(([akey, aSettings], [bkey, bSettings]) => aSettings.ordering - bSettings.ordering)
