@@ -180,15 +180,19 @@ export const settingsSlice = createSlice({
     addUserCreatedArticleSettings(state, action) {
       const { title, hintText, promptFrequency } = action.payload
       const ordering = Math.max.apply(null, (Object.values(state.articleSettings).map(as => as.ordering))) + 1
-      const key = Math.max.apply(null, 
+      const key = Math.max.apply(null,
         Object.keys(state.articleSettings)
-        .map(key => Number.isNaN(Number.parseInt(key)) ? 0 : Number.parseInt(key))) + 1
-      state.articleSettings[key] = { title, hintText, promptFrequency, ordering, isUserCreated:true }
+          .map(key => Number.isNaN(Number.parseInt(key)) ? 0 : Number.parseInt(key))) + 1
+      state.articleSettings[key] = { title, hintText, promptFrequency, ordering, isUserCreated: true }
     },
     updateArticleSetting(state, action) {
       const { articleKind, updates } = action.payload
       Object.entries(updates)
         .forEach(([field, value]) => state.articleSettings[articleKind][field] = value)
+    },
+    removeUserCreatedArticleSettings(state, action) {
+      const { articleKey } = action.payload
+      delete state.articleSettings[articleKey]
     },
     makeCustomViceRestrictionSaved(state, action) {
       // Takes a '**custom**' restriction and makes it saved so it can be shared
@@ -229,7 +233,8 @@ export const {
   updateViceRestriction,
   makeCustomViceRestrictionSaved,
   updateTargetDailyWordCount,
-  updateArticleSetting } = settingsSlice.actions
+  updateArticleSetting,
+  removeUserCreatedArticleSettings } = settingsSlice.actions
 
 export default settingsSlice.reducer
 

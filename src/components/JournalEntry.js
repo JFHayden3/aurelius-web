@@ -1,7 +1,7 @@
 // Contains/arranges all the journal articles for a given day.
 // Has a child button with popup for adding new journal articles to the day.
 
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import { JournalArticle } from './JournalArticle'
 import { List, Typography, Dropdown, Button, Menu, Row, Col } from 'antd';
 import { selectArticleIdsForEntry, computeNextArticleId } from '../model/journalEntriesSlice'
@@ -12,11 +12,15 @@ import { PlusOutlined } from '@ant-design/icons';
 import { selectAllArticleSettings, selectArticleSettingByArticleKind } from '../model/settingsSlice'
 import { useSelector, useStore, useDispatch } from 'react-redux'
 import { apiDateToFe } from "../kitchenSink"
+import { CreateNewPromptModal } from "./CreateNewPromptModal"
 
 const { Title } = Typography
 
 export const JournalEntry = ({ entryId }) => {
+  const [newPromptModalVisible, setNewPromptModalVisible] = useState(false)
+
   const articleIds = useSelector((state) => selectArticleIdsForEntry(state, entryId))
+  const allArticleSettings = useSelector((state) =>selectAllArticleSettings(state))
   const dispatch = useDispatch()
   const store = useStore()
   function handleAddArticleClick(e) {
@@ -34,11 +38,17 @@ export const JournalEntry = ({ entryId }) => {
     }
     dispatch(addArticle(payload))
   }
+  function handleCreateNewPromptClick(e) {
+    setNewPromptModalVisible(true)
+  }
+  function hideNewPromptModal() {
+    setNewPromptModalVisible(false)
+  }
   const articleKindsInEntry =
     articleIds.map((id) => selectArticleById(store.getState(), id).kind)
   const menu = (
     <Menu>
-      {Object.entries(selectAllArticleSettings(useStore().getState()))
+      {Object.entries(allArticleSettings)
         .map(([kind, settings]) =>
           <Menu.Item
             key={kind}
@@ -47,7 +57,9 @@ export const JournalEntry = ({ entryId }) => {
             {settings.title}
           </Menu.Item>)}
       <Menu.Divider />
-      <Menu.Item key="createNew">Create new...</Menu.Item>
+      <Menu.Item onClick={handleCreateNewPromptClick} key="createNew">
+        Create new...
+      </Menu.Item>
     </Menu>
   )
   return (
@@ -75,6 +87,7 @@ export const JournalEntry = ({ entryId }) => {
       <Dropdown overlay={menu} trigger={['click']}>
         <Button block size="large" type="dashed"><PlusOutlined />Add Section</Button>
       </Dropdown>
+      <CreateNewPromptModal isVisible={newPromptModalVisible} onClose={hideNewPromptModal} onConfirm={hideNewPromptModal} />
     </div>
   )
 }

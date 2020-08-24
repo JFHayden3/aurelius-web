@@ -1,4 +1,4 @@
-import React, { useState }  from 'react'
+import React, { useState } from 'react'
 import {
   selectTargetDailyWordCount,
   selectAllArticleSettings,
@@ -6,11 +6,16 @@ import {
   updateTargetDailyWordCount,
   updateArticleSetting,
   saveSettings,
-  addUserCreatedArticleSettings
+  removeUserCreatedArticleSettings,
 } from '../model/settingsSlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { Typography, List, Row, Col, Button, InputNumber, Select, Divider, Modal, Input } from 'antd';
+import {
+  Typography,
+  List, Row, Col, Button, InputNumber, Select, Divider, Modal, Input
+} from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import { journalPromptFrequencies } from '../kitchenSink'
+import { CreateNewPromptModal } from './CreateNewPromptModal'
 
 const { Title, Text } = Typography;
 const { Option } = Select
@@ -40,11 +45,22 @@ const ArticleSettingsSetter = ({ articleKind }) => {
   function onPercentChanceChange(newVal) {
     changeFields({ promptFrequency: { kind: artSettings.promptFrequency.kind, details: newVal } })
   }
+  function onDeleteClick(e) {
+    e.preventDefault()
+    dispatch(removeUserCreatedArticleSettings({ articleKey: articleKind }))
+    dispatch(saveSettings())
+  }
   return (
     <div>
       <Row>
         <Col>
           <Title level={4} editable={artSettings.isUserCreated}>{artSettings.title} </Title>
+        </Col>
+        <Col>
+          {artSettings.isUserCreated &&
+            <Button onClick={onDeleteClick} type="text" style={{ float: "right" }}>
+              <DeleteOutlined />
+            </Button>}
         </Col>
       </Row>
       <Row>
@@ -113,33 +129,7 @@ export const SettingsSetter = () => {
   const dispatch = useDispatch()
   const minAllowedWordCount = 50
   const maxAllowedWordCount = 5000
-
-  const [newPromptTitle, setNewPromptTitle] = useState("")
-  const [newPromptHint, setNewPromptHint] = useState("")
   const [newPromptModalVisible, setNewPromptModalVisible] = useState(false)
- 
-  const onNewPromptTitleFormChange = e => {
-    setNewPromptTitle(e.target.value)
-  }
-
-  const onNewPromptHintFormChange = e => {
-    setNewPromptHint(e.target.value)
-  }
-  const onNewPromptConfirm = e => {
-    e.preventDefault()
-    const payload = {
-      title: newPromptTitle,
-      hintText: newPromptHint,
-      promptFrequency: { kind: 'DAILY', details: null }
-    }
-    dispatch(addUserCreatedArticleSettings(payload))
-    dispatch(saveSettings())
-    setNewPromptModalVisible(false)
-  }
-  const onNewPromptCancel = e => {
-    e.preventDefault()
-    setNewPromptModalVisible(false)
-  }
   function onTargetWordCountChange(value) {
     if (value < maxAllowedWordCount && value >= minAllowedWordCount) {
       dispatch(updateTargetDailyWordCount({ newWordCount: value }))
@@ -148,9 +138,10 @@ export const SettingsSetter = () => {
   }
   function onAddNewPromptClick(e) {
     e.preventDefault()
-    setNewPromptTitle("")
-    setNewPromptHint("")
     setNewPromptModalVisible(true)
+  }
+  function hideNewPromptModal() {
+    setNewPromptModalVisible(false)
   }
   return (
     <div>
@@ -187,18 +178,7 @@ export const SettingsSetter = () => {
             } />
         </Col>
       </Row>
-      <Modal visible={newPromptModalVisible}
-        onOk={onNewPromptConfirm}
-        onCancel={onNewPromptCancel}>
-        <span>
-          <Text strong={true}>Title: </Text>
-          <Input maxLength={30} value={newPromptTitle} onChange={onNewPromptTitleFormChange} />
-        </span>
-        <span>
-          <Text strong={true}>Prompt: </Text>
-          <Input maxLength={500} value={newPromptHint} onChange={onNewPromptHintFormChange} />
-        </span>
-      </Modal>
+      <CreateNewPromptModal isVisible={newPromptModalVisible} onClose={hideNewPromptModal} onConfirm={hideNewPromptModal} />
     </div>
   )
 }
