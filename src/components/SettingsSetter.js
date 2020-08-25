@@ -125,7 +125,9 @@ const ArticleSettingsSetter = ({ articleKind }) => {
 
 export const SettingsSetter = () => {
   const targetDailyWordCount = useSelector(selectTargetDailyWordCount)
-  const allArticleSettings = useSelector(selectAllArticleSettings)
+  const allArticleSettings = Object.entries(useSelector(selectAllArticleSettings))
+    .sort(([akey, aSettings], [bkey, bSettings]) => aSettings.ordering - bSettings.ordering)
+    .map(([key, setting]) => key)
   const dispatch = useDispatch()
   const minAllowedWordCount = 50
   const maxAllowedWordCount = 5000
@@ -169,7 +171,7 @@ export const SettingsSetter = () => {
               paddingRight: 8,
               overflowY: 'scroll'
             }}
-            dataSource={Object.keys(allArticleSettings)}
+            dataSource={allArticleSettings}
             itemLayout="vertical"
             renderItem={(key) =>
               <List.Item key={key}>

@@ -62,6 +62,15 @@ export const fetchEntries = createAsyncThunk(
     return fetchJournalEntries(payload.user, payload.maxEndDate, payload.maxNumEntries)
   })
 
+export const fetchAllKeys = createAsyncThunk(
+  'journalEntries/fetchAllKeys',
+  async (payload) => {
+    return client.get(
+      apiUrl + '/journal' + '?userId=' + payload.user + '&keysOnly' + '')
+      .then(response => response.Items.map(item => item.Date))
+  }
+)
+
 export const syncDirtyEntries = createAsyncThunk(
   'journalEntries/syncDirtyEntries',
   async (payload, { getState }) => {
@@ -87,7 +96,10 @@ export function computeNextArticleId(state, forEntryId) {
     : Math.max.apply(null, entry.articleIds) + 1
 }
 
-const initialState = entriesAdapter.getInitialState()
+const initialState = entriesAdapter.getInitialState({
+  entriesLoading: false,
+  allKeys: []
+})
 
 export const journalEntriesSlice = createSlice({
   name: 'journalEntries',
@@ -116,8 +128,12 @@ export const journalEntriesSlice = createSlice({
     },
   },
   extraReducers: {
+    [fetchEntries.pending]: (state, action) => {
+      state.entriesLoading = true
+    },
     [fetchEntries.fulfilled]: (state, action) => {
-      entriesAdapter.setAll(state, action.payload.entities)
+      state.entriesLoading = false
+      entriesAdapter.upsertMany(state, action.payload.entities)
     },
     [syncDirtyEntries.pending]: (state, action) => {
       const entriesInFlight = Object.values(state.entities).filter((entry) => entry.dirtiness === 'DIRTY')
@@ -137,6 +153,9 @@ export const journalEntriesSlice = createSlice({
       entriesInFlight
         .filter((entry) => entry.dirtiness === 'SAVING')
         .forEach((entry) => entry.dirtiness = 'DIRTY')
+    },
+    [fetchAllKeys.fulfilled]: (state, action) => {
+      state.allKeys = action.payload
     },
     'journalArticles/addArticle': (state, action) => {
       const { entryId, articleId } = action.payload
@@ -183,6 +202,16 @@ export const {
   selectIds: selectEntryIds,
   // Pass in a selector that returns the entries slice of state
 } = entriesAdapter.getSelectors(state => state.journalEntries)
+
+export const selectUnfetchedEntriesExist = createSelector(
+  [selectEntryIds, (state) => state.journalEntries.allKeys],
+  (fetchedEntryIds, allKeys) => {
+    const fetched = new Set(fetchedEntryIds)
+    return !(allKeys.every(key => fetched.has(key)))
+  }
+)
+
+export const selectEntriesLoading = (state) => state.journalEntries.entriesLoading
 
 export const selectByDirtiness = createSelector(
   [selectAllEntries, (state, dirtiness) => dirtiness],

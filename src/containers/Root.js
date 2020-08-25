@@ -10,7 +10,14 @@ import {
 import store from '../configureStore'
 import { Layout, Menu } from 'antd';
 import { dateAsYyyyMmDd } from '../kitchenSink'
-import { fetchEntries, createNewEntry, selectEntryById, computeNextArticleId, syncDirtyEntries } from "../model/journalEntriesSlice";
+import {
+  fetchEntries,
+  fetchAllKeys,
+  createNewEntry,
+  selectEntryById,
+  computeNextArticleId,
+  syncDirtyEntries
+} from "../model/journalEntriesSlice";
 import { addArticle } from "../model/journalArticlesSlice";
 import { fetchVirtues, syncDirtyVirtues } from "../model/virtueSlice"
 import { fetchVices, syncDirtyVices } from "../model/viceSlice"
@@ -40,6 +47,7 @@ const doFetchJournalEntries = store.dispatch(
   fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
 const doFetchVices = store.dispatch(fetchVices({ user: 'testUser' }))
 const doFetchVirtues = store.dispatch(fetchVirtues({ user: 'testUser' }))
+const doFetchKeys = store.dispatch(fetchAllKeys({ user: 'testUser' }))
 Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues])
   .then((action) => {
     if (action.error) {

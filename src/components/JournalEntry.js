@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react'
 import { JournalArticle } from './JournalArticle'
-import { List, Typography, Dropdown, Button, Menu, Row, Col } from 'antd';
+import { List, Typography, Dropdown, Button, Menu, Row, Col, Affix } from 'antd';
 import { selectArticleIdsForEntry, computeNextArticleId } from '../model/journalEntriesSlice'
 import { addArticle, selectArticleById } from '../model/journalArticlesSlice'
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
@@ -20,7 +20,7 @@ export const JournalEntry = ({ entryId }) => {
   const [newPromptModalVisible, setNewPromptModalVisible] = useState(false)
 
   const articleIds = useSelector((state) => selectArticleIdsForEntry(state, entryId))
-  const allArticleSettings = useSelector((state) =>selectAllArticleSettings(state))
+  const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
   const dispatch = useDispatch()
   const store = useStore()
   function handleAddArticleClick(e) {
@@ -62,18 +62,22 @@ export const JournalEntry = ({ entryId }) => {
       </Menu.Item>
     </Menu>
   )
+  const [container, setContainer] = useState(null);
+
   return (
-    <div>
-      <Row>
-        <Col span={12}>
-          <Title level={3}>{apiDateToFe(entryId)}</Title>
-        </Col>
-        <Col span={12}>
-          <div style={{ float: 'right' }}>
-            <EntryWordCountDisplay entryId={entryId} />
-          </div>
-        </Col>
-      </Row>
+    <div ref={setContainer}>
+      <Affix >
+        <Row style={{backgroundColor:'white', borderBottomStyle:'solid', borderBottomWidth:'1px'}}>
+          <Col span={12}>
+            <Title level={3}>{apiDateToFe(entryId)}</Title>
+          </Col>
+          <Col span={12}>
+            <div style={{ float: 'right' }}>
+              <EntryWordCountDisplay entryId={entryId} />
+            </div>
+          </Col>
+        </Row>
+      </Affix>
       <List
         dataSource={articleIds}
         itemLayout="vertical"

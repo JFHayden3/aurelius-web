@@ -3,20 +3,21 @@
 // When clicked, switches to task-editor view to allow editing
 
 import React from 'react'
-import { Typography, Button, Tooltip, Divider, TimePicker, Select, AutoComplete, Input } from 'antd';
+import { Typography, Button, Tooltip, Divider, TimePicker, Select } from 'antd';
 import { ClockCircleOutlined, HourglassOutlined, MessageOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux'
 import moment from 'moment';
+import { selectAllVirtues } from '../model/virtueSlice'
 import { selectTaskById, updateAgendaTask, removeAgendaTask } from '../model/journalArticlesSlice'
 const { Text } = Typography;
-
+const { Option } = Select
 export const TaskListItem = ({ articleId, taskId }) => {
   const dispatch = useDispatch()
   const task = useSelector((state) => selectTaskById(state, articleId, taskId))
   const { activity, optDuration, optTime, optNotes } = task
-
-  const onActivityTextChange = e => {
-    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { activity: { content: e.target.value } } }))
+  const allVirtues = useSelector(selectAllVirtues)
+  const onActivitySelectionChange = val => {
+    dispatch(updateAgendaTask({ articleId, taskId, changedFields: { activity: { content: val[val.length - 1] } } }))
   };
   const onNotesTextChange = str => {
     dispatch(updateAgendaTask({ articleId, taskId, changedFields: { optNotes: str } }))
@@ -57,15 +58,17 @@ export const TaskListItem = ({ articleId, taskId }) => {
   return (
     <div>
       <span>
-        <Input
-          style={{
-            minWidth: '20px',
-            maxWidth: '150px'
-          }}
-          onChange={onActivityTextChange} defaultValue={activity.content} />
+        <Select
+          mode="tags"
+          style={{ minWidth: "250px" }}
+          onChange={onActivitySelectionChange} value={[activity.content]} >
+          {allVirtues.map(virtue =>
+            <Option key={virtue.refTag}>{virtue.name}</Option>
+          )}
+        </Select>
         {optNotes &&
           <Text editable={{ onChange: onNotesTextChange }}>{optNotes}</Text>
-         }
+        }
         {optDuration &&
           <Tooltip title="Set duration">
             <TimePicker

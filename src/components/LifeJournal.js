@@ -4,40 +4,62 @@
 
 import { JournalEntry } from './JournalEntry'
 import React from 'react'
-import { List, Card, Divider, Layout, Typography, Row } from 'antd';
-import { useSelector } from 'react-redux'
-import { selectEntryIds } from '../model/journalEntriesSlice'
+import { List, Card, Divider, Layout, Typography, Row, Spin } from 'antd';
+import { useSelector, useDispatch } from 'react-redux'
+import {
+  selectEntryIds,
+  selectUnfetchedEntriesExist,
+  selectEntriesLoading,
+  fetchEntries
+} from '../model/journalEntriesSlice'
 import { DirtyJournalTracker } from './DirtyJournalTracker'
+import InfiniteScroll from 'react-infinite-scroller';
 
 const { Title } = Typography
 const { Header } = Layout
 export const LifeJournal = () => {
+  const dispatch = useDispatch()
   const entryIds = useSelector(selectEntryIds)
+  const isLoading = useSelector(state => selectEntriesLoading(state))
+  const hasMoreUnfetchedEntries = useSelector(state => selectUnfetchedEntriesExist(state))
+  const handleInfiniteOnLoad = (pageNum) => {
+    const lastLoadedEntryId = entryIds[entryIds.length - 1]
+    dispatch(
+      fetchEntries({ user: 'testUser', maxEndDate: lastLoadedEntryId, maxNumEntries: 11 }))
+  }
   return (
     <div>
-      <Header
-        style={{ position: 'fixed', zIndex: 1, width: '100%', backgroundColor: '#fff' }}
-        title="Daily Journal"
-      >
-        <Row>
-          <Title level={2}>Daily Journal</Title>
-          <DirtyJournalTracker />
-        </Row>
-      </Header>
-      <List
-        style={{ paddingTop: 66, paddingLeft: 16, paddingRight: 16 }}
-        itemLayout="vertical"
-        dataSource={entryIds}
-        renderItem={id =>
-          <List.Item key={id}>
-            <Card>
-              <JournalEntry entryId={id} />
-            </Card>
-            <Divider />
-          </List.Item>
-        }
-      >
-      </List>
+      
+      <InfiniteScroll
+        initialLoad={false}
+        pageStart={0}
+        loadMore={handleInfiniteOnLoad}
+        hasMore={hasMoreUnfetchedEntries}
+        useWindow={true}>
+        <List
+          style={{ paddingTop: 16, paddingLeft: 16, paddingRight: 16 }}
+          itemLayout="vertical"
+          dataSource={entryIds}
+          renderItem={id =>
+            <List.Item key={id}>
+              <Card>
+                <JournalEntry entryId={id} />
+              </Card>
+              <Divider />
+            </List.Item>
+          }
+        >
+          {isLoading &&
+            <div syle={{
+              position: 'absolute',
+              bottom: '40px',
+              width: '100%',
+              textAlign: 'center'
+            }}>
+              <Spin />
+            </div>}
+        </List>
+      </InfiniteScroll>
     </div>
   )
 }
