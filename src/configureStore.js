@@ -7,6 +7,7 @@ import lifeJournalReducer from '../src/model/lifeJournalSlice'
 import settingsSlice from './model/settingsSlice'
 import viceSlice from './model/viceSlice'
 import virtueSlice from './model/virtueSlice'
+import viceLogSlice from './model/viceLogSlice'
 
 const loggerMiddleware = createLogger()
 
@@ -17,6 +18,7 @@ export default configureStore({
     journalArticles: journalArticlesReducer,
     settings: settingsSlice,
     vices: viceSlice,
+    viceLogs: viceLogSlice,
     virtues: virtueSlice,
   },
   middleware: [loggerMiddleware, thunkMiddleware, ...getDefaultMiddleware()]

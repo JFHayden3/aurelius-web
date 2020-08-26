@@ -1,17 +1,20 @@
 import React from 'react'
 import { selectViceById, updateVice } from '../model/viceSlice'
+import { selectViceLogsByVice, selectAllViceLogs } from '../model/viceLogSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons'
 import { ViceDefaultRestrictionEditor } from './ViceDefaultRestrictionEditor'
 import { DirtyViceTracker } from './DirtyViceTracker'
 import { Typography, List, Row, Col, Button } from 'antd';
 import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
+import { ViceLogEntry } from './ViceLogEntry'
 const { Title, Text } = Typography;
 
 export const ViceEditor = ({ match }) => {
   const { viceId } = match.params
   const vice = useSelector(state => selectViceById(state, viceId))
   const dispatch = useDispatch()
+  const associatedViceLogs = useSelector(state => selectViceLogsByVice(state, vice ? vice.refTag : ""))
   const onTextFieldChange = ({ fieldName, value }) => {
     dispatch(updateVice({ viceId: vice.id, changedFields: { [fieldName]: value } }))
   }
@@ -99,6 +102,10 @@ export const ViceEditor = ({ match }) => {
             </List.Item>
           </List>
         </Col>
+      </Row>
+      <Row gutter={gutter}>
+        <Text strong={true}>Log entries</Text>
+        {associatedViceLogs.map(vl => <ViceLogEntry logId={vl.id} />)}
       </Row>
     </div>
   )
