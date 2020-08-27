@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { updateVice } from '../model/viceSlice'
 import {
   selectViceRestrictions,

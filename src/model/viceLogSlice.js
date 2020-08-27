@@ -15,7 +15,8 @@ const dummyState = {
     failureAnalysis: "Brought my phone into the bathroom with me and pulled up youtube without thinking",
     impactAnalysis: "Lost about an hour down a youtube hole and had a lot of trouble focusing for the rest of the afternoon",
     counterfactualAnalysis: "Could have left my phone out of the bathroom, would have been out and back to productive work in no time and spent the rest of the afternoon happily clickin away instead of constantly distracted.",
-    attonement: "I'm removing the youtube app from my phone"
+    attonement: "I'm removing the youtube app from my phone",
+    dirtiness:'CLEAN'
   },
 }
 
@@ -33,15 +34,32 @@ export const viceLogSlice = createSlice({
   name: 'viceLogs',
   initialState,
   reducers: {
+    createNewViceLogEntry(state, action) {
+      const { id, vices, date } = action.payload
+      const newViceLog = {
+        id,
+        date,
+        vices,
+        failureAnalysis: "",
+        impactAnalysis: "",
+        counterfactualAnalysis: "",
+        attonement: "",
+        dirtiness: 'DIRTY'
+      }
+      viceLogsAdapter.upsertOne(state, newViceLog)
+    },
     updateViceLog(state, action) {
-
+      const { id, changedFields } = action.payload
+      const logEntry = state.entities[id]
+      Object.entries(changedFields).forEach(([field, value]) => logEntry[field] = value)
+      logEntry.dirtiness = 'DIRTY'
     },
   },
   extraReducers: {
   }
 })
 
-export const { updateViceLog } = viceLogSlice.actions
+export const { createNewViceLogEntry, updateViceLog } = viceLogSlice.actions
 
 export default viceLogSlice.reducer
 

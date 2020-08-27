@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react'
-import { Typography, Row, Col, Input, Modal } from 'antd';
+import { Typography, Row, Col, Input, Modal, Space } from 'antd';
 
 const { TextArea } = Input
 const { Text } = Typography;
@@ -8,17 +8,18 @@ const { Text } = Typography;
 export const gutter = [24, 24]
 export const colSpan = 18
 
-export const WrittenResponse = ({ text, entity, fieldName, minRows = 6, onValueChange }) => {
+export const WrittenResponse = ({ text, entity, fieldName, minRows = 6, isReadonly = false, onValueChange }) => {
   const onTextChange = e => {
     onValueChange({ fieldName, value: e.target.value })
   }
   return (
     <Row gutter={gutter}>
       <Col span={colSpan}>
-        <div>
+        <Space direction='vertical' style={{width:'100%'}}>
           <Text strong={true}>{text}</Text>
-          <TextArea autoSize={{ minRows }} value={entity[fieldName]} onChange={onTextChange} />
-        </div>
+          {isReadonly && <Text>{entity[fieldName]}</Text>}
+          {!isReadonly && <TextArea autoSize={{ minRows }} value={entity[fieldName]} onChange={onTextChange} />}
+        </Space>
       </Col>
     </Row>
   )

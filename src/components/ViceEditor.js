@@ -1,17 +1,22 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { selectViceById, updateVice } from '../model/viceSlice'
-import { selectViceLogsByVice, selectAllViceLogs } from '../model/viceLogSlice'
-import { useSelector, useDispatch } from 'react-redux'
-import { PlusOutlined } from '@ant-design/icons'
+import { selectViceLogsByVice, createNewViceLogEntry, computeNextViceLogId } from '../model/viceLogSlice'
+import { useSelector, useDispatch, useStore } from 'react-redux'
+import { PlusOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons'
 import { ViceDefaultRestrictionEditor } from './ViceDefaultRestrictionEditor'
 import { DirtyViceTracker } from './DirtyViceTracker'
-import { Typography, List, Row, Col, Button } from 'antd';
+import { Typography, List, Row, Col, Button, Collapse, Space, Modal } from 'antd';
 import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
 import { ViceLogEntry } from './ViceLogEntry'
+import { dateAsYyyyMmDd } from '../kitchenSink'
 const { Title, Text } = Typography;
+const { Panel } = Collapse
 
 export const ViceEditor = ({ match }) => {
+  const [editingLogId, setEditingLogId] = useState(null)
+  const [expandedLogPanelIds, setExpandedLogPanelIds] = useState([])
   const { viceId } = match.params
+  const nextViceLogId = useSelector(state => computeNextViceLogId(state))
   const vice = useSelector(state => selectViceById(state, viceId))
   const dispatch = useDispatch()
   const associatedViceLogs = useSelector(state => selectViceLogsByVice(state, vice ? vice.refTag : ""))
@@ -25,6 +30,31 @@ export const ViceEditor = ({ match }) => {
     const newTactics = vice.mitigationTactics.concat({ id: newId, text: "" })
     dispatch(updateVice({ viceId, changedFields: { mitigationTactics: newTactics } }))
   }
+  const onAddViceLogEntryClick = e => {
+    const payload = {
+      id: nextViceLogId,
+      vices: [vice.refTag],
+      date: dateAsYyyyMmDd(new Date(Date.now()))
+    }
+    dispatch(createNewViceLogEntry(payload))
+    setEditingLogId(payload.id)
+    setExpandedLogPanelIds(expandedLogPanelIds.concat("" + payload.id))
+  }
+  const onLogPanelExpansionChange = val => {
+    if (!val.includes(editingLogId)) {
+      setEditingLogId(null)
+    }
+    setExpandedLogPanelIds(val)
+  }
+  function onEditViceLogEntryClick(logId) {
+    return e => {
+      e.stopPropagation()
+      if (logId !== null && !expandedLogPanelIds.includes("" + logId)) {
+        setExpandedLogPanelIds(expandedLogPanelIds.concat("" + logId))
+      }
+      setEditingLogId(logId)
+    }
+  }
   function onTacticTextChange(targetId) {
     return str => {
       const newTactics = vice.mitigationTactics.map(tactic => {
@@ -37,7 +67,6 @@ export const ViceEditor = ({ match }) => {
       dispatch(updateVice({ viceId, changedFields: { mitigationTactics: newTactics } }))
     }
   }
-
   if (!vice) {
     return (
       <div>Unknown vice</div>
@@ -103,10 +132,33 @@ export const ViceEditor = ({ match }) => {
           </List>
         </Col>
       </Row>
-      <Row gutter={gutter}>
-        <Text strong={true}>Log entries</Text>
-        {associatedViceLogs.map(vl => <ViceLogEntry logId={vl.id} />)}
-      </Row>
+      <Col span={colSpan}>
+        <Space direction='vertical' style={{ width: '100%' }} >
+          <Text strong={true}>Log entries</Text>
+          <Collapse activeKey={expandedLogPanelIds} onChange={onLogPanelExpansionChange} >
+            {associatedViceLogs.map(vl =>
+              <Panel key={vl.id}
+                header={vl.date}
+                extra={(
+                  <div>
+                    {editingLogId !== vl.id &&
+                      <Button size="small" type="text"
+                        onClick={onEditViceLogEntryClick(vl.id)}>
+                        <EditOutlined />
+                      </Button>}
+                    {editingLogId === vl.id &&
+                      <Button size="small" type="text"
+                        onClick={onEditViceLogEntryClick(null)}>
+                        <CheckOutlined />
+                      </Button>}
+                  </div>)}>
+                <ViceLogEntry logId={vl.id} isReadOnlyMode={editingLogId !== vl.id} />
+              </Panel>
+            )}
+          </Collapse>
+          <Button block size="large" type="dashed" onClick={onAddViceLogEntryClick}><PlusOutlined />Add Entry</Button>
+        </Space>
+      </Col>
     </div>
   )
 }
