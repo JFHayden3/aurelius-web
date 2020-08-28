@@ -2,7 +2,7 @@
 // dropdown and automatic highlighting/linking for references to
 // vices/growths
 
-import React, { Component } from 'react'
+import React from 'react'
 import { Input } from 'antd';
 import { selectArticleById, textUpdated } from '../model/journalArticlesSlice'
 import { useSelector, useDispatch } from 'react-redux'

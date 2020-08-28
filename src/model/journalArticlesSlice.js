@@ -3,6 +3,7 @@ import {
   createSelector,
   createSlice
 } from '@reduxjs/toolkit'
+import { selectViceLogById } from './viceLogSlice'
 
 const articlesAdapter = createEntityAdapter()
 
@@ -119,8 +120,8 @@ export const selectArticlesByIds =
   }
 
 export const selectArticleTitleById = createSelector(
- [selectArticleById],
- (article) => article ? article.title : null
+  [selectArticleById],
+  (article) => article ? article.title : null
 )
 
 export const selectArticleKindById = createSelector(
@@ -143,25 +144,33 @@ export const selectRestrictionById = createSelector(
   (article, restrictionId) => article.content.restrictions.find(r => r.id === restrictionId)
 )
 
-function getWordCount(article) {
+function getWordCount(article, state) {
   function countWords(s) {
     s = s.replace(/(^\s*)|(\s*$)/gi, "");//exclude  start and end white-space
     s = s.replace(/[ ]{2,}/gi, " ");//2 or more space to 1
     s = s.replace(/\n /, "\n"); // exclude newline with a start spacing
     return s.split(' ').filter(String).length;
   }
-  if (article.kind === 'AGENDA') {
-    const textCount = countWords(article.content.text ?? "")
-    const taskCount = article.content.tasks.reduce((total, task) => total + countWords(task.optNotes ?? ""), 0)
-    // Me being lazy to avoid deleting old entries created before there were restrictions
-    const restrictionCount = (article.content.restrictions ?? []).reduce((total, r) => total + countWords(r.optNote ?? ""), 0)
-    return textCount + taskCount + restrictionCount
-  } else {
-    return countWords(article.content.text)
+  switch (article.kind) {
+    case 'AGENDA':
+      const textCount = countWords(article.content.text ?? "")
+      const taskCount = article.content.tasks.reduce((total, task) => total + countWords(task.optNotes ?? ""), 0)
+      // Me being lazy to avoid deleting old entries created before there were restrictions
+      const restrictionCount = (article.content.restrictions ?? []).reduce((total, r) => total + countWords(r.optNote ?? ""), 0)
+      return textCount + taskCount + restrictionCount
+    case 'VICE_LOG':
+      const viceLog = selectViceLogById(state, article.content.logId)
+      return (
+        countWords(viceLog.failureAnalysis) +
+        countWords(viceLog.impactAnalysis) +
+        countWords(viceLog.counterfactualAnalysis) +
+        countWords(viceLog.attonement))
+    default:
+      return countWords(article.content.text)
   }
 }
 
 export const selectWordCount = createSelector(
-  [selectArticlesByIds],
-  (articles) => articles.reduce((total, article) => total + getWordCount(article), 0)
+  [selectArticlesByIds, (state, ids) => state],
+  (articles, state) => articles.reduce((total, article) => total + getWordCount(article, state), 0)
 )

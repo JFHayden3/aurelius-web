@@ -51,7 +51,7 @@ const doFetchVices = store.dispatch(fetchVices({ user: 'testUser' }))
 const doFetchViceLogs = store.dispatch(fetchViceLogEntries({ user: 'testUser' }))
 const doFetchVirtues = store.dispatch(fetchVirtues({ user: 'testUser' }))
 const doFetchKeys = store.dispatch(fetchAllKeys({ user: 'testUser' }))
-Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues])
+Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues, doFetchViceLogs])
   .then((action) => {
     if (action.error) {
       // TODO retry and/or put the UI into an error state
@@ -67,7 +67,7 @@ Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetc
             const state = store.getState()
             const nextArticleId = computeNextArticleId(state, payload.dateId)
             const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
-            const defaultContent = getStartingContent(articleKind, state)
+            const defaultContent = getStartingContent(articleKind, state, store.dispatch)
             store.dispatch(addArticle(
               {
                 entryId: payload.dateId,
