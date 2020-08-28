@@ -25,6 +25,12 @@ export const ViceLogEntry = ({ logId, isReadOnlyMode }) => {
     onFieldChange({ fieldName: 'date', value: newDate })
   }
   const onVicesChange = val => {
+    // Don't allow the removal of *all* associated vices.
+    // TODO: this is kind of a crappy way of addressing the disappearing log problem
+    // from the vice editor page, can do this better
+    if (val.length === 0) {
+      return
+    }
     onFieldChange({fieldName:'vices', value:val})
   }
   return (

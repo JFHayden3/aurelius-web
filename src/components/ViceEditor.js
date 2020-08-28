@@ -8,7 +8,7 @@ import { DirtyViceTracker } from './DirtyViceTracker'
 import { Typography, List, Row, Col, Button, Collapse, Space, Modal } from 'antd';
 import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
 import { ViceLogEntry } from './ViceLogEntry'
-import { dateAsYyyyMmDd } from '../kitchenSink'
+import { dateAsYyyyMmDd, apiDateToFe } from '../kitchenSink'
 const { Title, Text } = Typography;
 const { Panel } = Collapse
 
@@ -41,7 +41,7 @@ export const ViceEditor = ({ match }) => {
     setExpandedLogPanelIds(expandedLogPanelIds.concat("" + payload.id))
   }
   const onLogPanelExpansionChange = val => {
-    if (!val.includes(editingLogId)) {
+    if (!val.includes(editingLogId + "")) {
       setEditingLogId(null)
     }
     setExpandedLogPanelIds(val)
@@ -138,7 +138,7 @@ export const ViceEditor = ({ match }) => {
           <Collapse activeKey={expandedLogPanelIds} onChange={onLogPanelExpansionChange} >
             {associatedViceLogs.map(vl =>
               <Panel key={vl.id}
-                header={vl.date}
+                header={apiDateToFe(vl.date)}
                 extra={(
                   <div>
                     {editingLogId !== vl.id &&

@@ -21,6 +21,8 @@ import {
 import { addArticle } from "../model/journalArticlesSlice";
 import { fetchVirtues, syncDirtyVirtues } from "../model/virtueSlice"
 import { fetchVices, syncDirtyVices } from "../model/viceSlice"
+import { fetchViceLogEntries, syncDirtyViceLogEntries } from "../model/viceLogSlice"
+
 import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
 import 'antd/dist/antd.css';
@@ -46,6 +48,7 @@ const doFetchSettings = store.dispatch(fetchSettings({ user: 'testUser' }))
 const doFetchJournalEntries = store.dispatch(
   fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
 const doFetchVices = store.dispatch(fetchVices({ user: 'testUser' }))
+const doFetchViceLogs = store.dispatch(fetchViceLogEntries({ user: 'testUser' }))
 const doFetchVirtues = store.dispatch(fetchVirtues({ user: 'testUser' }))
 const doFetchKeys = store.dispatch(fetchAllKeys({ user: 'testUser' }))
 Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues])
@@ -82,6 +85,7 @@ setInterval(() => {
   store.dispatch(syncDirtyEntries())
   store.dispatch(syncDirtyVices())
   store.dispatch(syncDirtyVirtues())
+  store.dispatch(syncDirtyViceLogEntries())
 }, 2500)
 
 export default class Root extends Component {
