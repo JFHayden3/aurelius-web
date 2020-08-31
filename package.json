@@ -11,6 +11,7 @@
     "antd": "^4.4.1",
     "babel-polyfill": "^6.26.0",
     "cross-fetch": "^3.0.5",
+    "draft-js": "^0.11.7",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-infinite-scroller": "^1.2.4",
