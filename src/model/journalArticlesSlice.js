@@ -151,9 +151,17 @@ function getWordCount(article, state) {
     s = s.replace(/\n /, "\n"); // exclude newline with a start spacing
     return s.split(' ').filter(String).length;
   }
+  function countWordsInBlocks(rawValue) {
+    if (!rawValue) {
+      return 0
+    } else {
+      // Mainly me being lazy for historical entries.
+      return (rawValue.blocks ?? []).reduce((total, block) => total + countWords(block.text), 0)
+    }
+  }
   switch (article.kind) {
     case 'AGENDA':
-      const textCount = countWords(article.content.text ?? "")
+      const textCount = countWordsInBlocks(article.content.text)
       const taskCount = article.content.tasks.reduce((total, task) => total + countWords(task.optNotes ?? ""), 0)
       // Me being lazy to avoid deleting old entries created before there were restrictions
       const restrictionCount = (article.content.restrictions ?? []).reduce((total, r) => total + countWords(r.optNote ?? ""), 0)
@@ -166,7 +174,7 @@ function getWordCount(article, state) {
         countWords(viceLog.counterfactualAnalysis) +
         countWords(viceLog.attonement))
     default:
-      return countWords(article.content.text)
+      return countWordsInBlocks(article.content.text)
   }
 }
 

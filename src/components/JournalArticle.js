@@ -7,8 +7,8 @@
 import React from 'react'
 import { selectArticleKindById, selectArticleTitleById, removeArticle } from '../model/journalArticlesSlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { Button, Divider } from 'antd'
-import { DeleteOutlined } from '@ant-design/icons';
+import { Button, Divider, Dropdown, Menu } from 'antd'
+import { DeleteOutlined, MoreOutlined } from '@ant-design/icons';
 import { AgendaArticleContent } from './AgendaArticleContent'
 import { WrittenArticleContent } from './WrittenArticleContent'
 import { ViceLogArticleContent } from './ViceLogArticleContent'
@@ -28,12 +28,19 @@ export const JournalArticle = ({ articleId }) => {
     }
   }
   if (kind) {
+    const menu = (
+      <Menu>
+        <Menu.Item key="delete" onClick={(e) => dispatch(removeArticle({ articleId }))}><DeleteOutlined/>Delete</Menu.Item>
+      </Menu>
+    )
     return (
       <div>
         <Divider orientation="left">
           <span>
             {title}
-            <Button onClick={(e) => dispatch(removeArticle({ articleId }))} type="text" shape="round" icon={<DeleteOutlined />} />
+            <Dropdown overlay={menu} trigger={['click']}>
+              <Button type="text" shape="round" icon={<MoreOutlined />} />
+            </Dropdown>
           </span>
         </Divider>
         {getArticleContent(kind)}

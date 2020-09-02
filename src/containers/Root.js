@@ -1,9 +1,10 @@
 import React from 'react'
 import { Provider, useSelector } from 'react-redux'
 import {
-  BrowserRouter as Router,
   Switch,
   Route,
+  useLocation,
+  useHistory,
   Link,
   Redirect,
 } from 'react-router-dom'
@@ -26,6 +27,7 @@ import { fetchViceLogEntries, syncDirtyViceLogEntries } from "../model/viceLogSl
 import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
 import 'antd/dist/antd.css';
+import 'draft-js-mention-plugin/lib/plugin.css';
 import { LifeJournal } from '../components/LifeJournal'
 import { ViceBank } from '../components/ViceBank'
 import { ViceEditor } from '../components/ViceEditor'
@@ -33,7 +35,6 @@ import { VirtueBank } from '../components/VirtueBank'
 import { VirtueEditor } from '../components/VirtueEditor'
 import { SettingsSetter } from '../components/SettingsSetter'
 import { selectIsInitializationComplete, setInitialized } from '../model/metaSlice'
-import { createSelector } from '@reduxjs/toolkit';
 const { Header, Content, Footer, Sider } = Layout;
 
 function todayAsYyyyMmDd() {
@@ -55,8 +56,6 @@ Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetc
       // TODO retry and/or put the UI into an error state
       console.log("\n\nINITIAL FETCH FAILED\n\n")
     } else {
-      // TODO see note above about root level reference. Right now this is less efficient 
-      // than it could be as we only depend on settings being present for the render.
       const payload = { dateId: todayAsYyyyMmDd() }
       if (!selectEntryById(store.getState(), payload.dateId)) {
         store.dispatch(createNewEntry(payload))
@@ -82,60 +81,63 @@ Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetc
   })
 
 setInterval(() => {
- //store.dispatch(syncDirtyEntries())
- //store.dispatch(syncDirtyVices())
- //store.dispatch(syncDirtyVirtues())
- //store.dispatch(syncDirtyViceLogEntries())
+  store.dispatch(syncDirtyEntries())
+  store.dispatch(syncDirtyVices())
+  store.dispatch(syncDirtyVirtues())
+  store.dispatch(syncDirtyViceLogEntries())
 }, 2500)
 
 export const Root = () => {
   const isInitialized = useSelector(state => selectIsInitializationComplete(state))
-
-  if (!isInitialized) {
-    return (<div><Spin/></div>)
+  const location = useLocation()
+  const history = useHistory()
+  if (location.pathname === '/') {
+    history.push(`/journal`)
   }
+  if (!isInitialized) {
+    return (<div><Spin /></div>)
+  }
+  
   return (
-    <Router>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Sider style={{
-          overflow: 'auto',
-          height: '100vh',
-          position: 'fixed',
-          left: 0,
-        }}
-          theme="light">
-          <div className="logo" />
-          <Menu defaultSelectedKeys={["journal"]} mode="inline">
-            <Menu.Item key="journal" >
-              <Link to={`/journal`}>Journal</Link>
-            </Menu.Item>
-            <Menu.Item key="vices">
-              <Link to={`/vices`}>Vices</Link>
-            </Menu.Item>
-            <Menu.Item key="virtues">
-              <Link to={`/virtues`}>Virtues</Link>
-            </Menu.Item>
-            <Menu.Item key="settings">
-              <Link to={`/settings`}>Settings</Link>
-            </Menu.Item>
-          </Menu>
-        </Sider>
-        <Layout theme="light" className="site-layout" style={{ marginLeft: '200px' }}>
-          <Content>
-            <div className="site-layout-background" style={{ minHeight: 360 }}>
-              <Switch>
-                <Route exact path="/journal" component={LifeJournal} />
-                <Route exact path="/vices" component={ViceBank} />
-                <Route exact path="/vices/edit/:viceId" component={ViceEditor} />
-                <Route exact path="/virtues" component={VirtueBank} />
-                <Route exact path="/virtues/edit/:virtueId" component={VirtueEditor} />
-                <Route exact path="/settings" component={SettingsSetter} />
-              </Switch>
-            </div>
-          </Content>
-          <Footer style={{ textAlign: 'center' }}>Aurelius ©2020 Created by Two Carls LLC</Footer>
-        </Layout>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Sider style={{
+        overflow: 'auto',
+        height: '100vh',
+        position: 'fixed',
+        left: 0,
+      }}
+        theme="light">
+        <div className="logo" />
+        <Menu selectedKeys={[location.pathname]} mode="inline">
+          <Menu.Item key="/journal" >
+            <Link to={`/journal`}>Journal</Link>
+          </Menu.Item>
+          <Menu.Item key="/vices">
+            <Link to={`/vices`}>Vices</Link>
+          </Menu.Item>
+          <Menu.Item key="/virtues">
+            <Link to={`/virtues`}>Virtues</Link>
+          </Menu.Item>
+          <Menu.Item key="/settings">
+            <Link to={`/settings`}>Settings</Link>
+          </Menu.Item>
+        </Menu>
+      </Sider>
+      <Layout theme="light" className="site-layout" style={{ marginLeft: '200px' }}>
+        <Content>
+          <div className="site-layout-background" style={{ minHeight: 360 }}>
+            <Switch>
+              <Route exact path="/journal" component={LifeJournal} />
+              <Route exact path="/vices" component={ViceBank} />
+              <Route exact path="/vices/edit/:viceId" component={ViceEditor} />
+              <Route exact path="/virtues" component={VirtueBank} />
+              <Route exact path="/virtues/edit/:virtueId" component={VirtueEditor} />
+              <Route exact path="/settings" component={SettingsSetter} />
+            </Switch>
+          </div>
+        </Content>
+        <Footer style={{ textAlign: 'center' }}>Aurelius ©2020 Created by Two Carls LLC</Footer>
       </Layout>
-    </Router>
+    </Layout>
   )
 }

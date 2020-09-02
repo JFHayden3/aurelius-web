@@ -1,4 +1,5 @@
 import 'babel-polyfill'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
 
 import React from 'react'
 import { render } from 'react-dom'
@@ -8,5 +9,7 @@ import store from './configureStore'
 
 render(
   <Provider store={store}>
-    <Root />
+    <Router>
+      <Root />
+    </Router>
   </Provider>, document.getElementById('root'))

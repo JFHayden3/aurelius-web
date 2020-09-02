@@ -1,7 +1,7 @@
 import React from 'react'
 import { selectViceById, deleteVice } from '../model/viceSlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { Typography, List, Row, Col, Button } from 'antd';
+import { Typography, Row, Col, Button } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom'
 const { Title, Text, Paragraph } = Typography;

@@ -5,6 +5,7 @@ import { TaskList } from './TaskList'
 import { RestrictionList } from './RestrictionList'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectArticleById, textUpdated } from '../model/journalArticlesSlice'
+import { TaggableTextField } from './TaggableTextField'
 import { Input, Divider } from 'antd';
 const { TextArea } = Input
 
@@ -13,19 +14,10 @@ export const AgendaArticleContent = ({ articleId }) => {
   const dispatch = useDispatch()
   return (
     <div>
-      <TextArea placeholder="High-level notes about today's agenda..."
-        defaultValue={article.content.text}
-        autoSize
-        style={
-          {
-            overFlowY: "hidden"
-            , resize: "none"
-            , fontFamily: "helvetica, sans-serif"
-            , border: 0
-            , marginBottom: '16px'
-          }}
-        onChange={(e) =>
-          dispatch(textUpdated({ articleId: articleId, text: e.target.value }))}
+      <TaggableTextField placeholder="High-level notes about today's agenda..."
+        value={article.content.text}
+        onChange={(val) =>
+          dispatch(textUpdated({ articleId: articleId, text: val }))}
       />
       <Divider plain orientation="left">Agenda</Divider>
       <TaskList articleId={articleId} />

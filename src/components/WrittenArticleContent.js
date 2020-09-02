@@ -19,36 +19,8 @@ export const WrittenArticleContent = ({ articleId }) => {
   return (
     <TaggableTextField
       placeholder={content.hint}
-      autoSize={{ minRows: 6 }}
       value={content.text}
-      style={
-        {
-          overFlowY: "hidden"
-          , resize: "none"
- //          , fontSize: "16px" 
-          , lineHeight: "1.3em"
-          , fontFamily: "helvetica, sans-serif"
-          , border: 0
-        }
-      }
       onChange={onChange}
     />
-    /**<TextArea
-      autoSize={{ minRows: 6 }}
-      size='large'
-      style={
-        {
-          overFlowY: "hidden"
-          , resize: "none"
-          // , fontSize: "16px" Fucks with the scrollbar appearance. Need CSS hackery likely to fix
-          , lineHeight: "1.3em"
-          , fontFamily: "helvetica, sans-serif"
-          , border: 0
-        }}
-      placeholder={content.hint}
-      defaultValue={content.text}
-      onChange={(e) =>
-        dispatch(textUpdated({ articleId: articleId, text: e.target.value }))}
-    />*/
   )
 }

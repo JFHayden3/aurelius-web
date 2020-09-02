@@ -109,7 +109,7 @@ function convertApiToFe(apiItems) {
     console.log("MULTIPLE SETTINGS!" + apiItems)
     let longestSettings = null
     let longestSettingsLen = 0
-    apiItems.foreach(item => {
+    apiItems.forEach(item => {
       if (item.length >= longestSettingsLen) {
         longestSettings = item
         longestSettingsLen = item.length
