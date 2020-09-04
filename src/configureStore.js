@@ -6,6 +6,7 @@ import journalEntriesReducer from '../src/model/journalEntriesSlice'
 import settingsSlice from './model/settingsSlice'
 import viceSlice from './model/viceSlice'
 import virtueSlice from './model/virtueSlice'
+import challengeSlice from './model/challengeSlice'
 import viceLogSlice from './model/viceLogSlice'
 import metaSlice from './model/metaSlice'
 
@@ -15,6 +16,7 @@ export default configureStore({
   reducer: {
     journalEntries: journalEntriesReducer,
     journalArticles: journalArticlesReducer,
+    challenges: challengeSlice,
     meta: metaSlice,
     settings: settingsSlice,
     vices: viceSlice,

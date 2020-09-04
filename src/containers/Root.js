@@ -33,6 +33,8 @@ import { ViceBank } from '../components/ViceBank'
 import { ViceEditor } from '../components/ViceEditor'
 import { VirtueBank } from '../components/VirtueBank'
 import { VirtueEditor } from '../components/VirtueEditor'
+import { ChallengeBank } from '../components/ChallengeBank'
+import { ChallengeEditor } from '../components/ChallengeEditor'
 import { SettingsSetter } from '../components/SettingsSetter'
 import { selectIsInitializationComplete, setInitialized } from '../model/metaSlice'
 const { Header, Content, Footer, Sider } = Layout;
@@ -118,6 +120,9 @@ export const Root = () => {
           <Menu.Item key="/virtues">
             <Link to={`/virtues`}>Virtues</Link>
           </Menu.Item>
+          <Menu.Item key="/challenges">
+            <Link to={`/challenges`}>Challenges</Link>
+          </Menu.Item>
           <Menu.Item key="/settings">
             <Link to={`/settings`}>Settings</Link>
           </Menu.Item>
@@ -132,6 +137,8 @@ export const Root = () => {
               <Route exact path="/vices/edit/:viceId" component={ViceEditor} />
               <Route exact path="/virtues" component={VirtueBank} />
               <Route exact path="/virtues/edit/:virtueId" component={VirtueEditor} />
+              <Route exact path="/challenges" component={ChallengeBank} />
+              <Route exact path="/challenges/edit/:challengeId" component={ChallengeEditor} />
               <Route exact path="/settings" component={SettingsSetter} />
             </Switch>
           </div>
