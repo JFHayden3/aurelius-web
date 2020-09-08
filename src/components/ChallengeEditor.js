@@ -5,13 +5,14 @@ import { selectChallengeById, updateChallenge } from '../model/challengeSlice'
 import {
   selectViceRestrictions
   , updateViceRestriction
+  , saveSettings
   , makeCustomViceRestrictionSaved
   , computeNewSavedViceRestrictionId
 } from '../model/settingsSlice'
 import { useSelector, useDispatch, useStore } from 'react-redux'
-import { PlusOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, CheckOutlined, ClockCircleOutlined, HourglassOutlined } from '@ant-design/icons'
 import { ViceDefaultRestrictionEditor } from './ViceDefaultRestrictionEditor'
-import { Typography, List, Divider, Button, Collapse, Space, DatePicker, Input, Radio, Select } from 'antd';
+import { Typography, TimePicker, List, Divider, Button, Collapse, Space, DatePicker, Input, Radio, Select, Tooltip, Menu, Dropdown } from 'antd';
 import { dateAsYyyyMmDd, apiDateToFe } from '../kitchenSink'
 import moment from 'moment';
 const { Title, Text } = Typography;
@@ -47,15 +48,13 @@ const { Option } = Select
   },
  */
 
-// TODO Do I further subdivide this into the component that picks from the list of 
-// available restrictions and the component that displays/allows editing of the individual
-// restriction fields?
 const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentRestrictionId }) => {
+  const dispatch = useDispatch()
   const customKey = 'CUSTOM-FOR-' + customKeyId
   const savedViceRestrictions = useSelector(state => selectViceRestrictions(state))
   const currentRestriction = savedViceRestrictions[currentRestrictionId]
   function filterOtherCustomRestrictions([key, _]) {
-    if (key.startsWith("CUSTOM-FOR-") && key !== customKey) {
+    if (key.startsWith("CUSTOM-") && key !== customKey) {
       return false
     }
     return true
@@ -63,11 +62,56 @@ const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentRestrict
   const onRestrictionKindSelectionChange = val => {
     onRestrictionIdChange(val)
   }
-  const onRestrictionTextChange = specComponent => val => {
+  function dispatchAppropriateSpecChangeAction(newSpec) {
+    // Changed a property of a user-created spec, just make the change directly
+    if (currentRestriction.isUserCreated) {
+      dispatch(updateViceRestriction(
+        {
+          key: currentRestrictionId,
+          displayName: currentRestriction.displayName,
+          spec: newSpec
+        }
+      ))
+      dispatch(saveSettings())
+    } else {
+      // Changed a property of a default setting. Should create a new, "custom", spec and
+      // change the vice's restriction type to it
+      dispatch(updateViceRestriction(
+        {
+          key: customKeyId,
+          displayName: "** Custom **",
+          spec: newSpec
+        }
+      ))
+      onRestrictionIdChange(customKeyId)
+    }
+  }
+  // Change one particluar field of one spec component of the restriction
+  function changeSpecComponent(componentToChange, fieldToChange, newValue) {
+    const componentIndex = currentRestriction.spec.findIndex(comp => comp === componentToChange)
+    const newComponent = {
+      ...componentToChange
+    }
+    newComponent[fieldToChange] = newValue
+    const newSpec = [...currentRestriction.spec]
+    newSpec.splice(componentIndex, 1, newComponent)
 
+    dispatchAppropriateSpecChangeAction(newSpec)
+  }
+  const onRestrictionTextChange = specComponent => val => {
+    changeSpecComponent(specComponent, "restriction", val)
   }
   const onAppliesOnChange = specComponent => val => {
-
+    let newAppliesOn = val.sort()
+    changeSpecComponent(specComponent, "appliesOn", newAppliesOn)
+  }
+  function onAddRestrictionComponentClick(e) {
+    const newSpec = currentRestriction.spec.concat({
+      appliesOn: [],
+      restriction: "",
+      notes: ""
+    })
+    dispatchAppropriateSpecChangeAction(newSpec)
   }
   return (
     <Space direction='vertical' style={{ width: '100%' }}>
@@ -89,6 +133,7 @@ const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentRestrict
               <Select value={specComponent.appliesOn}
                 mode="tags"
                 placeholder="Days"
+                style={{ minWidth: '100px' }}
                 onChange={onAppliesOnChange(specComponent)}
               >
                 <Option value={0}>Sun</Option>
@@ -105,20 +150,24 @@ const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentRestrict
               </Text>
             </Space>
 
-          </List.Item>} />
+          </List.Item>}>
+        <List.Item>
+          <Button block type="dashed" onClick={onAddRestrictionComponentClick}><PlusOutlined />Additional restrictions</Button>
+        </List.Item>
+      </List>
+
     </Space>
   )
 }
 
 /** Editor for an effect dealing with vices -- for a fast */
 const FastEffectEditor = ({ challengeId, effect, onEffectChange }) => {
-  const state = useStore().getState()
   const allVices = useSelector(state => selectAllVices(state))
   const onViceRefTagsChange = val => {
-
+    onEffectChange({ viceRefTags: val })
   }
   const onRestrictionIdChange = val => {
-
+    onEffectChange({ restrictionId: val })
   }
   return (
     <Space direction='vertical' style={{ width: '100%' }}>
@@ -145,9 +194,169 @@ const FastEffectEditor = ({ challengeId, effect, onEffectChange }) => {
   )
 }
 
+const EngagementScheduleEditor = ({ engagementSchedule, onScheduleChange }) => {
+  function changeScheduleComponentField(scheduleComponent, fieldName, value) {
+    const compIndex = engagementSchedule.findIndex(s => s === scheduleComponent)
+    const newComp = {
+      ...scheduleComponent
+    }
+    newComp[fieldName] = value
+    const newEngagementSchedule = [...engagementSchedule]
+    newEngagementSchedule.splice(compIndex, 1, newComp)
+    onScheduleChange(newEngagementSchedule)
+  }
+  function onScheduleComponentChange(scheduleComponent, fieldName) {
+    return (value) =>
+      changeScheduleComponentField(scheduleComponent, fieldName, value)
+  }
+
+  function onDaysChange(appt) {
+    return onScheduleComponentChange(appt, "days")
+  }
+
+  function changeEngagementInstanceField(appt, instance, fieldName, value) {
+    const instIndex = appt.instances.findIndex(i => i === instance)
+    const newInstance = {
+      ...instance
+    }
+    newInstance[fieldName] = value
+    const newInstanceList = [...appt.instances]
+    newInstanceList.splice(instIndex, 1, newInstance)
+    changeScheduleComponentField(appt, "instances", newInstanceList)
+  }
+
+  function onAddInstanceClick(appt) {
+    return e => {
+      const newEngagementInstance = { optTime: null, optDuration: null }
+      const newInstances = appt.instances.concat(newEngagementInstance)
+      changeScheduleComponentField(appt, "instances", newInstances)
+    }
+  }
+
+  function onAddRecurringAppointmentClick(e) {
+    const newRecurringAppointment = { days: [], instances: [] }
+    const newEngagementSchedule = engagementSchedule.concat(newRecurringAppointment)
+    onScheduleChange(newEngagementSchedule)
+  }
+
+  function onSetTimeClick(appt, instance) {
+    return (e) => changeEngagementInstanceField(appt, instance, "optTime", { hour: 9, minute: 0 })
+  }
+
+  function onTimeChange(appt, instance) {
+    return (time, timeString) => {
+      const newTime = time ? { hour: time.hour(), minute: time.minute() } : null
+      changeEngagementInstanceField(appt, instance, "optTime", newTime)
+    }
+  }
+  function onSetDurationClick(appt, instance) {
+    return (e) => changeEngagementInstanceField(appt, instance, "optDuration", { hour: 0, minute: 30 })
+  }
+
+  function onDurationChange(appt, instance) {
+    return (time, timeString) => {
+      const newDuration = time ? { hour: time.hour(), minute: time.minute() } : null
+      changeEngagementInstanceField(appt, instance, "optDuration", newDuration)
+    }
+  }
+
+  return (
+    <Space direction='vertical'>
+      {engagementSchedule.map(sched =>
+        <Space direction='horizontal' align='start'>
+          <Select value={sched.days}
+            mode="tags"
+            placeholder="Days"
+            style={{ minWidth: '100px' }}
+            onChange={onDaysChange(sched)}
+          >
+            <Option value={0}>Sun</Option>
+            <Option value={1}>Mon</Option>
+            <Option value={2}>Tues</Option>
+            <Option value={3}>Wed</Option>
+            <Option value={4}>Thur</Option>
+            <Option value={5}>Fri</Option>
+            <Option value={6}>Sat</Option>
+          </Select>
+          <Space direction='vertical' >
+            {sched.instances.map(instance =>
+              <Space direction='horizontal'>
+                {!instance.optTime &&
+                  <Tooltip title="Set time">
+                    <Button onClick={onSetTimeClick(sched, instance)} icon={<ClockCircleOutlined />} />
+                  </Tooltip>}
+                {instance.optTime &&
+                  <Tooltip title="Set time">
+                    <TimePicker
+                      onChange={onTimeChange(sched, instance)}
+                      defaultValue={moment(instance.optTime.hour + ':' + instance.optTime.minute, "h:mm")}
+                      use12Hours={true}
+                      minuteStep={5}
+                      placeholder="Select time"
+                      format="h:mm a"
+                      suffixIcon={<ClockCircleOutlined />}
+                      showNow={false}
+                    />
+                  </Tooltip>}
+                {!instance.optDuration &&
+                  <Tooltip title="Set duration">
+                    <Button onClick={onSetDurationClick(sched, instance)} icon={<HourglassOutlined />} />
+                  </Tooltip>}
+                {instance.optDuration &&
+                  <Tooltip title="Set duration">
+                    <TimePicker
+                      onChange={onDurationChange(sched, instance)}
+                      defaultValue={moment(instance.optDuration.hour + ':' + instance.optDuration.minute, "HH:mm")}
+                      format="HH\hr mm\min"
+                      minuteStep={5}
+                      placeholder="Select duration"
+                      suffixIcon={<HourglassOutlined />}
+                      showNow={false}
+                    />
+                  </Tooltip>
+                }
+              </Space>
+            )}
+            <Button type="dashed" onClick={onAddInstanceClick(sched)}><PlusOutlined />Add Instance</Button>
+          </Space>
+          <Divider></Divider>
+        </Space>
+      )}
+      <Button type="dashed" onClick={onAddRecurringAppointmentClick}><PlusOutlined />Add Recurring Appointment</Button>
+    </Space>
+  )
+}
+
 /** Editor for an effect dealing with virtues -- for a sprint */
 const SprintEffectEditor = ({ effect, onEffectChange }) => {
-  return (<div>{JSON.stringify(effect)}</div>)
+  const allVirtues = useSelector(state => selectAllVirtues(state))
+  const onVirtueRefTagChange = val => {
+    onEffectChange({ virtueRefTag: val })
+  }
+  const onScheduleChange = val => {
+    onEffectChange({ engagementSchedule: val })
+  }
+  return (
+    <Space direction='vertical' style={{ width: '100%' }}>
+      <Space direction='horizontal'>
+        <Text strong={true}>Activity</Text>
+        <Select
+          style={{ minWidth: "250px" }}
+          onChange={onVirtueRefTagChange} defaultValue={effect.virtueRefTag} >
+          {allVirtues.map(virt =>
+            <Option key={virt.refTag}>{virt.name}</Option>
+          )}
+        </Select>
+      </Space>
+      <Space direction='vertical' style={{ width: '100%' }}>
+        <Text strong={true}>Schedule</Text>
+        <EngagementScheduleEditor
+          engagementSchedule={effect.engagementSchedule}
+          onScheduleChange={onScheduleChange}
+        />
+      </Space>
+    </Space>
+  )
 }
 
 /** 
@@ -155,43 +364,70 @@ const SprintEffectEditor = ({ effect, onEffectChange }) => {
  * sprints/fasts and contains the appropriate sub-editor.
  */
 const EffectEditor = ({ effect, onEffectChange }) => {
-  const onKindChange = e => {
-    onEffectChange({ kind: e.target.value })
-  }
   return (
     <Space direction='vertical' style={{ width: '100%' }}>
-      <Radio.Group onChange={onKindChange} value={effect.kind}>
-        <Radio value={'FAST'}>Fast</Radio>
-        <Radio value={'SPRINT'}>Sprint</Radio>
-      </Radio.Group>
+      <Text>{effect.kind}</Text>
       {effect.kind === 'SPRINT' && <SprintEffectEditor effect={effect} onEffectChange={onEffectChange} />}
       {effect.kind === 'FAST' && <FastEffectEditor effect={effect} onEffectChange={onEffectChange} />}
     </Space>
   )
 }
 
-
 export const ChallengeEditor = ({ match }) => {
   const { challengeId } = match.params
+  const dispatch = useDispatch()
   const challenge = useSelector(state => selectChallengeById(state, challengeId))
+  const nextEffectId = challenge.effects.length > 0
+    ? Math.max.apply(null, challenge.effects.map(e => e.id)) + 1
+    : 0
   function dateAsMoment(date) {
     return date ? moment(date, "YYYYMMDD") : null
   }
   function momentAsDate(moment) {
     return Number.parseInt(moment.format("YYYYMMDD"))
   }
-  const onDescriptionChange = val => {
-
+  const onDescriptionChange = e => {
+    dispatch(updateChallenge({ challengeId, changedFields: { description: e.target.value } }))
   }
-  const onDateRangeChange = val => {
-
+  const onDateRangeChange = ([sd, ed]) => {
+    const startDate = momentAsDate(sd)
+    const endDate = momentAsDate(ed)
+    dispatch(updateChallenge({ challengeId, changedFields: { startDate, endDate } }))
   }
-  const onEffectChange = id => {
+  const onEffectChange = effectId => {
     return changedAttrs => {
+      const effectIndex = challenge.effects.findIndex(effect => effect.id === effectId)
+      const newEffect = {
+        ...(challenge.effects[effectIndex])
+      }
+      Object.entries(changedAttrs).forEach(([k, v]) => newEffect[k] = v)
+      const newEffects = [...challenge.effects]
+      newEffects.splice(effectIndex, 1, newEffect)
 
+      dispatch(updateChallenge({ challengeId, changedFields: { effects: newEffects } }))
     }
   }
+  const onAddFast = e => {
+    const viceRefTags = []
+    const kind = 'FAST'
+    const restrictionId = 1
+    const newEffects = challenge.effects.concat({ id: nextEffectId, kind, viceRefTags, restrictionId })
+    dispatch(updateChallenge({ challengeId, changedFields: { effects: newEffects } }))
+  }
+  const onAddSprint = e => {
+    const kind = 'SPRINT'
+    const virtueRefTag = "" // Should I look up a valid value?
+    const engagementSchedule = []
+    const newEffects = challenge.effects.concat({ id: nextEffectId, kind, virtueRefTag, engagementSchedule })
+    dispatch(updateChallenge({ challengeId, changedFields: { effects: newEffects } }))
+  }
   const width = '85%'
+  const addEffectMenu = (
+    <Menu>
+      <Menu.Item key='fast' onClick={onAddFast}>Add Fast</Menu.Item>
+      <Menu.Item key='sprint' onClick={onAddSprint}>Add Sprint</Menu.Item>
+    </Menu>
+  )
   return (
     <Space direction='vertical' style={{ padding: '16px', width: width }}>
       <Title level={2}>{challenge.name}</Title>
@@ -220,7 +456,9 @@ export const ChallengeEditor = ({ match }) => {
             </List.Item>
           } />
       </Space>
-
+      <Dropdown overlay={addEffectMenu} trigger={['click']}>
+        <Button block size="large" type="dashed"><PlusOutlined />Add Effect</Button>
+      </Dropdown>
     </Space>
   )
 }

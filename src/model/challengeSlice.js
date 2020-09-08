@@ -139,7 +139,7 @@ export const challengeSlice = createSlice({
         endDate: null,
         effects: [],
         /** { id: #, 
-         *    kind: [VICE|VIRTUE], 
+         *    kind: [FAST|SPRINT], 
          *    (if virtue) virtueRefTag: #
          *    (if vice) viceRefTags: []
          *    (if virtue) engagementSchedule: [{days:[], instances: [{optTime}]}],
