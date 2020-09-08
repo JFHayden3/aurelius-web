@@ -1,20 +1,36 @@
-import React from 'react'
+import React, {useState} from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectAllChallenges, deleteChallenge } from '../model/challengeSlice'
-import { List, Space, Typography, Button } from 'antd'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { selectAllChallenges, deleteChallenge, computeNextChallengeId, createNewChallenge } from '../model/challengeSlice'
+import { List, Space, Typography, Button, Affix, Tooltip } from 'antd'
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { apiDateToFe } from '../kitchenSink'
-import { Link } from 'react-router-dom'
+import { AddNewModal } from './ViceVirtueSharedStuff'
+import { Link, useHistory } from 'react-router-dom'
 
 const { Title, Text } = Typography
 
 export const ChallengeBank = () => {
+  const [createModalVisible, setCreateModalVisible] = useState(false)
+
   const allChallenges = useSelector((state) => selectAllChallenges(state))
   const dispatch = useDispatch()
+  const history = useHistory()
+  const newChallengeId = useSelector((state) => computeNextChallengeId(state))
   function onDeleteClick(id) {
     return e => {
-      dispatch(deleteChallenge({ id }))
+      dispatch(deleteChallenge({ challengeId:id }))
     }
+  }
+  function onAddNewClick(e) {
+    setCreateModalVisible(true)
+  }
+  const onAddNewCancel = () => {
+    setCreateModalVisible(false)
+  }
+  const onAddNewConfirm = ({ name, tag }) => {
+    dispatch(createNewChallenge({ id: newChallengeId, name: name, refTag: tag }))
+    setCreateModalVisible(false)
+    history.push(`/challenges/edit/${newChallengeId}`)
   }
   return (
     <div>
@@ -37,6 +53,18 @@ export const ChallengeBank = () => {
             </Space>
           </List.Item>
         }></List>
+      <Affix style={{ position: 'absolute', top: '80%', left: '80%' }}>
+        <Tooltip title="Add new">
+          <Button type='primary' shape='circle' size='large' onClick={onAddNewClick}>
+            <PlusOutlined />
+          </Button>
+        </Tooltip>
+      </Affix>
+      <AddNewModal
+        visible={createModalVisible}
+        onOk={onAddNewConfirm}
+        onCancel={onAddNewCancel}
+      />
     </div>
   )
 }

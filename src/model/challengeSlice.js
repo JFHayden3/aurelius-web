@@ -11,6 +11,7 @@ const dummyState = {
   0: {
     id: 0,
     name: "Sober october",
+    refTag: "sober-october",
     description: "Total sobriety for the month",
     startDate: 20201001,
     endDate:20201101,
@@ -35,6 +36,7 @@ const dummyState = {
   1: {
     id: 1,
     name: "Media fast",
+    refTag: "media-fast",
     description: "Been getting too sucked into and distracted by news media",
     startDate: 20200903,
     endDate: 20200913,
@@ -51,7 +53,7 @@ const dummyState = {
 
 const challengesAdapter = createEntityAdapter()
 
-const initialState = challengesAdapter.getInitialState({ ids: Object.keys(dummyState), entities: dummyState })
+const initialState = challengesAdapter.getInitialState()
 
 export function computeNextChallengeId(state) {
   const existingIds = selectChallengeIds(state)
@@ -64,7 +66,8 @@ function convertApiToFe(apiItems) {
     return {
       // Explicit about the mapping here so we don't let gargbage in
       id: apiChallenge.id,
-      title: apiChallenge.title,
+      refTag: apiChallenge.refTag,
+      name: apiChallenge.name,
       description: apiChallenge.description,
       startDate: apiChallenge.startDate,
       endDate: apiChallenge.endDate,
@@ -80,7 +83,8 @@ function convertFeToApi(feItem) {
   return {
     // Explicit about the mapping here so we don't let gargbage in
     id: feItem.id,
-    title: feItem.title,
+    refTag:feItem.refTag,
+    name: feItem.name,
     description: feItem.description,
     startDate: feItem.startDate,
     endDate: feItem.endDate,
@@ -129,11 +133,12 @@ export const challengeSlice = createSlice({
   initialState,
   reducers: {
     createNewChallenge(state, action) {
-      const { id } = action.payload
+      const { id, name, refTag } = action.payload
       // TODO: validation on reftag and ID uniqueness
       const newChallenge = {
         id,
-        title: "",
+        name,
+        refTag,
         description: "",
         startDate: null,
         endDate: null,

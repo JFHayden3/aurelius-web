@@ -29,6 +29,15 @@ function getStartingContentForAgenda(today, state) {
   const viceRestrictions = Object.entries(selectViceRestrictions(state))
   const allVices = selectAllVices(state)
 
+  // TODO: 
+  //    - Get all challenges that are currently active (startDate < today < endDate)
+  //    - Spin through effects, twice maybe: once for turning FASTS into restrictions,
+  //      once for turning SPRINTS into tasks
+  // Put all virtutes/vices pulled in from challenges into sets and filter against these sets
+  // when building the restrictions/tasks below (possibly based on a flag in the challenge 
+  // 'override/combineWithNormalActivity')
+
+
   // Find vice restriction types that apply to 'today'
   const todayDoW = today.getDay()
   let restrictionIdCounter = 0

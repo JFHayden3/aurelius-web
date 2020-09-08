@@ -23,6 +23,7 @@ import { addArticle } from "../model/journalArticlesSlice";
 import { fetchVirtues, syncDirtyVirtues } from "../model/virtueSlice"
 import { fetchVices, syncDirtyVices } from "../model/viceSlice"
 import { fetchViceLogEntries, syncDirtyViceLogEntries } from "../model/viceLogSlice"
+import { fetchChallenges, syncDirtyChallenges } from "../model/challengeSlice"
 
 import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
@@ -51,8 +52,9 @@ const doFetchJournalEntries = store.dispatch(
 const doFetchVices = store.dispatch(fetchVices({ user: 'testUser' }))
 const doFetchViceLogs = store.dispatch(fetchViceLogEntries({ user: 'testUser' }))
 const doFetchVirtues = store.dispatch(fetchVirtues({ user: 'testUser' }))
+const doFetchChallenges = store.dispatch(fetchChallenges({ user: 'testUser' }))
 const doFetchKeys = store.dispatch(fetchAllKeys({ user: 'testUser' }))
-Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues, doFetchViceLogs])
+Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues, doFetchViceLogs, doFetchChallenges])
   .then((action) => {
     if (action.error) {
       // TODO retry and/or put the UI into an error state
@@ -87,6 +89,7 @@ setInterval(() => {
   store.dispatch(syncDirtyVices())
   store.dispatch(syncDirtyVirtues())
   store.dispatch(syncDirtyViceLogEntries())
+  store.dispatch(syncDirtyChallenges())
 }, 2500)
 
 export const Root = () => {
@@ -99,7 +102,7 @@ export const Root = () => {
   if (!isInitialized) {
     return (<div><Spin /></div>)
   }
-  
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider style={{
