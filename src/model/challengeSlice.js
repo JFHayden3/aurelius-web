@@ -201,3 +201,7 @@ export const {
   // Pass in a selector that returns the posts slice of state
 } = challengesAdapter.getSelectors(state => state.challenges)
 
+export const selectActiveChallengesForDate = createSelector(
+  [selectAllChallenges, (state, YyyyMmDd) => YyyyMmDd],
+  (challenges, date) => challenges.filter(c => c.startDate <= date && date < c.endDate)
+)

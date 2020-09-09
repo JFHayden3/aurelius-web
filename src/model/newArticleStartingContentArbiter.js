@@ -2,6 +2,8 @@ import { selectArticleSettingByArticleKind, selectViceRestrictions } from "./set
 import { selectAllVices } from "./viceSlice"
 import { selectAllVirtues } from "./virtueSlice"
 import { computeNextViceLogId, createNewViceLogEntry } from './viceLogSlice'
+import { selectActiveChallengesForDate } from "./challengeSlice"
+import { dateAsYyyyMmDd } from '../kitchenSink'
 
 export function getStartingContent(articleKind, state, dispatch) {
   const articleSettings = selectArticleSettingByArticleKind(state, articleKind)
@@ -29,18 +31,45 @@ function getStartingContentForAgenda(today, state) {
   const viceRestrictions = Object.entries(selectViceRestrictions(state))
   const allVices = selectAllVices(state)
 
-  // TODO: 
-  //    - Get all challenges that are currently active (startDate < today < endDate)
-  //    - Spin through effects, twice maybe: once for turning FASTS into restrictions,
-  //      once for turning SPRINTS into tasks
-  // Put all virtutes/vices pulled in from challenges into sets and filter against these sets
-  // when building the restrictions/tasks below (possibly based on a flag in the challenge 
-  // 'override/combineWithNormalActivity')
+  
 
 
   // Find vice restriction types that apply to 'today'
   const todayDoW = today.getDay()
   let restrictionIdCounter = 0
+  let taskIdCounter = 0
+  const getNextTaskId = () => taskIdCounter++
+
+  // Gather up active challenges and translate sprints/fasts into tasks/restrictions for the day
+  const activeChallenges = selectActiveChallengesForDate(state, dateAsYyyyMmDd(today))
+  const challengeEffects = activeChallenges.map(challenge => {
+    const sprints = challenge.effects.filter(effect => effect.kind === 'SPRINT')
+    const fasts = challenge.effects.filter(effect => effect.kind === 'FAST')
+    // Turn fasts into restrictions
+    const restrictions = fasts.map(fast => {
+      const restriction = viceRestrictions[fast.restrictionId].restriction
+      const activities = fast.viceRefTags
+      const id = restrictionIdCounter++
+      const optNote = "Restricted due to #" + challenge.refTag
+      return { id, restriction, activities, optNote }
+    })
+    const tasks = [].concat.apply([], sprints.map(sprint =>
+      engagementScheduleToTasks(sprint.virtueRefTag, sprint.engagementSchedule, todayDoW, getNextTaskId)
+    ).filter(tasks => tasks.length > 0))
+    tasks.forEach(task => task.optNotes = "Scheduled as part of #" + challenge.refTag)
+    return { restrictions, tasks }
+  }).reduce((cume, curr) => {
+    return {
+      restrictions: cume.restrictions.concat(curr.restrictions),
+      tasks: cume.tasks.concat(curr.tasks)
+    }
+  }, { restrictions: [], tasks: [] })
+
+  // TODO: possibly filter or conditionally filter (based on user setting) the vices/virtues that
+  // are already coming in as part of a challenge
+
+  // Now get those restrictions/tasks that are just directly associated with vices/virtues 
+  // (as opposed to being part of a particular challenge)
   const restrictions =
     [].concat.apply([],
       viceRestrictions.map(([id, vr]) =>
@@ -68,7 +97,6 @@ function getStartingContentForAgenda(today, state) {
       })
 
   const allVirtues = selectAllVirtues(state)
-  let taskIdCounter = 0
 
   //  const { activity = { kind, content }, optDuration, optTime, optNotes } = task
   // engagementSchedule: [
@@ -76,20 +104,8 @@ function getStartingContentForAgenda(today, state) {
   //   { days: [6], instances: [{ optTime: null, optDuration: { hour: 0, minute: 25 } }] },
   // ],
   const tasks = [].concat.apply([],
-    allVirtues.map(virtue => {
-      const relevantAppointments = virtue.engagementSchedule.filter(appt => appt.days.includes(todayDoW)) // TODO, maybe filter appts with empty instances
-      const relevantInstances = [].concat.apply([], relevantAppointments.map(appt => appt.instances))
-      const activity = { kind: "VIRTUE", content: virtue.refTag }
-      return relevantInstances.map(instance => {
-        return {
-          id: taskIdCounter++,
-          activity,
-          optDuration: instance.optDuration,
-          optTime: instance.optTime,
-          optNotes: instance.optNotes
-        }
-      })
-    }
+    allVirtues.map(virtue =>
+      engagementScheduleToTasks(virtue.refTag, virtue.engagementSchedule, todayDoW, getNextTaskId)
     ).filter(tasks => tasks.length > 0))
     .sort((a, b) => {
       if (a.optTime && b.optTime) {
@@ -100,6 +116,23 @@ function getStartingContentForAgenda(today, state) {
       }
     })
   //filter to tuple of virtue + relevant instance pairs 
+  return {
+    restrictions: restrictions.concat(challengeEffects.restrictions),
+    tasks: tasks.concat(challengeEffects.tasks)
+  }
+}
 
-  return { restrictions, tasks }
+function engagementScheduleToTasks(refTag, engagementSchedule, todayDoW, getNextId) {
+  const relevantAppointments = engagementSchedule.filter(appt => appt.days.includes(todayDoW)) // TODO, maybe filter appts with empty instances
+  const relevantInstances = [].concat.apply([], relevantAppointments.map(appt => appt.instances))
+  const activity = { kind: "VIRTUE", content: refTag }
+  return relevantInstances.map(instance => {
+    return {
+      id: getNextId(),
+      activity,
+      optDuration: instance.optDuration,
+      optTime: instance.optTime,
+      optNotes: instance.optNotes
+    }
+  })
 }
