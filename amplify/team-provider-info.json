@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-aureliusweb-dev-142140-authRole",
+      "UnauthRoleArn": "arn:aws:iam::591584782400:role/amplify-aureliusweb-dev-142140-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::591584782400:role/amplify-aureliusweb-dev-142140-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-aureliusweb-dev-142140-deployment",
+      "UnauthRoleName": "amplify-aureliusweb-dev-142140-unauthRole",
+      "StackName": "amplify-aureliusweb-dev-142140",
+      "StackId": "arn:aws:cloudformation:us-east-2:591584782400:stack/amplify-aureliusweb-dev-142140/78e52780-f392-11ea-93df-0a01dcfef60e",
+      "AmplifyAppId": "d3tx9qwwxbk31e"
+    },
+    "categories": {
+      "auth": {
+        "aureliusweba3ee06c7": {}
+      }
+    }
+  }
+}

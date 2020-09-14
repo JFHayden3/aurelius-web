@@ -1,0 +1,15 @@
+type Settings
+@model
+@key(fields: ["userId"])
+@auth(
+  rules: [
+    {
+      allow: owner
+      ownerField: "owner"
+      operations: [create, update, delete, read]
+    }
+  ]
+) {
+  userId: ID!
+  settings: String!
+}

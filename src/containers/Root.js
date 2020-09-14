@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { Provider, useSelector } from 'react-redux'
 import {
   Switch,
@@ -38,6 +38,9 @@ import { ChallengeBank } from '../components/ChallengeBank'
 import { ChallengeEditor } from '../components/ChallengeEditor'
 import { SettingsSetter } from '../components/SettingsSetter'
 import { selectIsInitializationComplete, setInitialized } from '../model/metaSlice'
+
+import { withAuthenticator } from 'aws-amplify-react';
+
 const { Header, Content, Footer, Sider } = Layout;
 
 function todayAsYyyyMmDd() {
@@ -46,53 +49,7 @@ function todayAsYyyyMmDd() {
 
 // TODO this logic should probably be moved into a dedicated start-up coordinator 
 
-const doFetchSettings = store.dispatch(fetchSettings({ user: 'testUser' }))
-const doFetchJournalEntries = store.dispatch(
-  fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
-const doFetchVices = store.dispatch(fetchVices({ user: 'testUser' }))
-const doFetchViceLogs = store.dispatch(fetchViceLogEntries({ user: 'testUser' }))
-const doFetchVirtues = store.dispatch(fetchVirtues({ user: 'testUser' }))
-const doFetchChallenges = store.dispatch(fetchChallenges({ user: 'testUser' }))
-const doFetchKeys = store.dispatch(fetchAllKeys({ user: 'testUser' }))
-Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues, doFetchViceLogs, doFetchChallenges])
-  .then((action) => {
-    if (action.error) {
-      // TODO retry and/or put the UI into an error state
-      console.log("\n\nINITIAL FETCH FAILED\n\n")
-    } else {
-      const payload = { dateId: todayAsYyyyMmDd() }
-      if (!selectEntryById(store.getState(), payload.dateId)) {
-        store.dispatch(createNewEntry(payload))
-        getDefaultArticleKindsForToday(store.getState())
-          .forEach((articleKind) => {
-            const state = store.getState()
-            const nextArticleId = computeNextArticleId(state, payload.dateId)
-            const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
-            const defaultContent = getStartingContent(articleKind, state, store.dispatch)
-            store.dispatch(addArticle(
-              {
-                entryId: payload.dateId,
-                articleId: nextArticleId,
-                articleKind,
-                articleTitle,
-                defaultContent,
-              }))
-          })
-      }
-      store.dispatch(setInitialized())
-
-    }
-  })
-
-setInterval(() => {
-  store.dispatch(syncDirtyEntries())
-  store.dispatch(syncDirtyVices())
-  store.dispatch(syncDirtyVirtues())
-  store.dispatch(syncDirtyViceLogEntries())
-  store.dispatch(syncDirtyChallenges())
-}, 2500)
-
-export const Root = () => {
+const App = () => {
   const isInitialized = useSelector(state => selectIsInitializationComplete(state))
   const location = useLocation()
   const history = useHistory()
@@ -151,3 +108,60 @@ export const Root = () => {
     </Layout>
   )
 }
+
+class Root extends Component {
+
+  async componentDidMount() {
+    const doFetchSettings = store.dispatch(fetchSettings({ user: 'testUser' }))
+    const doFetchJournalEntries = store.dispatch(
+      fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
+    const doFetchVices = store.dispatch(fetchVices({ user: 'testUser' }))
+    const doFetchViceLogs = store.dispatch(fetchViceLogEntries({ user: 'testUser' }))
+    const doFetchVirtues = store.dispatch(fetchVirtues({ user: 'testUser' }))
+    const doFetchChallenges = store.dispatch(fetchChallenges({ user: 'testUser' }))
+    const doFetchKeys = store.dispatch(fetchAllKeys({ user: 'testUser' }))
+    Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues, doFetchViceLogs, doFetchChallenges])
+      .then((action) => {
+        if (action.error) {
+          // TODO retry and/or put the UI into an error state
+          console.log("\n\nINITIAL FETCH FAILED\n\n")
+        } else {
+          const payload = { dateId: todayAsYyyyMmDd() }
+          if (!selectEntryById(store.getState(), payload.dateId)) {
+            store.dispatch(createNewEntry(payload))
+            getDefaultArticleKindsForToday(store.getState())
+              .forEach((articleKind) => {
+                const state = store.getState()
+                const nextArticleId = computeNextArticleId(state, payload.dateId)
+                const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
+                const defaultContent = getStartingContent(articleKind, state, store.dispatch)
+                store.dispatch(addArticle(
+                  {
+                    entryId: payload.dateId,
+                    articleId: nextArticleId,
+                    articleKind,
+                    articleTitle,
+                    defaultContent,
+                  }))
+              })
+          }
+          store.dispatch(setInitialized())
+
+        }
+      })
+
+    setInterval(() => {
+      //store.dispatch(syncDirtyEntries())
+      //store.dispatch(syncDirtyVices())
+      //store.dispatch(syncDirtyVirtues())
+      //store.dispatch(syncDirtyViceLogEntries())
+      //store.dispatch(syncDirtyChallenges())
+    }, 2500)
+  }
+
+  render() {
+    return (<App />)
+  }
+}
+
+export const AuthRoot = withAuthenticator(Root)

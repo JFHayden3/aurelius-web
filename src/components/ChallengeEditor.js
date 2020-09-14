@@ -431,7 +431,10 @@ export const ChallengeEditor = ({ match }) => {
   return (
     <Space direction='vertical' style={{ padding: '16px', width: width }}>
       <Title level={2}>{challenge.name}</Title>
-
+      <Space direction='horizontal'>
+        <Text strong={true}>Reference tag</Text>
+        <Text code={true}>#{challenge.refTag}</Text>
+      </Space>
       <Space size='large' direction='horizontal'>
         <Text strong={true}>Duration</Text>
         <RangePicker

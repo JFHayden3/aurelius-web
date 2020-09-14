@@ -5,6 +5,10 @@ import {
 } from '@reduxjs/toolkit'
 import { apiUrl } from '../kitchenSink'
 import { client } from '../api/client'
+import { getSettings } from '../graphql/queries'
+import { updateSettings, createSettings } from '../graphql/mutations'
+import Amplify, { API, graphqlOperation } from "aws-amplify"
+
 
 const systemSettings = {
   targetDailyWordCount: 500,
@@ -99,23 +103,10 @@ function mergeSystemSettingsWithUserSettings(userSettings) {
   })
 }
 
-function convertApiToFe(apiItems) {
+function convertApiToFe(apiItem) {
   let userArticleSettings = {}
-  if (apiItems.length === 1) {
-    userArticleSettings = JSON.parse(apiItems[0].Settings)
-  } else if (apiItems.length > 1) {
-    // Shouldn't be possible.
-    // TODO good way to log this error so I'll be notified
-    console.log("MULTIPLE SETTINGS!" + apiItems)
-    let longestSettings = null
-    let longestSettingsLen = 0
-    apiItems.forEach(item => {
-      if (item.length >= longestSettingsLen) {
-        longestSettings = item
-        longestSettingsLen = item.length
-      }
-    })
-    userArticleSettings = JSON.parse(longestSettings)
+  if (apiItem) {
+    userArticleSettings = JSON.parse(apiItem.settings)
   }
   mergeSystemSettingsWithUserSettings(userArticleSettings)
   return userArticleSettings
@@ -134,10 +125,10 @@ function convertFeToApi(feSettings) {
 export const fetchSettings = createAsyncThunk(
   'settings/fetchSettings',
   async (payload) => {
-    return client.get(
-      apiUrl + '/settings' + '?userId=' + payload.user + '')
+    return API.graphql(graphqlOperation(getSettings, { userId: payload.user }))
+      // TODO: create settings here if response empty or on user creation trigger?
       .then(response => {
-        return convertApiToFe(response.Items)
+        return convertApiToFe(response.data.getSettings)
       })
   })
 
@@ -146,12 +137,8 @@ export const saveSettings = createAsyncThunk(
   async (payload, { getState }) => {
     const feSettings = getState().settings
     const apiSettings = convertFeToApi(feSettings)
-    const body = {
-      userId: "testUser",
-      settings: apiSettings,
-      httpMethod: "POST"
-    }
-    return client.post(apiUrl + '/settings', body)
+    const operation = graphqlOperation(updateSettings, { input: { userId: "testUser", settings: JSON.stringify(apiSettings) } })
+    return API.graphql(operation)
   }
 )
 

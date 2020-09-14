@@ -1,0 +1,11 @@
+{
+    "AppSyncApiName": "aureliusWebAmp",
+    "DynamoDBBillingMode": "PAY_PER_REQUEST",
+    "DynamoDBEnableServerSideEncryption": false,
+    "AuthCognitoUserPoolId": {
+        "Fn::GetAtt": [
+            "authaureliusweba3ee06c7",
+            "Outputs.UserPoolId"
+        ]
+    }
+}
