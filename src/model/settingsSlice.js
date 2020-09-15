@@ -3,11 +3,10 @@ import {
   createSelector,
   createSlice
 } from '@reduxjs/toolkit'
-import { apiUrl } from '../kitchenSink'
-import { client } from '../api/client'
 import { getSettings } from '../graphql/queries'
 import { updateSettings, createSettings } from '../graphql/mutations'
-import Amplify, { API, graphqlOperation } from "aws-amplify"
+import { API, graphqlOperation } from "aws-amplify"
+import { selectFetchUserField } from './metaSlice'
 
 
 const systemSettings = {
@@ -124,8 +123,9 @@ function convertFeToApi(feSettings) {
 
 export const fetchSettings = createAsyncThunk(
   'settings/fetchSettings',
-  async (payload) => {
-    return API.graphql(graphqlOperation(getSettings, { userId: payload.user }))
+  async (payload, { getState }) => {
+    const userId = selectFetchUserField(getState())
+    return API.graphql(graphqlOperation(getSettings, { userId }))
       // TODO: create settings here if response empty or on user creation trigger?
       .then(response => {
         return convertApiToFe(response.data.getSettings)
@@ -135,9 +135,10 @@ export const fetchSettings = createAsyncThunk(
 export const saveSettings = createAsyncThunk(
   'settings/saveSettings',
   async (payload, { getState }) => {
+    const userId = selectFetchUserField(getState())
     const feSettings = getState().settings
     const apiSettings = convertFeToApi(feSettings)
-    const operation = graphqlOperation(updateSettings, { input: { userId: "testUser", settings: JSON.stringify(apiSettings) } })
+    const operation = graphqlOperation(updateSettings, { input: { userId, settings: JSON.stringify(apiSettings) } })
     return API.graphql(operation)
   }
 )

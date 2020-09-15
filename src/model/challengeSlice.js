@@ -6,6 +6,10 @@ import {
 } from '@reduxjs/toolkit'
 import { apiUrl } from '../kitchenSink'
 import { client } from '../api/client'
+import { selectFetchUserField } from './metaSlice'
+import { API, graphqlOperation } from 'aws-amplify'
+import { listChallengess } from '../graphql/queries'
+import { createChallenges, updateChallenges } from '../graphql/mutations'
 
 const dummyState = {
   0: {
@@ -14,7 +18,7 @@ const dummyState = {
     refTag: "sober-october",
     description: "Total sobriety for the month",
     startDate: 20201001,
-    endDate:20201101,
+    endDate: 20201101,
     effects: [
       {
         id: 0,
@@ -62,7 +66,7 @@ export function computeNextChallengeId(state) {
 
 function convertApiToFe(apiItems) {
   const challenges = Array.map(apiItems, (item) => {
-    const apiChallenge = JSON.parse(item.Challenge)
+    const apiChallenge = JSON.parse(item.challenge)
     return {
       // Explicit about the mapping here so we don't let gargbage in
       id: apiChallenge.id,
@@ -83,7 +87,7 @@ function convertFeToApi(feItem) {
   return {
     // Explicit about the mapping here so we don't let gargbage in
     id: feItem.id,
-    refTag:feItem.refTag,
+    refTag: feItem.refTag,
     name: feItem.name,
     description: feItem.description,
     startDate: feItem.startDate,
@@ -94,26 +98,34 @@ function convertFeToApi(feItem) {
 
 export const fetchChallenges = createAsyncThunk(
   'challenges/fetchChallenges',
-  async (payload) => {
-    return client.get(
-      apiUrl + '/challenges' + '?userId=' + payload.user + '')
+  async (payload, { getState }) => {
+    const userId = selectFetchUserField(getState())
+    return API.graphql(graphqlOperation(listChallengess,
+      // TODO: UI limit or some sort of purging if user gets over entity limit
+      { filter: { userId: { eq: userId } }, limit: 1000 }))
       .then(response => {
-        return convertApiToFe(response.Items)
+        return convertApiToFe(response.data.listChallengess.items)
       })
   })
 
 export const syncDirtyChallenges = createAsyncThunk(
   'challenges/syncDirtyChallenges',
   async (payload, { getState }) => {
+    const userId = selectFetchUserField(getState())
     const dirtyChallenges = selectAllChallenges(getState()).filter(challenge => challenge.dirtiness === 'SAVING')
     if (dirtyChallenges.length === 0) return Promise.resolve();
     async function syncEntity(apiChallenge) {
-      const body = {
-        userId: "testUser",
-        challenge: apiChallenge,
-        httpMethod: "POST"
-      }
-      return client.post(apiUrl + '/challenges', body)
+      const operation = graphqlOperation(updateChallenges,
+        {
+          input:
+          {
+            userId
+            , challengeId: apiChallenge.id
+            , challenge: JSON.stringify(apiChallenge)
+          }
+        })
+      
+      return API.graphql(operation)
     }
     let promises = dirtyChallenges.map(feChallenge => convertFeToApi(feChallenge)).map(syncEntity)
     return Promise.allSettled(promises)
@@ -128,32 +140,49 @@ export const deleteChallenge = createAsyncThunk(
   }
 )
 
+export const createNewChallenge = createAsyncThunk(
+  'challenges/createNewChallenge',
+  async (payload, {getState}) => {
+    const { id, name, refTag } = payload
+    // TODO: validation on reftag and ID uniqueness
+    const newChallenge = {
+      id,
+      name,
+      refTag,
+      description: "",
+      startDate: null,
+      endDate: null,
+      effects: [],
+      /** { id: #, 
+       *    kind: [FAST|SPRINT], 
+       *    (if virtue) virtueRefTag: #
+       *    (if vice) viceRefTags: []
+       *    (if virtue) engagementSchedule: [{days:[], instances: [{optTime}]}],
+       *    (if vice) restrictionId: (id)
+       *  } */
+      dirtiness: 'DIRTY'
+    }
+    challengesAdapter.upsertOne(getState().challenges, newChallenge)
+    const userId = selectFetchUserField(getState())
+    const apiChallenge = convertFeToApi(newChallenge)
+    const operation = graphqlOperation(createChallenges,
+      {
+        input:
+        {
+          userId
+          , challengeId: apiChallenge.id
+          , challenge: JSON.stringify(apiChallenge)
+        }
+      })
+    
+    return API.graphql(operation)
+  }
+)
+
 export const challengeSlice = createSlice({
   name: 'challenges',
   initialState,
   reducers: {
-    createNewChallenge(state, action) {
-      const { id, name, refTag } = action.payload
-      // TODO: validation on reftag and ID uniqueness
-      const newChallenge = {
-        id,
-        name,
-        refTag,
-        description: "",
-        startDate: null,
-        endDate: null,
-        effects: [],
-        /** { id: #, 
-         *    kind: [FAST|SPRINT], 
-         *    (if virtue) virtueRefTag: #
-         *    (if vice) viceRefTags: []
-         *    (if virtue) engagementSchedule: [{days:[], instances: [{optTime}]}],
-         *    (if vice) restrictionId: (id)
-         *  } */
-        dirtiness: 'DIRTY'
-      }
-      challengesAdapter.upsertOne(state, newChallenge)
-    },
     updateChallenge(state, action) {
       const { challengeId, changedFields } = action.payload
       const challenge = state.entities[challengeId]
@@ -190,7 +219,7 @@ export const challengeSlice = createSlice({
   }
 })
 
-export const { createNewChallenge, updateChallenge } = challengeSlice.actions
+export const { updateChallenge } = challengeSlice.actions
 
 export default challengeSlice.reducer
 

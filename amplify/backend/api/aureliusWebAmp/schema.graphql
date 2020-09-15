@@ -13,3 +13,54 @@ type Settings
   userId: ID!
   settings: String!
 }
+
+type Challenges
+@model
+@key(fields: ["userId", "challengeId"])
+@auth(
+  rules: [
+    {
+      allow: owner
+      ownerField: "owner"
+      operations: [create, update, delete, read]
+    }
+  ]
+) {
+  userId: ID!
+  challengeId: ID!
+  challenge: String!
+}
+
+type Vices
+@model
+@key(fields: ["userId", "viceId"])
+@auth(
+  rules: [
+    {
+      allow: owner
+      ownerField: "owner"
+      operations: [create, update, delete, read]
+    }
+  ]
+) {
+  userId: ID!
+  viceId: ID!
+  vice: String!
+}
+
+type Virtues
+@model
+@key(fields: ["userId", "virtueId"])
+@auth(
+  rules: [
+    {
+      allow: owner
+      ownerField: "owner"
+      operations: [create, update, delete, read]
+    }
+  ]
+) {
+  userId: ID!
+  virtueId: ID!
+  virtue: String!
+}
