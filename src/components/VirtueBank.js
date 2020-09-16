@@ -1,5 +1,5 @@
 import React, { Component, useState } from 'react'
-import { computeNextVirtueId, selectVirtueIds, createNewVirtue } from '../model/virtueSlice'
+import { computeNextTagEntityId, selectVirtueIds, createNewTagEntity } from '../model/tagEntitySlice'
 import { VirtueCard } from './VirtueCard'
 import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons';
@@ -11,7 +11,7 @@ const { Text } = Typography
 
 export const VirtueBank = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false)
-  
+
   const store = useStore()
 
   console.log(store.getState())
@@ -19,18 +19,20 @@ export const VirtueBank = () => {
   const virtues = useSelector(state => selectVirtueIds(state))
   const dispatch = useDispatch()
   const history = useHistory()
-  
+
   const onAddNewClick = () => {
     setCreateModalVisible(true)
   }
   const onAddNewCancel = () => {
     setCreateModalVisible(false)
   }
-  const onAddNewConfirm = ({name, tag}) => {
-    const newVirtueId = computeNextVirtueId(store.getState())
-    dispatch(createNewVirtue({ id: newVirtueId, name: name, tag: tag }))
-    setCreateModalVisible(false)
-    history.push(`/virtues/edit/${newVirtueId}`)
+  const onAddNewConfirm = ({ name, tag }) => {
+    const newVirtueId = computeNextTagEntityId(store.getState())
+    dispatch(createNewTagEntity({ id: newVirtueId, name: name, refTag: tag, kind:'VIRTUE' }))
+      .then(res => {
+        setCreateModalVisible(false)
+        history.push(`/virtues/edit/${newVirtueId}`)
+      })
   }
   return (
     <div style={{ margin: 16 }}>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { selectVirtueById, deleteVirtue } from '../model/virtueSlice'
+import { selectVirtueById, deleteTagEntityAsync } from '../model/tagEntitySlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { Typography, List, Row, Col, Button } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
@@ -11,7 +11,7 @@ export const VirtueCard = ({ virtueId }) => {
   const dispatch = useDispatch()
   const onDeleteClick = e => {
     e.preventDefault()
-    dispatch(deleteVirtue({ virtueId }))
+    dispatch(deleteTagEntityAsync({ tagEntityId: virtueId }))
   }
   return (
     <div style={{

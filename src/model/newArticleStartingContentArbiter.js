@@ -1,8 +1,6 @@
 import { selectArticleSettingByArticleKind, selectViceRestrictions } from "./settingsSlice"
-import { selectAllVices } from "./viceSlice"
-import { selectAllVirtues } from "./virtueSlice"
 import { computeNextViceLogId, createNewViceLogEntry } from './viceLogSlice'
-import { selectActiveChallengesForDate } from "./challengeSlice"
+import { selectActiveChallengesForDate, selectAllVirtues, selectAllVices } from "./tagEntitySlice"
 import { dateAsYyyyMmDd } from '../kitchenSink'
 
 export function getStartingContent(articleKind, state, dispatch) {
@@ -28,11 +26,8 @@ export function getStartingContent(articleKind, state, dispatch) {
 }
 
 function getStartingContentForAgenda(today, state) {
-  const viceRestrictions = Object.entries(selectViceRestrictions(state))
+  const viceRestrictions = selectViceRestrictions(state)
   const allVices = selectAllVices(state)
-
-  
-
 
   // Find vice restriction types that apply to 'today'
   const todayDoW = today.getDay()
@@ -72,7 +67,7 @@ function getStartingContentForAgenda(today, state) {
   // (as opposed to being part of a particular challenge)
   const restrictions =
     [].concat.apply([],
-      viceRestrictions.map(([id, vr]) =>
+      Object.entries(viceRestrictions).map(([id, vr]) =>
         vr.spec.map(s => { return { id, spec: s } })
       ))
       // Filter to only those restriction specs that apply today

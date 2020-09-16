@@ -20,10 +20,8 @@ import {
   syncDirtyEntries
 } from "../model/journalEntriesSlice";
 import { addArticle } from "../model/journalArticlesSlice";
-import { fetchVirtues, syncDirtyVirtues } from "../model/virtueSlice"
-import { fetchVices, syncDirtyVices } from "../model/viceSlice"
 import { fetchViceLogEntries, syncDirtyViceLogEntries } from "../model/viceLogSlice"
-import { fetchChallenges, syncDirtyChallenges } from "../model/challengeSlice"
+import { fetchTagEntitys, syncDirtyTagEntitys } from "../model/tagEntitySlice"
 
 import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
@@ -117,12 +115,10 @@ class Root extends Component {
       const doFetchSettings = store.dispatch(fetchSettings())
       const doFetchJournalEntries = store.dispatch(
         fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
-      const doFetchVices = store.dispatch(fetchVices({ user: 'testUser' }))
       const doFetchViceLogs = store.dispatch(fetchViceLogEntries({ user: 'testUser' }))
-      const doFetchVirtues = store.dispatch(fetchVirtues({ user: 'testUser' }))
-      const doFetchChallenges = store.dispatch(fetchChallenges({ user: 'testUser' }))
+      const doFetchTagEntities = store.dispatch(fetchTagEntitys())
       const doFetchKeys = store.dispatch(fetchAllKeys({ user: 'testUser' }))
-      Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchVices, doFetchVirtues, doFetchViceLogs, doFetchChallenges])
+      Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchTagEntities, doFetchViceLogs])
         .then((action) => {
           if (action.error) {
             // TODO retry and/or put the UI into an error state
@@ -158,7 +154,7 @@ class Root extends Component {
       //store.dispatch(syncDirtyVices())
       //store.dispatch(syncDirtyVirtues())
       //store.dispatch(syncDirtyViceLogEntries())
-      store.dispatch(syncDirtyChallenges())
+      store.dispatch(syncDirtyTagEntitys())
     }, 2500)
   }
 

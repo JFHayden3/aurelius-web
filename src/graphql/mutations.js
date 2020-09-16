@@ -40,6 +40,51 @@ export const deleteSettings = /* GraphQL */ `
     }
   }
 `;
+export const createTagEntity = /* GraphQL */ `
+  mutation CreateTagEntity(
+    $input: CreateTagEntityInput!
+    $condition: ModelTagEntityConditionInput
+  ) {
+    createTagEntity(input: $input, condition: $condition) {
+      userId
+      teId
+      kind
+      entity
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updateTagEntity = /* GraphQL */ `
+  mutation UpdateTagEntity(
+    $input: UpdateTagEntityInput!
+    $condition: ModelTagEntityConditionInput
+  ) {
+    updateTagEntity(input: $input, condition: $condition) {
+      userId
+      teId
+      kind
+      entity
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deleteTagEntity = /* GraphQL */ `
+  mutation DeleteTagEntity(
+    $input: DeleteTagEntityInput!
+    $condition: ModelTagEntityConditionInput
+  ) {
+    deleteTagEntity(input: $input, condition: $condition) {
+      userId
+      teId
+      kind
+      entity
+      createdAt
+      updatedAt
+    }
+  }
+`;
 export const createChallenges = /* GraphQL */ `
   mutation CreateChallenges(
     $input: CreateChallengesInput!
@@ -77,90 +122,6 @@ export const deleteChallenges = /* GraphQL */ `
       userId
       challengeId
       challenge
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const createVices = /* GraphQL */ `
-  mutation CreateVices(
-    $input: CreateVicesInput!
-    $condition: ModelVicesConditionInput
-  ) {
-    createVices(input: $input, condition: $condition) {
-      userId
-      viceId
-      vice
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const updateVices = /* GraphQL */ `
-  mutation UpdateVices(
-    $input: UpdateVicesInput!
-    $condition: ModelVicesConditionInput
-  ) {
-    updateVices(input: $input, condition: $condition) {
-      userId
-      viceId
-      vice
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const deleteVices = /* GraphQL */ `
-  mutation DeleteVices(
-    $input: DeleteVicesInput!
-    $condition: ModelVicesConditionInput
-  ) {
-    deleteVices(input: $input, condition: $condition) {
-      userId
-      viceId
-      vice
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const createVirtues = /* GraphQL */ `
-  mutation CreateVirtues(
-    $input: CreateVirtuesInput!
-    $condition: ModelVirtuesConditionInput
-  ) {
-    createVirtues(input: $input, condition: $condition) {
-      userId
-      virtueId
-      virtue
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const updateVirtues = /* GraphQL */ `
-  mutation UpdateVirtues(
-    $input: UpdateVirtuesInput!
-    $condition: ModelVirtuesConditionInput
-  ) {
-    updateVirtues(input: $input, condition: $condition) {
-      userId
-      virtueId
-      virtue
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const deleteVirtues = /* GraphQL */ `
-  mutation DeleteVirtues(
-    $input: DeleteVirtuesInput!
-    $condition: ModelVirtuesConditionInput
-  ) {
-    deleteVirtues(input: $input, condition: $condition) {
-      userId
-      virtueId
-      virtue
       createdAt
       updatedAt
     }

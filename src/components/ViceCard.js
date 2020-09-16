@@ -1,5 +1,5 @@
 import React from 'react'
-import { selectViceById, deleteVice } from '../model/viceSlice'
+import { selectViceById, deleteTagEntityAsync } from '../model/tagEntitySlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { Typography, Row, Col, Button } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
@@ -11,7 +11,7 @@ export const ViceCard = ({ viceId }) => {
   const dispatch = useDispatch()
   const onDeleteClick = e => {
     e.preventDefault()
-    dispatch(deleteVice({ viceId }))
+    dispatch(deleteTagEntityAsync({ tagEntityId:viceId }))
   }
   return (
     <div style={{

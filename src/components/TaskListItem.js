@@ -7,7 +7,7 @@ import { Typography, Button, Tooltip, Divider, TimePicker, Select } from 'antd';
 import { ClockCircleOutlined, HourglassOutlined, MessageOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux'
 import moment from 'moment';
-import { selectAllVirtues } from '../model/virtueSlice'
+import { selectAllVirtues } from '../model/tagEntitySlice'
 import { selectTaskById, updateAgendaTask, removeAgendaTask } from '../model/journalArticlesSlice'
 const { Text } = Typography;
 const { Option } = Select

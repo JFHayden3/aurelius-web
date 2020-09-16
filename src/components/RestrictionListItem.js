@@ -5,7 +5,7 @@ import { ClockCircleOutlined, HourglassOutlined, MessageOutlined, DeleteOutlined
 import { useSelector, useDispatch } from 'react-redux'
 import moment from 'moment';
 import { selectRestrictionById, updateAgendaRestriction, removeAgendaRestriction } from '../model/journalArticlesSlice'
-import { selectAllVices } from "../model/viceSlice"
+import { selectAllVices } from "../model/tagEntitySlice"
 const { Text } = Typography;
 const { Option } = Select
 

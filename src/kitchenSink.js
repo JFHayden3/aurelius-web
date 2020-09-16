@@ -6,6 +6,9 @@
  * @param {*} apiDate a number in the format yyyyMMdd
  */
 export function apiDateToFe(apiDate) {
+  if (!apiDate) {
+    return ""
+  }
   let str = apiDate.toString()
   if (!/^(\d){8}$/.test(str)) {
     console.log("invalid date")

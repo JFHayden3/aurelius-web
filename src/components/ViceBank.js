@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { computeNextViceId, selectViceIds, createNewVice } from '../model/viceSlice'
+import { computeNextTagEntityId, selectViceIds, createNewTagEntity } from '../model/tagEntitySlice'
 import { ViceCard } from './ViceCard'
 import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons';
@@ -25,10 +25,12 @@ export const ViceBank = () => {
     setCreateModalVisible(false)
   }
   const onAddNewConfirm = ({ name, tag }) => {
-    const newViceId = computeNextViceId(store.getState())
-    dispatch(createNewVice({ id: newViceId, name: name, tag: tag }))
-    setCreateModalVisible(false)
-    history.push(`/vices/edit/${newViceId}`)
+    const newViceId = computeNextTagEntityId(store.getState())
+    dispatch(createNewTagEntity({ id: newViceId, name: name, refTag: tag, kind: "VICE" }))
+      .then(res => {
+        setCreateModalVisible(false)
+        history.push(`/vices/edit/${newViceId}`)
+      })
   }
   return (
     <div style={{ margin: 16 }}>

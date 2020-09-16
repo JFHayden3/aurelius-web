@@ -1,16 +1,9 @@
 import React, { useState } from 'react'
-import {
-  selectViceRestrictions,
-  updateViceRestriction,
-  computeNewSavedViceRestrictionId,
-  makeCustomViceRestrictionSaved,
-  saveSettings
-} from '../model/settingsSlice'
 import moment from 'moment';
 import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusOutlined, ClockCircleOutlined, HourglassOutlined, MessageOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Typography, Row, Col, Button, Divider, Select, TreeSelect, Tooltip, TimePicker } from 'antd';
-import { updateVirtue } from '../model/virtueSlice';
+import { updateEntity } from '../model/tagEntitySlice';
 
 const { Option } = Select
 const { TreeNode } = TreeSelect
@@ -27,7 +20,7 @@ export const VirtueScheduledEngagementEditor = ({ virtue }) => {
     newComp[fieldName] = value
     const newEngagementSchedule = [...engagementSchedule]
     newEngagementSchedule.splice(compIndex, 1, newComp)
-    dispatch(updateVirtue({ virtueId: virtue.id, changedFields: { engagementSchedule: newEngagementSchedule } }))
+    dispatch(updateEntity({ tagEntityId: virtue.id, changedFields: { engagementSchedule: newEngagementSchedule } }))
   }
   function onScheduleComponentChange(scheduleComponent, fieldName) {
     return (value) =>
@@ -60,7 +53,7 @@ export const VirtueScheduledEngagementEditor = ({ virtue }) => {
   function onAddRecurringAppointmentClick(e) {
     const newRecurringAppointment = { days: [], instances:[] }
     const newEngagementSchedule = virtue.engagementSchedule.concat(newRecurringAppointment)
-    dispatch(updateVirtue({ virtueId: virtue.id, changedFields: { engagementSchedule: newEngagementSchedule } }))
+    dispatch(updateEntity({ tagEntityId: virtue.id, changedFields: { engagementSchedule: newEngagementSchedule } }))
   }
 
   function onSetTimeClick(appt, instance) {

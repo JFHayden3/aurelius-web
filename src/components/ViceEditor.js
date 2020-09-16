@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { selectViceById, updateVice } from '../model/viceSlice'
+import { selectViceById, updateEntity } from '../model/tagEntitySlice'
 import { selectViceLogsByVice, createNewViceLogEntry, computeNextViceLogId } from '../model/viceLogSlice'
 import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons'
@@ -21,14 +21,14 @@ export const ViceEditor = ({ match }) => {
   const dispatch = useDispatch()
   const associatedViceLogs = useSelector(state => selectViceLogsByVice(state, vice ? vice.refTag : ""))
   const onTextFieldChange = ({ fieldName, value }) => {
-    dispatch(updateVice({ viceId: vice.id, changedFields: { [fieldName]: value } }))
+    dispatch(updateEntity({ tagEntityId: vice.id, changedFields: { [fieldName]: value } }))
   }
   const onAddTacticClick = e => {
     const newId = vice.mitigationTactics.length > 0 ?
       (Math.max.apply(null, vice.mitigationTactics.map(mt => mt.id)) + 1)
       : 0
     const newTactics = vice.mitigationTactics.concat({ id: newId, text: "" })
-    dispatch(updateVice({ viceId, changedFields: { mitigationTactics: newTactics } }))
+    dispatch(updateEntity({ tagEntityId:vice.id, changedFields: { mitigationTactics: newTactics } }))
   }
   const onAddViceLogEntryClick = e => {
     const payload = {
@@ -64,7 +64,7 @@ export const ViceEditor = ({ match }) => {
           return tactic
         }
       })
-      dispatch(updateVice({ viceId, changedFields: { mitigationTactics: newTactics } }))
+      dispatch(updateEntity({ tagEntityId:viceId, changedFields: { mitigationTactics: newTactics } }))
     }
   }
   if (!vice) {

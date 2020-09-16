@@ -1,5 +1,5 @@
 import React from 'react'
-import { updateVice } from '../model/viceSlice'
+import { updateEntity } from '../model/tagEntitySlice'
 import {
   selectViceRestrictions,
   updateViceRestriction,
@@ -13,7 +13,7 @@ import { Typography, Row, Col, Button, Select, TreeSelect, Tooltip } from 'antd'
 
 const { Option } = Select
 const { TreeNode } = TreeSelect
-const {  Text,} = Typography;
+const { Text, } = Typography;
 
 
 export const ViceDefaultRestrictionEditor = ({ vice }) => {
@@ -24,8 +24,8 @@ export const ViceDefaultRestrictionEditor = ({ vice }) => {
   // TODO deal with cases where the spec has been removed better
   if (
     !savedViceRestrictions[vice.defaultEngagementRestriction.kind]) {
-    dispatch(updateVice({
-      viceId: vice.id,
+    dispatch(updateEntity({
+      tagEntityId: vice.id,
       changedFields: {
         // reset to default
         defaultEngagementRestriction: { kind: "0" }
@@ -43,8 +43,8 @@ export const ViceDefaultRestrictionEditor = ({ vice }) => {
     const displayName = newVal
     const customRestrictionKey = customForViceId
     dispatch(makeCustomViceRestrictionSaved({ customRestrictionKey, newKey, displayName }))
-    dispatch(updateVice({
-      viceId: vice.id,
+    dispatch(updateEntity({
+      tagEntityId: vice.id,
       changedFields: {
         // Spec now comes from settings
         defaultEngagementRestriction: { kind: newKey }
@@ -53,9 +53,9 @@ export const ViceDefaultRestrictionEditor = ({ vice }) => {
     dispatch(saveSettings())
   }
   const onRestrictionKindSelectionChange = newKind => {
-    dispatch(updateVice(
+    dispatch(updateEntity(
       {
-        viceId: vice.id,
+        tagEntityId: vice.id,
         changedFields: { defaultEngagementRestriction: { kind: newKind } }
       }))
   }
@@ -118,8 +118,8 @@ export const ViceDefaultRestrictionEditor = ({ vice }) => {
           spec: newSpec
         }
       ))
-      dispatch(updateVice({
-        viceId: vice.id,
+      dispatch(updateEntity({
+        tagEntityId: vice.id,
         changedFields: { defaultEngagementRestriction: { kind: customForViceId } }
       }))
     }

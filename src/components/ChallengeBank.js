@@ -1,6 +1,6 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectAllChallenges, deleteChallenge, computeNextChallengeId, createNewChallenge } from '../model/challengeSlice'
+import { selectAllChallenges, deleteTagEntityAsync, computeNextTagEntityId, createNewTagEntity } from '../model/tagEntitySlice'
 import { List, Space, Typography, Button, Affix, Tooltip } from 'antd'
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { apiDateToFe } from '../kitchenSink'
@@ -15,10 +15,10 @@ export const ChallengeBank = () => {
   const allChallenges = useSelector((state) => selectAllChallenges(state))
   const dispatch = useDispatch()
   const history = useHistory()
-  const newChallengeId = useSelector((state) => computeNextChallengeId(state))
+  const newChallengeId = useSelector((state) => computeNextTagEntityId(state))
   function onDeleteClick(id) {
     return e => {
-      dispatch(deleteChallenge({ challengeId:id }))
+      dispatch(deleteTagEntityAsync({ tagEntityId: id }))
     }
   }
   function onAddNewClick(e) {
@@ -28,9 +28,11 @@ export const ChallengeBank = () => {
     setCreateModalVisible(false)
   }
   const onAddNewConfirm = ({ name, tag }) => {
-    dispatch(createNewChallenge({ id: newChallengeId, name: name, refTag: tag }))
-    setCreateModalVisible(false)
-    history.push(`/challenges/edit/${newChallengeId}`)
+    dispatch(createNewTagEntity({ id: newChallengeId, name: name, refTag: tag, kind: 'CHALLENGE' }))
+      .then(res => {
+        setCreateModalVisible(false)
+        history.push(`/challenges/edit/${newChallengeId}`)
+      })
   }
   return (
     <div>

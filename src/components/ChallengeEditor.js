@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
-import { selectAllVices, selectViceByRefTag } from '../model/viceSlice'
-import { selectAllVirtues, selectVirtueByRefTag } from '../model/virtueSlice'
-import { selectChallengeById, updateChallenge } from '../model/challengeSlice'
+import { selectChallengeById, updateEntity, selectAllVirtues, selectAllVices } from '../model/tagEntitySlice'
 import {
   selectViceRestrictions
   , updateViceRestriction
@@ -363,12 +361,12 @@ const SprintEffectEditor = ({ effect, onEffectChange }) => {
  * Top level editor for dealing with a single effect of a challenge. Toggles between
  * sprints/fasts and contains the appropriate sub-editor.
  */
-const EffectEditor = ({ effect, onEffectChange }) => {
+const EffectEditor = ({ challengeId, effect, onEffectChange }) => {
   return (
     <Space direction='vertical' style={{ width: '100%' }}>
       <Text>{effect.kind}</Text>
       {effect.kind === 'SPRINT' && <SprintEffectEditor effect={effect} onEffectChange={onEffectChange} />}
-      {effect.kind === 'FAST' && <FastEffectEditor effect={effect} onEffectChange={onEffectChange} />}
+      {effect.kind === 'FAST' && <FastEffectEditor challengeId={challengeId} effect={effect} onEffectChange={onEffectChange} />}
     </Space>
   )
 }
@@ -387,12 +385,12 @@ export const ChallengeEditor = ({ match }) => {
     return Number.parseInt(moment.format("YYYYMMDD"))
   }
   const onDescriptionChange = e => {
-    dispatch(updateChallenge({ challengeId, changedFields: { description: e.target.value } }))
+    dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { description: e.target.value } }))
   }
   const onDateRangeChange = ([sd, ed]) => {
     const startDate = momentAsDate(sd)
     const endDate = momentAsDate(ed)
-    dispatch(updateChallenge({ challengeId, changedFields: { startDate, endDate } }))
+    dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { startDate, endDate } }))
   }
   const onEffectChange = effectId => {
     return changedAttrs => {
@@ -404,7 +402,7 @@ export const ChallengeEditor = ({ match }) => {
       const newEffects = [...challenge.effects]
       newEffects.splice(effectIndex, 1, newEffect)
 
-      dispatch(updateChallenge({ challengeId, changedFields: { effects: newEffects } }))
+      dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { effects: newEffects } }))
     }
   }
   const onAddFast = e => {
@@ -412,14 +410,14 @@ export const ChallengeEditor = ({ match }) => {
     const kind = 'FAST'
     const restrictionId = 1
     const newEffects = challenge.effects.concat({ id: nextEffectId, kind, viceRefTags, restrictionId })
-    dispatch(updateChallenge({ challengeId, changedFields: { effects: newEffects } }))
+    dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { effects: newEffects } }))
   }
   const onAddSprint = e => {
     const kind = 'SPRINT'
     const virtueRefTag = "" // Should I look up a valid value?
     const engagementSchedule = []
     const newEffects = challenge.effects.concat({ id: nextEffectId, kind, virtueRefTag, engagementSchedule })
-    dispatch(updateChallenge({ challengeId, changedFields: { effects: newEffects } }))
+    dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { effects: newEffects } }))
   }
   const width = '85%'
   const addEffectMenu = (
@@ -428,6 +426,9 @@ export const ChallengeEditor = ({ match }) => {
       <Menu.Item key='sprint' onClick={onAddSprint}>Add Sprint</Menu.Item>
     </Menu>
   )
+  if (!challenge ) {
+    return (<div>Unknown</div>)
+  }
   return (
     <Space direction='vertical' style={{ padding: '16px', width: width }}>
       <Title level={2}>{challenge.name}</Title>
@@ -455,7 +456,7 @@ export const ChallengeEditor = ({ match }) => {
           itemLayout="vertical"
           renderItem={effect =>
             <List.Item key={effect.id}>
-              <EffectEditor effect={effect} onEffectChange={onEffectChange(effect.id)} />
+              <EffectEditor challengeId={challengeId} effect={effect} onEffectChange={onEffectChange(effect.id)} />
             </List.Item>
           } />
       </Space>

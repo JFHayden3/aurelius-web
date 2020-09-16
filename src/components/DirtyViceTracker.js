@@ -3,7 +3,7 @@
 // invokes the 'sync' function to push changes to the server
 import { useSelector } from 'react-redux'
 
-import { selectViceById } from '../model/viceSlice'
+import { selectViceById } from '../model/tagEntitySlice'
 import React from 'react'
 
 export const DirtyViceTracker = ({ viceId }) => {

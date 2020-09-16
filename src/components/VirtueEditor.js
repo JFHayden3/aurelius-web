@@ -1,5 +1,5 @@
 import React from 'react'
-import { selectVirtueById, updateVirtue } from '../model/virtueSlice'
+import { selectVirtueById, updateEntity } from '../model/tagEntitySlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons'
 import { Typography, List, Row, Col, Button } from 'antd';
@@ -12,14 +12,14 @@ export const VirtueEditor = ({ match }) => {
   const virtue = useSelector(state => selectVirtueById(state, virtueId))
   const dispatch = useDispatch()
   const onTextFieldChange = ({ fieldName, value }) => {
-    dispatch(updateVirtue({ virtueId: virtue.id, changedFields: { [fieldName]: value } }))
+    dispatch(updateEntity({ tagEntityId: virtue.id, changedFields: { [fieldName]: value } }))
   }
   const onAddTacticClick = e => {
     const newId = virtue.engagementTactics.length > 0 ?
       (Math.max.apply(null, virtue.engagementTactics.map(mt => mt.id)) + 1)
       : 0
     const newTactics = virtue.engagementTactics.concat({ id: newId, text: "" })
-    dispatch(updateVirtue({ virtueId, changedFields: { engagementTactics: newTactics } }))
+    dispatch(updateEntity({ tagEntityId:virtueId, changedFields: { engagementTactics: newTactics } }))
   }
   function onTacticTextChange(targetId) {
     return str => {
@@ -30,7 +30,7 @@ export const VirtueEditor = ({ match }) => {
           return tactic
         }
       })
-      dispatch(updateVirtue({ virtueId, changedFields: { engagementTactics: newTactics } }))
+      dispatch(updateEntity({ tagEntityId:virtueId, changedFields: { engagementTactics: newTactics } }))
     }
   }
 
@@ -64,9 +64,9 @@ export const VirtueEditor = ({ match }) => {
         text="Description"
         entity={virtue}
         fieldName="description"
-        minRows={3} 
+        minRows={3}
         onValueChange={onTextFieldChange}
-        />
+      />
       <WrittenResponse
         text="Describe how this behavior positively impacts your life. You may also describe the potential that it has to postiviely impact your life if you increase your engagement in it."
         entity={virtue}

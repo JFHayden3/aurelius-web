@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectViceLogById, updateViceLog, saveViceLog } from '../model/viceLogSlice'
-import { selectAllVices } from '../model/viceSlice'
+import { selectAllVices } from '../model/tagEntitySlice'
 import { Typography, List, Row, Col, Button, DatePicker, Select } from 'antd';
 import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
 import moment from 'moment';
