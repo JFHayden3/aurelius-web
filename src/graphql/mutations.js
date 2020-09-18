@@ -85,43 +85,124 @@ export const deleteTagEntity = /* GraphQL */ `
     }
   }
 `;
-export const createChallenges = /* GraphQL */ `
-  mutation CreateChallenges(
-    $input: CreateChallengesInput!
-    $condition: ModelChallengesConditionInput
+export const createJournalEntry = /* GraphQL */ `
+  mutation CreateJournalEntry(
+    $input: CreateJournalEntryInput!
+    $condition: ModelJournalEntryConditionInput
   ) {
-    createChallenges(input: $input, condition: $condition) {
+    createJournalEntry(input: $input, condition: $condition) {
       userId
-      challengeId
-      challenge
+      jeId
+      articles {
+        items {
+          userId
+          jaId
+          entryId
+          kind
+          content
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
   }
 `;
-export const updateChallenges = /* GraphQL */ `
-  mutation UpdateChallenges(
-    $input: UpdateChallengesInput!
-    $condition: ModelChallengesConditionInput
+export const updateJournalEntry = /* GraphQL */ `
+  mutation UpdateJournalEntry(
+    $input: UpdateJournalEntryInput!
+    $condition: ModelJournalEntryConditionInput
   ) {
-    updateChallenges(input: $input, condition: $condition) {
+    updateJournalEntry(input: $input, condition: $condition) {
       userId
-      challengeId
-      challenge
+      jeId
+      articles {
+        items {
+          userId
+          jaId
+          entryId
+          kind
+          content
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
   }
 `;
-export const deleteChallenges = /* GraphQL */ `
-  mutation DeleteChallenges(
-    $input: DeleteChallengesInput!
-    $condition: ModelChallengesConditionInput
+export const deleteJournalEntry = /* GraphQL */ `
+  mutation DeleteJournalEntry(
+    $input: DeleteJournalEntryInput!
+    $condition: ModelJournalEntryConditionInput
   ) {
-    deleteChallenges(input: $input, condition: $condition) {
+    deleteJournalEntry(input: $input, condition: $condition) {
       userId
-      challengeId
-      challenge
+      jeId
+      articles {
+        items {
+          userId
+          jaId
+          entryId
+          kind
+          content
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const createJournalArticle = /* GraphQL */ `
+  mutation CreateJournalArticle(
+    $input: CreateJournalArticleInput!
+    $condition: ModelJournalArticleConditionInput
+  ) {
+    createJournalArticle(input: $input, condition: $condition) {
+      userId
+      jaId
+      entryId
+      kind
+      content
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updateJournalArticle = /* GraphQL */ `
+  mutation UpdateJournalArticle(
+    $input: UpdateJournalArticleInput!
+    $condition: ModelJournalArticleConditionInput
+  ) {
+    updateJournalArticle(input: $input, condition: $condition) {
+      userId
+      jaId
+      entryId
+      kind
+      content
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deleteJournalArticle = /* GraphQL */ `
+  mutation DeleteJournalArticle(
+    $input: DeleteJournalArticleInput!
+    $condition: ModelJournalArticleConditionInput
+  ) {
+    deleteJournalArticle(input: $input, condition: $condition) {
+      userId
+      jaId
+      entryId
+      kind
+      content
       createdAt
       updatedAt
     }

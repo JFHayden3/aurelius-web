@@ -3,10 +3,14 @@ import {
   createEntityAdapter,
   createSlice,
   createSelector,
-  compose
 } from '@reduxjs/toolkit'
 import { client } from '../api/client'
 import { apiUrl } from '../kitchenSink'
+
+import { selectFetchUserField } from './metaSlice'
+import { listJournalEntrys } from '../graphql/customQueries'
+import { createJournalEntry } from '../graphql/customMutations'
+import { API, graphqlOperation } from "aws-amplify"
 
 const entriesAdapter = createEntityAdapter({
   sortComparer: (a, b) => {
@@ -14,16 +18,15 @@ const entriesAdapter = createEntityAdapter({
   }
 })
 
-function convertApiToFe(items) {
-  const entries = Array.map(items, (item) => JSON.parse(item.Entry))
-  const articles = [].concat.apply([], Array.map(entries, (entry) => entry.articles))
+function convertApiToFe(entries) {
+  const articles = [].concat.apply([], Array.map(entries, (entry) => entry.articles.items))
   //const ids = Array.map(entries, (entry) => apiDateToFe(entry.date.toString()))
   //  Entry: "{"date":20200715,"articles":[{"id":11,"kind":"INTENTIONS","title":"Intentions","content":{"hint":"intentions hint","text":"intentions text"}},{"id":12,"kind":"REFLECTIONS","title":"Reflections","content":{"hint":"reflections hint","text":"reflections text"}}]}"
   const normalizedEntries = Array.map(entries, (entry) => {
     let articleIds = Array.map(entry.articles, (article) => article.id)
     return {
-      id: entry.date,
-      date: entry.date,
+      id: entry.jeId,
+      date: entry.jeId,
       dirtiness: 'CLEAN',
       articleIds: articleIds
     }
@@ -47,19 +50,28 @@ function convertFeEntriesToApi(entries, articlesDictionary) {
   })
 }
 
-async function fetchJournalEntries(user, maxEndDate, maxNumEntries) {
-  return client.get(
-    apiUrl + '/journal'
-    + '?userId=' + user + '&maxEndDate=' + maxEndDate + '&maxNumEntries=' + maxNumEntries + '')
-    .then(response => {
-      return convertApiToFe(response.Items)
-    })
-}
-
 export const fetchEntries = createAsyncThunk(
   'journalEntries/fetchEntries',
-  async (payload) => {
-    return fetchJournalEntries(payload.user, payload.maxEndDate, payload.maxNumEntries)
+  async (payload, { getState }) => {
+    const userId = selectFetchUserField(getState())
+    return API.graphql(graphqlOperation(listJournalEntrys,
+      {
+        filter: {
+          userId: { eq: userId },
+          and: [
+            {
+              or: [
+                { jeId: { lt: payload.maxEndDate } },
+                { jeId: { eq: payload.maxEndDate } }
+              ]
+            }
+          ]
+        }
+        , limit: payload.maxNumEntries
+      }))
+      .then(response => {
+        return convertApiToFe(response.data.listJournalEntrys.items)
+      })
   })
 
 export const fetchAllKeys = createAsyncThunk(
@@ -89,12 +101,40 @@ export const syncDirtyEntries = createAsyncThunk(
   }
 )
 
-export function computeNextArticleId(state, forEntryId) {
-  const entry = state.journalEntries.entities[forEntryId]
-  return (!entry.articleIds || entry.articleIds.length === 0)
-    ? Number.parseInt(forEntryId + "001")
-    : Math.max.apply(null, entry.articleIds) + 1
-}
+export const createNewEntry = createAsyncThunk(
+  'journalEntries/createNewEntry',
+  async (payload, { getState }) => {
+    const { dateId } = payload
+    // check if the entry already exists for this date
+    if (getState().journalEntries.entities[dateId]) {
+      console.log("\n\nATTEMPTED TO CREATE ENTRY THAT ALREADY EXISTS: " + dateId)
+      return;
+    }
+    const newEntry = {
+      id: dateId,
+      date: dateId,
+      dirtiness: 'DIRTY',
+      articleIds: [],
+    }
+    const userId = selectFetchUserField(getState())
+    const operation = graphqlOperation(createJournalEntry,
+      {
+        input:
+        {
+          userId
+          , jeId: Number.parseInt(newEntry.id)
+        },
+      })
+    // TODO: figure out how best to do article creation and ID-uniqueness
+    // Let's just do something dumb for now so I can start using this and iterating
+    // interactively:
+    // - Hardcoding 2 article IDs in here which will be picked up in a reducer
+    // - in articlesSlice and will automatically create entries for refelections,
+    // intetions, and agenda
+    return API.graphql(operation).then(r => { return { newEntry } })
+  }
+)
+
 
 const initialState = entriesAdapter.getInitialState({
   entriesLoading: false,
@@ -105,29 +145,12 @@ export const journalEntriesSlice = createSlice({
   name: 'journalEntries',
   initialState,
   reducers: {
-    createNewEntry(state, action) {
-      const { dateId } = action.payload
-      // check if the entry already exists for this date
-      if (state.entities[dateId]) {
-        console.log("\n\nATTEMPTED TO CREATE ENTRY THAT ALREADY EXISTS: " + dateId)
-        return;
-      }
-      // TODO: figure out how best to do article creation and ID-uniqueness
-      // Let's just do something dumb for now so I can start using this and iterating
-      // interactively:
-      // - Hardcoding 2 article IDs in here which will be picked up in a reducer
-      // - in articlesSlice and will automatically create entries for refelections,
-      // intetions, and agenda
-      const newEntry = {
-        id: dateId,
-        date: dateId,
-        dirtiness: 'DIRTY',
-        articleIds: [],
-      }
-      entriesAdapter.upsertOne(state, newEntry)
-    },
+
   },
   extraReducers: {
+    [createNewEntry.fulfilled]: (state, action) => {
+      entriesAdapter.addOne(state, action.payload.newEntry)
+    },
     [fetchEntries.pending]: (state, action) => {
       state.entriesLoading = true
     },
@@ -157,41 +180,10 @@ export const journalEntriesSlice = createSlice({
     [fetchAllKeys.fulfilled]: (state, action) => {
       state.allKeys = action.payload
     },
-    'journalArticles/addArticle': (state, action) => {
-      const { entryId, articleId } = action.payload
-      const entry = state.entities[entryId]
-      entry.articleIds.push(articleId)
-      entry.dirtiness = 'DIRTY'
-    },
-    'journalArticles/removeArticle': (state, action) => {
-      const { articleId } = action.payload
-      const entry = selectEntryByArticleId(state, articleId)
-      entry.articleIds = entry.articleIds.filter(id => id != articleId)
-      entry.dirtiness = 'DIRTY'
-    },
-    'journalArticles/textUpdated': makeDirtyByArticleId,
-    'journalArticles/addAgendaTask': makeDirtyByArticleId,
-    'journalArticles/removeAgendaTask': makeDirtyByArticleId,
-    'journalArticles/updateAgendaTask': makeDirtyByArticleId,
-    'journalArticles/addAgendaRestriction': makeDirtyByArticleId,
-    'journalArticles/removeAgendaRestriction': makeDirtyByArticleId,
-    'journalArticles/updateAgendaRestriction': makeDirtyByArticleId,
   },
 })
 
-function makeDirtyByArticleId(state, action) {
-  const { articleId } = action.payload
-  const dirtiedEntry = selectEntryByArticleId(state, articleId)
-  dirtiedEntry.dirtiness = 'DIRTY'
-}
-
-function selectEntryByArticleId(state, articleId) {
-  // PERFNOTE: This could be made much more efficient by creating a back reference
-  // from article -> date/entry upon loading.
-  return Object.values(state.entities).find(entry => entry.articleIds.includes(articleId))
-}
-
-export const { createNewEntry } = journalEntriesSlice.actions
+export const { } = journalEntriesSlice.actions
 
 export default journalEntriesSlice.reducer
 

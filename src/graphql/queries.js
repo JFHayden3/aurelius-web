@@ -77,29 +77,40 @@ export const listTagEntitys = /* GraphQL */ `
     }
   }
 `;
-export const getChallenges = /* GraphQL */ `
-  query GetChallenges($userId: ID!, $challengeId: ID!) {
-    getChallenges(userId: $userId, challengeId: $challengeId) {
+export const getJournalEntry = /* GraphQL */ `
+  query GetJournalEntry($userId: ID!, $jeId: ID!) {
+    getJournalEntry(userId: $userId, jeId: $jeId) {
       userId
-      challengeId
-      challenge
+      jeId
+      articles {
+        items {
+          userId
+          jaId
+          entryId
+          kind
+          content
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
   }
 `;
-export const listChallengess = /* GraphQL */ `
-  query ListChallengess(
+export const listJournalEntrys = /* GraphQL */ `
+  query ListJournalEntrys(
     $userId: ID
-    $challengeId: ModelIDKeyConditionInput
-    $filter: ModelChallengesFilterInput
+    $jeId: ModelIDKeyConditionInput
+    $filter: ModelJournalEntryFilterInput
     $limit: Int
     $nextToken: String
     $sortDirection: ModelSortDirection
   ) {
-    listChallengess(
+    listJournalEntrys(
       userId: $userId
-      challengeId: $challengeId
+      jeId: $jeId
       filter: $filter
       limit: $limit
       nextToken: $nextToken
@@ -107,8 +118,53 @@ export const listChallengess = /* GraphQL */ `
     ) {
       items {
         userId
-        challengeId
-        challenge
+        jeId
+        articles {
+          nextToken
+        }
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const getJournalArticle = /* GraphQL */ `
+  query GetJournalArticle($userId: ID!, $jaId: ID!) {
+    getJournalArticle(userId: $userId, jaId: $jaId) {
+      userId
+      jaId
+      entryId
+      kind
+      content
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listJournalArticles = /* GraphQL */ `
+  query ListJournalArticles(
+    $userId: ID
+    $jaId: ModelIDKeyConditionInput
+    $filter: ModelJournalArticleFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listJournalArticles(
+      userId: $userId
+      jaId: $jaId
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        userId
+        jaId
+        entryId
+        kind
+        content
         createdAt
         updatedAt
       }

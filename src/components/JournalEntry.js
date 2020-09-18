@@ -4,8 +4,7 @@
 import React, { useState } from 'react'
 import { JournalArticle } from './JournalArticle'
 import { List, Typography, Dropdown, Button, Menu, Row, Col, Affix } from 'antd';
-import { selectArticleIdsForEntry, computeNextArticleId } from '../model/journalEntriesSlice'
-import { addArticle, selectArticleById } from '../model/journalArticlesSlice'
+import { addArticle, selectArticleById, selectArticleIdsByEntryId, computeNextArticleId } from '../model/journalArticlesSlice'
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
 import { EntryWordCountDisplay } from "./EntryWordCountDisplay"
 import { PlusOutlined } from '@ant-design/icons';
@@ -19,7 +18,7 @@ const { Title } = Typography
 export const JournalEntry = ({ entryId }) => {
   const [newPromptModalVisible, setNewPromptModalVisible] = useState(false)
 
-  const articleIds = useSelector((state) => selectArticleIdsForEntry(state, entryId))
+  const articleIds = useSelector((state) => selectArticleIdsByEntryId(state, entryId))
   const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
   const dispatch = useDispatch()
   const store = useStore()

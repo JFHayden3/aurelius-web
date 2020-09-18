@@ -32,9 +32,9 @@ type TagEntity
   entity: String!
 }
 
-type Challenges
+type JournalEntry
 @model
-@key(fields: ["userId", "challengeId"])
+@key(fields:["userId", "jeId"])
 @auth(
   rules: [
     {
@@ -44,7 +44,27 @@ type Challenges
     }
   ]
 ) {
-  userId: ID!
-  challengeId: ID!
-  challenge: String!
+  userId:ID!
+  jeId:ID!
+  articles: [JournalArticle] @connection(keyName:"byEntry", fields:["jeId"])
 }
+
+type JournalArticle
+@model
+@key(fields:["userId", "jaId"])
+@key(name:"byEntry", fields:["entryId"])
+@auth(
+  rules: [
+    {
+      allow: owner
+      ownerField: "owner"
+      operations: [create, update, delete, read]
+    }
+  ]
+) {
+  userId:ID!
+  jaId:ID!
+  entryId:ID!
+  kind:String!
+  content:String!
+} 

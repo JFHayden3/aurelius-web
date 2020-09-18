@@ -16,10 +16,9 @@ import {
   fetchAllKeys,
   createNewEntry,
   selectEntryById,
-  computeNextArticleId,
   syncDirtyEntries
 } from "../model/journalEntriesSlice";
-import { addArticle } from "../model/journalArticlesSlice";
+import { addArticle , computeNextArticleId, syncDirtyArticles} from "../model/journalArticlesSlice";
 import { fetchViceLogEntries, syncDirtyViceLogEntries } from "../model/viceLogSlice"
 import { fetchTagEntitys, syncDirtyTagEntitys } from "../model/tagEntitySlice"
 
@@ -126,22 +125,23 @@ class Root extends Component {
           } else {
             const payload = { dateId: todayAsYyyyMmDd() }
             if (!selectEntryById(store.getState(), payload.dateId)) {
-              store.dispatch(createNewEntry(payload))
-              getDefaultArticleKindsForToday(store.getState())
-                .forEach((articleKind) => {
-                  const state = store.getState()
-                  const nextArticleId = computeNextArticleId(state, payload.dateId)
-                  const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
-                  const defaultContent = getStartingContent(articleKind, state, store.dispatch)
-                  store.dispatch(addArticle(
-                    {
-                      entryId: payload.dateId,
-                      articleId: nextArticleId,
-                      articleKind,
-                      articleTitle,
-                      defaultContent,
-                    }))
-                })
+              store.dispatch(createNewEntry(payload)).then(res => {
+                var nextArticleId = computeNextArticleId(store.getState(), payload.dateId)
+                getDefaultArticleKindsForToday(store.getState())
+                  .forEach((articleKind) => {
+                    const state = store.getState()
+                    const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
+                    const defaultContent = getStartingContent(articleKind, state, store.dispatch)
+                    store.dispatch(addArticle(
+                      {
+                        entryId: payload.dateId,
+                        articleId: nextArticleId++,
+                        articleKind,
+                        articleTitle,
+                        defaultContent,
+                      }))
+                  })
+              })
             }
             store.dispatch(setInitialized())
 
@@ -154,7 +154,8 @@ class Root extends Component {
       //store.dispatch(syncDirtyVices())
       //store.dispatch(syncDirtyVirtues())
       //store.dispatch(syncDirtyViceLogEntries())
-      store.dispatch(syncDirtyTagEntitys())
+      store.dispatch(syncDirtyArticles())
+     // store.dispatch(syncDirtyTagEntitys())
     }, 2500)
   }
 

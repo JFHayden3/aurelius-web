@@ -67,34 +67,106 @@ export const onDeleteTagEntity = /* GraphQL */ `
     }
   }
 `;
-export const onCreateChallenges = /* GraphQL */ `
-  subscription OnCreateChallenges($owner: String!) {
-    onCreateChallenges(owner: $owner) {
+export const onCreateJournalEntry = /* GraphQL */ `
+  subscription OnCreateJournalEntry($owner: String!) {
+    onCreateJournalEntry(owner: $owner) {
       userId
-      challengeId
-      challenge
+      jeId
+      articles {
+        items {
+          userId
+          jaId
+          entryId
+          kind
+          content
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
   }
 `;
-export const onUpdateChallenges = /* GraphQL */ `
-  subscription OnUpdateChallenges($owner: String!) {
-    onUpdateChallenges(owner: $owner) {
+export const onUpdateJournalEntry = /* GraphQL */ `
+  subscription OnUpdateJournalEntry($owner: String!) {
+    onUpdateJournalEntry(owner: $owner) {
       userId
-      challengeId
-      challenge
+      jeId
+      articles {
+        items {
+          userId
+          jaId
+          entryId
+          kind
+          content
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
   }
 `;
-export const onDeleteChallenges = /* GraphQL */ `
-  subscription OnDeleteChallenges($owner: String!) {
-    onDeleteChallenges(owner: $owner) {
+export const onDeleteJournalEntry = /* GraphQL */ `
+  subscription OnDeleteJournalEntry($owner: String!) {
+    onDeleteJournalEntry(owner: $owner) {
       userId
-      challengeId
-      challenge
+      jeId
+      articles {
+        items {
+          userId
+          jaId
+          entryId
+          kind
+          content
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreateJournalArticle = /* GraphQL */ `
+  subscription OnCreateJournalArticle($owner: String!) {
+    onCreateJournalArticle(owner: $owner) {
+      userId
+      jaId
+      entryId
+      kind
+      content
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateJournalArticle = /* GraphQL */ `
+  subscription OnUpdateJournalArticle($owner: String!) {
+    onUpdateJournalArticle(owner: $owner) {
+      userId
+      jaId
+      entryId
+      kind
+      content
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteJournalArticle = /* GraphQL */ `
+  subscription OnDeleteJournalArticle($owner: String!) {
+    onDeleteJournalArticle(owner: $owner) {
+      userId
+      jaId
+      entryId
+      kind
+      content
       createdAt
       updatedAt
     }
