@@ -1,17 +1,10 @@
 import React, { useState } from 'react'
 import { selectChallengeById, updateEntity, selectAllVirtues, selectAllVices } from '../model/tagEntitySlice'
-import {
-  selectViceRestrictions
-  , updateViceRestriction
-  , saveSettings
-  , makeCustomViceRestrictionSaved
-  , computeNewSavedViceRestrictionId
-} from '../model/settingsSlice'
 import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusOutlined, EditOutlined, CheckOutlined, ClockCircleOutlined, HourglassOutlined } from '@ant-design/icons'
-import { ViceDefaultRestrictionEditor } from './ViceDefaultRestrictionEditor'
 import { Typography, TimePicker, List, Divider, Button, Collapse, Space, DatePicker, Input, Radio, Select, Tooltip, Menu, Dropdown } from 'antd';
 import { dateAsYyyyMmDd, apiDateToFe } from '../kitchenSink'
+import { RestrictionEditor } from './RestrictionEditor'
 import moment from 'moment';
 const { Title, Text } = Typography;
 const { Panel } = Collapse
@@ -46,117 +39,6 @@ const { Option } = Select
   },
  */
 
-const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentRestrictionId }) => {
-  const dispatch = useDispatch()
-  const customKey = 'CUSTOM-FOR-' + customKeyId
-  const savedViceRestrictions = useSelector(state => selectViceRestrictions(state))
-  const currentRestriction = savedViceRestrictions[currentRestrictionId]
-  function filterOtherCustomRestrictions([key, _]) {
-    if (key.startsWith("CUSTOM-") && key !== customKey) {
-      return false
-    }
-    return true
-  }
-  const onRestrictionKindSelectionChange = val => {
-    onRestrictionIdChange(val)
-  }
-  function dispatchAppropriateSpecChangeAction(newSpec) {
-    // Changed a property of a user-created spec, just make the change directly
-    if (currentRestriction.isUserCreated) {
-      dispatch(updateViceRestriction(
-        {
-          key: currentRestrictionId,
-          displayName: currentRestriction.displayName,
-          spec: newSpec
-        }
-      ))
-      dispatch(saveSettings())
-    } else {
-      // Changed a property of a default setting. Should create a new, "custom", spec and
-      // change the vice's restriction type to it
-      dispatch(updateViceRestriction(
-        {
-          key: customKeyId,
-          displayName: "** Custom **",
-          spec: newSpec
-        }
-      ))
-      onRestrictionIdChange(customKeyId)
-    }
-  }
-  // Change one particluar field of one spec component of the restriction
-  function changeSpecComponent(componentToChange, fieldToChange, newValue) {
-    const componentIndex = currentRestriction.spec.findIndex(comp => comp === componentToChange)
-    const newComponent = {
-      ...componentToChange
-    }
-    newComponent[fieldToChange] = newValue
-    const newSpec = [...currentRestriction.spec]
-    newSpec.splice(componentIndex, 1, newComponent)
-
-    dispatchAppropriateSpecChangeAction(newSpec)
-  }
-  const onRestrictionTextChange = specComponent => val => {
-    changeSpecComponent(specComponent, "restriction", val)
-  }
-  const onAppliesOnChange = specComponent => val => {
-    let newAppliesOn = val.sort()
-    changeSpecComponent(specComponent, "appliesOn", newAppliesOn)
-  }
-  function onAddRestrictionComponentClick(e) {
-    const newSpec = currentRestriction.spec.concat({
-      appliesOn: [],
-      restriction: "",
-      notes: ""
-    })
-    dispatchAppropriateSpecChangeAction(newSpec)
-  }
-  return (
-    <Space direction='vertical' style={{ width: '100%' }}>
-      <Select value={currentRestriction.displayName}
-        optionLabelProp="title"
-        onChange={onRestrictionKindSelectionChange}>
-        {Object.entries(savedViceRestrictions)
-          .filter(filterOtherCustomRestrictions)
-          .map(([key, restriction]) =>
-            <Option
-              key={key}
-              title={restriction.displayName}
-              label={restriction.displayName}>{restriction.displayName}</Option>)}
-      </Select>
-      <List itemLayout='vertical' dataSource={currentRestriction.spec} style={{ width: '100%' }}
-        renderItem={specComponent =>
-          <List.Item>
-            <Space direction='horizontal' style={{ width: '100%' }}>
-              <Select value={specComponent.appliesOn}
-                mode="tags"
-                placeholder="Days"
-                style={{ minWidth: '100px' }}
-                onChange={onAppliesOnChange(specComponent)}
-              >
-                <Option value={0}>Sun</Option>
-                <Option value={1}>Mon</Option>
-                <Option value={2}>Tues</Option>
-                <Option value={3}>Wed</Option>
-                <Option value={4}>Thur</Option>
-                <Option value={5}>Fri</Option>
-                <Option value={6}>Sat</Option>
-              </Select>
-
-              <Text editable={{ onChange: onRestrictionTextChange(specComponent) }} style={{ width: '100%' }}>
-                {specComponent.restriction}
-              </Text>
-            </Space>
-
-          </List.Item>}>
-        <List.Item>
-          <Button block type="dashed" onClick={onAddRestrictionComponentClick}><PlusOutlined />Additional restrictions</Button>
-        </List.Item>
-      </List>
-
-    </Space>
-  )
-}
 
 /** Editor for an effect dealing with vices -- for a fast */
 const FastEffectEditor = ({ challengeId, effect, onEffectChange }) => {
@@ -385,12 +267,12 @@ export const ChallengeEditor = ({ match }) => {
     return Number.parseInt(moment.format("YYYYMMDD"))
   }
   const onDescriptionChange = e => {
-    dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { description: e.target.value } }))
+    dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { description: e.target.value } }))
   }
   const onDateRangeChange = ([sd, ed]) => {
     const startDate = momentAsDate(sd)
     const endDate = momentAsDate(ed)
-    dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { startDate, endDate } }))
+    dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { startDate, endDate } }))
   }
   const onEffectChange = effectId => {
     return changedAttrs => {
@@ -402,7 +284,7 @@ export const ChallengeEditor = ({ match }) => {
       const newEffects = [...challenge.effects]
       newEffects.splice(effectIndex, 1, newEffect)
 
-      dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { effects: newEffects } }))
+      dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { effects: newEffects } }))
     }
   }
   const onAddFast = e => {
@@ -410,14 +292,14 @@ export const ChallengeEditor = ({ match }) => {
     const kind = 'FAST'
     const restrictionId = 1
     const newEffects = challenge.effects.concat({ id: nextEffectId, kind, viceRefTags, restrictionId })
-    dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { effects: newEffects } }))
+    dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { effects: newEffects } }))
   }
   const onAddSprint = e => {
     const kind = 'SPRINT'
     const virtueRefTag = "" // Should I look up a valid value?
     const engagementSchedule = []
     const newEffects = challenge.effects.concat({ id: nextEffectId, kind, virtueRefTag, engagementSchedule })
-    dispatch(updateEntity({ tagEntityId:challengeId, changedFields: { effects: newEffects } }))
+    dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { effects: newEffects } }))
   }
   const width = '85%'
   const addEffectMenu = (
@@ -426,7 +308,7 @@ export const ChallengeEditor = ({ match }) => {
       <Menu.Item key='sprint' onClick={onAddSprint}>Add Sprint</Menu.Item>
     </Menu>
   )
-  if (!challenge ) {
+  if (!challenge) {
     return (<div>Unknown</div>)
   }
   return (

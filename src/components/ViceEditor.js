@@ -3,7 +3,7 @@ import { selectViceById, updateEntity } from '../model/tagEntitySlice'
 import { selectViceLogsByVice, createNewViceLogEntry, computeNextViceLogId } from '../model/viceLogSlice'
 import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons'
-import { ViceDefaultRestrictionEditor } from './ViceDefaultRestrictionEditor'
+import { RestrictionEditor } from './RestrictionEditor'
 import { DirtyViceTracker } from './DirtyViceTracker'
 import { Typography, List, Row, Col, Button, Collapse, Space, Modal } from 'antd';
 import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
@@ -23,6 +23,14 @@ export const ViceEditor = ({ match }) => {
   const onTextFieldChange = ({ fieldName, value }) => {
     dispatch(updateEntity({ tagEntityId: vice.id, changedFields: { [fieldName]: value } }))
   }
+  const onRestrictionIdSelectionChange = newRestrictionId => {
+    dispatch(updateEntity(
+      {
+        tagEntityId: vice.id,
+        changedFields: { defaultEngagementRestriction: { kind: newRestrictionId } }
+      }))
+  }
+
   const onAddTacticClick = e => {
     const newId = vice.mitigationTactics.length > 0 ?
       (Math.max.apply(null, vice.mitigationTactics.map(mt => mt.id)) + 1)
@@ -93,7 +101,12 @@ export const ViceEditor = ({ match }) => {
           <Text strong={true}>Default restrictions</Text>
         </Col>
         <Col span={12}>
-          <ViceDefaultRestrictionEditor vice={vice} />
+          <RestrictionEditor
+            customKeyId={"V" + vice.id}
+            currentRestrictionId={vice.defaultEngagementRestriction.kind}
+            onRestrictionIdChange={onRestrictionIdSelectionChange}
+            allowSaving={true}
+          />
         </Col>
       </Row>
       <WrittenResponse
