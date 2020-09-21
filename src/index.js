@@ -8,7 +8,6 @@ import { AuthRoot } from './containers/Root'
 import store from './configureStore'
 
 import Amplify from '@aws-amplify/core';
-import Auth from '@aws-amplify/auth';
 import aws_exports from './aws-exports';
 
 // in this way you are only importing Auth and configuring it.

@@ -16,7 +16,6 @@ import {
   fetchAllKeys,
   createNewEntry,
   selectEntryById,
-  syncDirtyEntries
 } from "../model/journalEntriesSlice";
 import { addArticle , computeNextArticleId, syncDirtyArticles} from "../model/journalArticlesSlice";
 import { fetchViceLogEntries, syncDirtyViceLogEntries } from "../model/viceLogSlice"
@@ -34,7 +33,7 @@ import { VirtueEditor } from '../components/VirtueEditor'
 import { ChallengeBank } from '../components/ChallengeBank'
 import { ChallengeEditor } from '../components/ChallengeEditor'
 import { SettingsSetter } from '../components/SettingsSetter'
-import { selectIsInitializationComplete, setInitialized, setAuthUser, selectAuthUser } from '../model/metaSlice'
+import { selectIsInitializationComplete, setInitialized, setAuthUser } from '../model/metaSlice'
 import { withAuthenticator } from 'aws-amplify-react';
 import { Auth } from 'aws-amplify'
 
@@ -150,12 +149,9 @@ class Root extends Component {
     })
 
     setInterval(() => {
-      //store.dispatch(syncDirtyEntries())
-      //store.dispatch(syncDirtyVices())
-      //store.dispatch(syncDirtyVirtues())
-      //store.dispatch(syncDirtyViceLogEntries())
+      store.dispatch(syncDirtyViceLogEntries())
       store.dispatch(syncDirtyArticles())
-     // store.dispatch(syncDirtyTagEntitys())
+      store.dispatch(syncDirtyTagEntitys())
     }, 2500)
   }
 
