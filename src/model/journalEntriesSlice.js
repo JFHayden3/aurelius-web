@@ -4,11 +4,9 @@ import {
   createSlice,
   createSelector,
 } from '@reduxjs/toolkit'
-import { client } from '../api/client'
-import { apiUrl } from '../kitchenSink'
 
 import { selectFetchUserField } from './metaSlice'
-import { listJournalEntrys } from '../graphql/customQueries'
+import { listJournalEntrys, listJournalEntryKeys } from '../graphql/customQueries'
 import { createJournalEntry } from '../graphql/customMutations'
 import { API, graphqlOperation } from "aws-amplify"
 
@@ -68,6 +66,7 @@ export const fetchEntries = createAsyncThunk(
           ]
         }
         , limit: payload.maxNumEntries
+        , sort: "DESC"
       }))
       .then(response => {
         return convertApiToFe(response.data.listJournalEntrys.items)
@@ -76,28 +75,18 @@ export const fetchEntries = createAsyncThunk(
 
 export const fetchAllKeys = createAsyncThunk(
   'journalEntries/fetchAllKeys',
-  async (payload) => {
-    return client.get(
-      apiUrl + '/journal' + '?userId=' + payload.user + '&keysOnly' + '')
-      .then(response => response.Items.map(item => item.Date))
-  }
-)
-
-export const syncDirtyEntries = createAsyncThunk(
-  'journalEntries/syncDirtyEntries',
   async (payload, { getState }) => {
-    const dirtyEntries = selectByDirtiness(getState(), 'SAVING')
-    if (dirtyEntries.length === 0) return Promise.resolve();
-    async function syncEntity(apiJournalEntry) {
-      const body = {
-        userId: "testUser",
-        entry: apiJournalEntry,
-        httpMethod: "POST"
-      }
-      return client.post(apiUrl + '/journal', body)
-    }
-    let promises = convertFeEntriesToApi(dirtyEntries, getState().journalArticles.entities).map(syncEntity)
-    return Promise.allSettled(promises)
+    const userId = selectFetchUserField(getState())
+    return API.graphql(graphqlOperation(listJournalEntryKeys,
+      {
+        filter: {
+          userId: { eq: userId },
+        }
+        , limit: 10000
+      }))
+      .then(res => {
+        return res.data.listJournalEntrys.items.map(item => item.jeId)
+      })
   }
 )
 
@@ -125,12 +114,6 @@ export const createNewEntry = createAsyncThunk(
           , jeId: Number.parseInt(newEntry.id)
         },
       })
-    // TODO: figure out how best to do article creation and ID-uniqueness
-    // Let's just do something dumb for now so I can start using this and iterating
-    // interactively:
-    // - Hardcoding 2 article IDs in here which will be picked up in a reducer
-    // - in articlesSlice and will automatically create entries for refelections,
-    // intetions, and agenda
     return API.graphql(operation).then(r => { return { newEntry } })
   }
 )
@@ -157,25 +140,6 @@ export const journalEntriesSlice = createSlice({
     [fetchEntries.fulfilled]: (state, action) => {
       state.entriesLoading = false
       entriesAdapter.upsertMany(state, action.payload.entities)
-    },
-    [syncDirtyEntries.pending]: (state, action) => {
-      const entriesInFlight = Object.values(state.entities).filter((entry) => entry.dirtiness === 'DIRTY')
-      entriesInFlight.forEach((entry) => entry.dirtiness = 'SAVING')
-    },
-    [syncDirtyEntries.fulfilled]: (state, action) => {
-      const entriesInFlight = Object.values(state.entities).filter((entry) => entry.dirtiness === 'SAVING')
-      // Only set the in-flight entries to 'CLEAN' so any changes made during
-      // the request will be sent on the next fetch.
-      entriesInFlight
-        .filter((entry) => entry.dirtiness === 'SAVING')
-        .forEach((entry) => entry.dirtiness = 'CLEAN')
-    },
-    [syncDirtyEntries.rejected]: (state, action) => {
-      const entriesInFlight = Object.values(state.entities).filter((entry) => entry.dirtiness === 'SAVING')
-      // TODO surface error, switch gui togle to manual rather than timed
-      entriesInFlight
-        .filter((entry) => entry.dirtiness === 'SAVING')
-        .forEach((entry) => entry.dirtiness = 'DIRTY')
     },
     [fetchAllKeys.fulfilled]: (state, action) => {
       state.allKeys = action.payload

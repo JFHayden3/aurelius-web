@@ -12,7 +12,6 @@ import {
   selectEntriesLoading,
   fetchEntries
 } from '../model/journalEntriesSlice'
-import { DirtyJournalTracker } from './DirtyJournalTracker'
 import InfiniteScroll from 'react-infinite-scroller';
 
 const { Title } = Typography
