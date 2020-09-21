@@ -208,3 +208,45 @@ export const deleteJournalArticle = /* GraphQL */ `
     }
   }
 `;
+export const createViceLog = /* GraphQL */ `
+  mutation CreateViceLog(
+    $input: CreateViceLogInput!
+    $condition: ModelViceLogConditionInput
+  ) {
+    createViceLog(input: $input, condition: $condition) {
+      userId
+      vlId
+      log
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updateViceLog = /* GraphQL */ `
+  mutation UpdateViceLog(
+    $input: UpdateViceLogInput!
+    $condition: ModelViceLogConditionInput
+  ) {
+    updateViceLog(input: $input, condition: $condition) {
+      userId
+      vlId
+      log
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deleteViceLog = /* GraphQL */ `
+  mutation DeleteViceLog(
+    $input: DeleteViceLogInput!
+    $condition: ModelViceLogConditionInput
+  ) {
+    deleteViceLog(input: $input, condition: $condition) {
+      userId
+      vlId
+      log
+      createdAt
+      updatedAt
+    }
+  }
+`;

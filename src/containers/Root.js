@@ -113,10 +113,10 @@ class Root extends Component {
     doGetAuthUser.then((sub) => {
       const doFetchSettings = store.dispatch(fetchSettings())
       const doFetchJournalEntries = store.dispatch(
-        fetchEntries({ user: 'testUser', maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
-      const doFetchViceLogs = store.dispatch(fetchViceLogEntries({ user: 'testUser' }))
+        fetchEntries({ maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
+      const doFetchViceLogs = store.dispatch(fetchViceLogEntries())
       const doFetchTagEntities = store.dispatch(fetchTagEntitys())
-      const doFetchKeys = store.dispatch(fetchAllKeys({ user: 'testUser' }))
+      const doFetchKeys = store.dispatch(fetchAllKeys())
       Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchTagEntities, doFetchViceLogs])
         .then((action) => {
           if (action.error) {

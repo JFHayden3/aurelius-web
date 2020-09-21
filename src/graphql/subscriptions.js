@@ -172,3 +172,36 @@ export const onDeleteJournalArticle = /* GraphQL */ `
     }
   }
 `;
+export const onCreateViceLog = /* GraphQL */ `
+  subscription OnCreateViceLog($owner: String!) {
+    onCreateViceLog(owner: $owner) {
+      userId
+      vlId
+      log
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateViceLog = /* GraphQL */ `
+  subscription OnUpdateViceLog($owner: String!) {
+    onUpdateViceLog(owner: $owner) {
+      userId
+      vlId
+      log
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteViceLog = /* GraphQL */ `
+  subscription OnDeleteViceLog($owner: String!) {
+    onDeleteViceLog(owner: $owner) {
+      userId
+      vlId
+      log
+      createdAt
+      updatedAt
+    }
+  }
+`;

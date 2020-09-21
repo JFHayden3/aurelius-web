@@ -21,12 +21,10 @@ function convertApiToFe(entries) {
   //const ids = Array.map(entries, (entry) => apiDateToFe(entry.date.toString()))
   //  Entry: "{"date":20200715,"articles":[{"id":11,"kind":"INTENTIONS","title":"Intentions","content":{"hint":"intentions hint","text":"intentions text"}},{"id":12,"kind":"REFLECTIONS","title":"Reflections","content":{"hint":"reflections hint","text":"reflections text"}}]}"
   const normalizedEntries = Array.map(entries, (entry) => {
-    let articleIds = Array.map(entry.articles, (article) => article.id)
     return {
       id: entry.jeId,
       date: entry.jeId,
       dirtiness: 'CLEAN',
-      articleIds: articleIds
     }
   })
 
@@ -34,18 +32,6 @@ function convertApiToFe(entries) {
     entities: normalizedEntries,
     articles: articles
   }
-}
-
-function convertFeEntriesToApi(entries, articlesDictionary) {
-  return entries.map(entry => {
-    const denormalizedArticles = entry.articleIds
-      .map(articleId => articlesDictionary[articleId])
-      .filter(article => article) // Excludes null entries (hanging references)
-    return {
-      date: entry.date,
-      articles: denormalizedArticles
-    }
-  })
 }
 
 export const fetchEntries = createAsyncThunk(
@@ -103,7 +89,6 @@ export const createNewEntry = createAsyncThunk(
       id: dateId,
       date: dateId,
       dirtiness: 'DIRTY',
-      articleIds: [],
     }
     const userId = selectFetchUserField(getState())
     const operation = graphqlOperation(createJournalEntry,
@@ -178,7 +163,3 @@ export const selectDirtyEntries = createSelector(
   [selectAllEntries, (state, dirtiness) => dirtiness],
   (entries) => entries.filter((entry) => entry.dirtiness === 'DIRTY')
 )
-
-export const selectArticleIdsForEntry = createSelector(
-  [selectEntryById],
-  (entry) => entry.articleIds)

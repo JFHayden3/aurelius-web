@@ -172,3 +172,42 @@ export const listJournalArticles = /* GraphQL */ `
     }
   }
 `;
+export const getViceLog = /* GraphQL */ `
+  query GetViceLog($userId: ID!, $vlId: ID!) {
+    getViceLog(userId: $userId, vlId: $vlId) {
+      userId
+      vlId
+      log
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listViceLogs = /* GraphQL */ `
+  query ListViceLogs(
+    $userId: ID
+    $vlId: ModelIDKeyConditionInput
+    $filter: ModelViceLogFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listViceLogs(
+      userId: $userId
+      vlId: $vlId
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        userId
+        vlId
+        log
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;

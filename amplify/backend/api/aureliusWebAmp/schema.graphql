@@ -68,3 +68,20 @@ type JournalArticle
   kind:String!
   content:String!
 } 
+
+type ViceLog
+@model
+@key(fields:["userId", "vlId"])
+@auth(
+  rules: [
+    {
+      allow: owner
+      ownerField: "owner"
+      operations: [create, update, delete, read]
+    }
+  ]
+) {
+  userId:ID!
+  vlId:ID!
+  log:String!
+}

@@ -28,7 +28,7 @@ export const ViceEditor = ({ match }) => {
       (Math.max.apply(null, vice.mitigationTactics.map(mt => mt.id)) + 1)
       : 0
     const newTactics = vice.mitigationTactics.concat({ id: newId, text: "" })
-    dispatch(updateEntity({ tagEntityId:vice.id, changedFields: { mitigationTactics: newTactics } }))
+    dispatch(updateEntity({ tagEntityId: vice.id, changedFields: { mitigationTactics: newTactics } }))
   }
   const onAddViceLogEntryClick = e => {
     const payload = {
@@ -37,8 +37,10 @@ export const ViceEditor = ({ match }) => {
       date: dateAsYyyyMmDd(new Date(Date.now()))
     }
     dispatch(createNewViceLogEntry(payload))
-    setEditingLogId(payload.id)
-    setExpandedLogPanelIds(expandedLogPanelIds.concat("" + payload.id))
+      .then(res => {
+        setEditingLogId(payload.id)
+        setExpandedLogPanelIds(expandedLogPanelIds.concat("" + payload.id))
+      })
   }
   const onLogPanelExpansionChange = val => {
     if (!val.includes(editingLogId + "")) {
@@ -64,7 +66,7 @@ export const ViceEditor = ({ match }) => {
           return tactic
         }
       })
-      dispatch(updateEntity({ tagEntityId:viceId, changedFields: { mitigationTactics: newTactics } }))
+      dispatch(updateEntity({ tagEntityId: viceId, changedFields: { mitigationTactics: newTactics } }))
     }
   }
   if (!vice) {

@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectViceLogById, updateViceLog, saveViceLog } from '../model/viceLogSlice'
+import { selectViceLogById, updateViceLogEntry } from '../model/viceLogSlice'
 import { selectAllVices } from '../model/tagEntitySlice'
 import { Typography, List, Row, Col, Button, DatePicker, Select } from 'antd';
 import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
@@ -18,7 +18,7 @@ export const ViceLogEntry = ({ logId, isReadOnlyMode }) => {
   }
   const dateAsMoment = entry.date ? moment(entry.date, "YYYYMMDD") : null
   const onFieldChange = ({ fieldName, value }) => {
-    dispatch(updateViceLog({ id: logId, changedFields: { [fieldName]: value } }))
+    dispatch(updateViceLogEntry({ id: logId, changedFields: { [fieldName]: value } }))
   }
   const onDateChange = val => {
     const newDate = Number.parseInt(val.format("YYYYMMDD"))

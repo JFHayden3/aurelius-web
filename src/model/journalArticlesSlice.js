@@ -51,7 +51,7 @@ export const syncDirtyArticles = createAsyncThunk(
       return API.graphql(operation)
     }
     const userId = selectFetchUserField(getState())
-    let promises = dirtyArticles.map(feArticle => convertFeToApi(feArticle, userId)).map(syncArticle)
+    let promises  = dirtyArticles.map(feArticle => convertFeToApi(feArticle, userId)).map(syncArticle)
     return Promise.allSettled(promises)
   }
 )
@@ -70,10 +70,9 @@ export const addArticle = createAsyncThunk(
     }
 
     const userId = selectFetchUserField(getState())
-    const apiArticle = convertFeToApi(newArticle, userId)
     const operation = graphqlOperation(createJournalArticle,
       {
-        input: apiArticle,
+        input: convertFeToApi(newArticle, userId),
       })
     // TODO: figure out how best to do article creation and ID-uniqueness
     // Let's just do something dumb for now so I can start using this and iterating
