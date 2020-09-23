@@ -3,7 +3,7 @@ import { selectVirtueById, updateEntity } from '../model/tagEntitySlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons'
 import { Typography, List, Row, Col, Button } from 'antd';
-import { VirtueScheduledEngagementEditor } from './VirtueScheduledEngagementEditor'
+import { EngagementScheduleEditor } from './EngagementScheduleEditor'
 import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
 const { Title, Text } = Typography;
 
@@ -19,7 +19,7 @@ export const VirtueEditor = ({ match }) => {
       (Math.max.apply(null, virtue.engagementTactics.map(mt => mt.id)) + 1)
       : 0
     const newTactics = virtue.engagementTactics.concat({ id: newId, text: "" })
-    dispatch(updateEntity({ tagEntityId:virtueId, changedFields: { engagementTactics: newTactics } }))
+    dispatch(updateEntity({ tagEntityId: virtueId, changedFields: { engagementTactics: newTactics } }))
   }
   function onTacticTextChange(targetId) {
     return str => {
@@ -30,8 +30,11 @@ export const VirtueEditor = ({ match }) => {
           return tactic
         }
       })
-      dispatch(updateEntity({ tagEntityId:virtueId, changedFields: { engagementTactics: newTactics } }))
+      dispatch(updateEntity({ tagEntityId: virtueId, changedFields: { engagementTactics: newTactics } }))
     }
+  }
+  const onEngagementScheduleChange = val => {
+    dispatch(updateEntity({ tagEntityId: virtueId, changedFields: { engagementSchedule: val } }))
   }
 
   if (!virtue) {
@@ -57,7 +60,9 @@ export const VirtueEditor = ({ match }) => {
           <Text strong={true}>Scheduled engagement</Text>
         </Col>
         <Col span={12}>
-          <VirtueScheduledEngagementEditor virtue={virtue} />
+          <EngagementScheduleEditor
+            engagementSchedule={virtue.engagementSchedule}
+            onScheduleChange={onEngagementScheduleChange} />
         </Col>
       </Row>
       <WrittenResponse
