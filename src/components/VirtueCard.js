@@ -13,6 +13,11 @@ export const VirtueCard = ({ virtueId }) => {
     e.preventDefault()
     dispatch(deleteTagEntityAsync({ tagEntityId: virtueId }))
   }
+  if (null === virtue) {
+    return (
+      <div>Unknown virtue</div>
+    )
+  }
   return (
     <div style={{
       borderWidth: '1px',

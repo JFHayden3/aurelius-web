@@ -13,6 +13,11 @@ export const ViceCard = ({ viceId }) => {
     e.preventDefault()
     dispatch(deleteTagEntityAsync({ tagEntityId:viceId }))
   }
+  if (null === vice) {
+    return (
+      <div>Unknown vice</div>
+    )
+  }
   return (
     <div style={{
       borderWidth: '1px',

@@ -7,7 +7,6 @@ import { useSelector, useDispatch } from 'react-redux'
 import { selectArticleById, textUpdated } from '../model/journalArticlesSlice'
 import { TaggableTextField } from './TaggableTextField'
 import { Input, Divider } from 'antd';
-const { TextArea } = Input
 
 export const AgendaArticleContent = ({ articleId }) => {
   const article = useSelector((state) => selectArticleById(state, articleId))
