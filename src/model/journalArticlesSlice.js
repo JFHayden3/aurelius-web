@@ -51,7 +51,7 @@ export const syncDirtyArticles = createAsyncThunk(
       return API.graphql(operation)
     }
     const userId = selectFetchUserField(getState())
-    let promises  = dirtyArticles.map(feArticle => convertFeToApi(feArticle, userId)).map(syncArticle)
+    let promises = dirtyArticles.map(feArticle => convertFeToApi(feArticle, userId)).map(syncArticle)
     return Promise.allSettled(promises)
   }
 )
@@ -129,6 +129,15 @@ export const journalArticlesSlice = createSlice({
       const { articleId, removeId } = action.payload
       const agendaArticle = state.entities[articleId]
       agendaArticle.content.tasks = agendaArticle.content.tasks.filter(task => task.id != removeId)
+      agendaArticle.dirtiness = 'DIRTY'
+    },
+    moveAgendaTask(state, action) {
+      const { articleId, taskIdToMove, toIndex } = action.payload
+      const agendaArticle = state.entities[articleId]
+      const oldIndex = agendaArticle.content.tasks.findIndex(t => t.id === taskIdToMove)
+      const taskToMove = agendaArticle.content.tasks[oldIndex]
+      agendaArticle.content.tasks.splice(oldIndex, 1)
+      agendaArticle.content.tasks.splice(oldIndex < toIndex ? toIndex - 1 : toIndex, 0, taskToMove)
       agendaArticle.dirtiness = 'DIRTY'
     },
     updateAgendaTask(state, action) {
@@ -214,6 +223,7 @@ export const { textUpdated,
   addAgendaTask,
   removeAgendaTask,
   updateAgendaTask,
+  moveAgendaTask,
   addAgendaRestriction,
   removeAgendaRestriction,
   updateAgendaRestriction } = journalArticlesSlice.actions
