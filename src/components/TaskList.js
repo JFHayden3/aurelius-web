@@ -5,24 +5,28 @@
 
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectArticleById, updateAgendaTask, selectTaskById, moveAgendaTask, addAgendaTask } from '../model/journalArticlesSlice'
+import { selectArticleById, updateAgendaTask, selectTaskById, moveAgendaTask, addAgendaTask, removeAgendaTask } from '../model/journalArticlesSlice'
 import moment from 'moment';
 import { Timeline, Button, Space, Typography } from 'antd';
 import { AgendaTaskModal } from './AgendaTaskModal'
-import { MenuOutlined, PlusOutlined } from '@ant-design/icons';
-import { useDrop } from 'react-dnd'
-import { useDrag } from 'react-dnd'
+import { MenuOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
+import { useDrop, useDrag } from 'react-dnd'
 
-const { Text, Paragraph } = Typography
+const { Text } = Typography
 
 const ReadonlyTaskListItem = ({ articleId, taskId, onEditClick }) => {
+  const [hovered, setHovered] = useState(false)
   const task = useSelector((state) => selectTaskById(state, articleId, taskId))
+  const dispatch = useDispatch()
   const [{ isDragging }, drag] = useDrag({
     item: { type: 'task', task: task },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
   })
+  const onDeleteClick = e => {
+    dispatch(removeAgendaTask({ articleId, removeId: taskId }))
+  }
   const { activity, optDuration, optTime, optNotes } = task
   var durationStr = null
   if (optDuration) {
@@ -39,31 +43,46 @@ const ReadonlyTaskListItem = ({ articleId, taskId, onEditClick }) => {
   }
   return (
     <div ref={drag}
+
       style={{
         opacity: isDragging ? 0.5 : 1,
       }}>
       <Space direction='horizontal' size='small' align='start'>
         <MenuOutlined style={{ cursor: 'grab' }} />
-        <Button onClick={e => onEditClick()} type="text" block style={{ height: '100%', padding: '0' }}>
-          <Space direction='horizontal' size='middle' align='start'>
-            {optTime &&
-              <Text>{moment(optTime.hour + ':' + optTime.minute, "h:mm").format("h:mm a")}</Text>
-            }
-            <Space direction='vertical' size='small' style={{ width: "100%" }}>
-              <Space direction='horizontal' style={{ width: "100%" }}>
-                <Text>{activity.content}</Text>
-                {durationStr &&
-                  <Text>{durationStr}</Text>
+        <div
+          onMouseEnter={e => setHovered(true)}
+          onMouseLeave={e => setHovered(false)}>
+          <Space direction='horizontal' align='start'>
+            <div onClick={e => onEditClick()}
+              style={{
+                cursor: 'pointer',
+                height: '100%',
+                padding: '2px',
+                borderRadius: '6px',
+                boxShadow: hovered ? '2px 2px 3px gray' : 'unset'
+              }}>
+              <Space direction='horizontal' size='middle' align='start'>
+                {optTime &&
+                  <Text>{moment(optTime.hour + ':' + optTime.minute, "h:mm").format("h:mm a")}</Text>
                 }
+                <Space direction='vertical' size='small' style={{ width: "100%" }}>
+                  <Space direction='horizontal' style={{ width: "100%" }}>
+                    <Text>{activity.content}</Text>
+                    {durationStr &&
+                      <Text>{durationStr}</Text>
+                    }
+                  </Space>
+                  {optNotes &&
+                    <Text ellipsis={{ rows: 2, expandable: true, symbol: 'more' }} type='secondary' style={{ fontStyle: 'italic' }}>
+                      {optNotes}
+                    </Text>
+                  }
+                </Space>
               </Space>
-              {optNotes &&
-                <Text ellipsis={{ rows: 2, expandable: true, symbol: 'more' }} type='secondary' style={{ fontStyle: 'italic' }}>
-                  {optNotes}
-                </Text>
-              }
-            </Space>
+            </div>
+            <div onClick={onDeleteClick} style={{ cursor: 'pointer', visibility: hovered ? 'visible' : 'hidden' }}><CloseOutlined /></div>
           </Space>
-        </Button>
+        </div>
       </Space>
     </div>
   )
@@ -97,6 +116,11 @@ export const TaskList = ({ articleId }) => {
   const tasks = article.content.tasks || []
 
   const onModalCancel = e => {
+    // We canceled out of the modal on a new task (because that's the only time the activity 
+    // content could be empty). Hacky approach, but w/e it's fine
+    if ((modalTask.activity.content ?? "") === "") {
+      dispatch(removeAgendaTask({ articleId, removeId: modalTask.id }))
+    }
     setModalVisible(false)
     setModalTask(null)
   }
@@ -111,8 +135,16 @@ export const TaskList = ({ articleId }) => {
       setModalVisible(true)
     }
   const onAddTaskClick = e => {
-    dispatch(addAgendaTask({ articleId, addIndex:tasks.length }))
-    // TODO make this not shit
+    const newId = tasks.length > 0 ?
+      Math.max.apply(null, tasks.map(task => task.id)) + 1
+      : 0
+    const newTask = {
+      id: newId,
+      activity: { content: "", kind: "CUSTOM" }
+    }
+    dispatch(addAgendaTask({ articleId, addIndex: tasks.length, newTask }))
+    setModalTask(newTask)
+    setModalVisible(true)
   }
   function moveTask(task, index) {
     dispatch(moveAgendaTask({ articleId, taskIdToMove: task.id, toIndex: index }))
@@ -129,7 +161,7 @@ export const TaskList = ({ articleId }) => {
         ))}
         <Timeline.Item key={tasks.length}>
           <TaskSpace index={tasks.length} moveTask={moveTask}>
-            <Button block onClick={onAddTaskClick}>
+            <Button onClick={onAddTaskClick} type="dashed" style={{ margin: '5px' }}>
               <PlusOutlined /> Add Task
             </Button>
           </TaskSpace>

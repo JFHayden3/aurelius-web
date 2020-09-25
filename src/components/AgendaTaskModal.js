@@ -56,11 +56,13 @@ export const AgendaTaskModal = ({ agendaTask, isVisible, onConfirm, onCancel }) 
   const onAddDurationClick = e => {
     setDuration({ hour: 0, minute: 45 })
   }
+  const disableOkButton = (activityContent ?? "") === "" 
   return (
     <Modal
       visible={isVisible}
       onOk={onConfirmClick}
-      onCancel={onCancel}>
+      onCancel={onCancel}
+      okButtonProps={{disabled:disableOkButton}}>
       <Space direction='vertical' size='small'>
         <Space direction='horizontal'>
           <Text strong={true}>Activity *</Text>

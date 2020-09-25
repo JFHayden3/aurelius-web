@@ -113,15 +113,8 @@ export const journalArticlesSlice = createSlice({
       }
     },
     addAgendaTask(state, action) {
-      const { articleId, addIndex } = action.payload
+      const { articleId, addIndex, newTask } = action.payload
       const agendaArticle = state.entities[articleId]
-      const newId = agendaArticle.content.tasks.length > 0 ?
-        Math.max.apply(null, agendaArticle.content.tasks.map(task => task.id)) + 1
-        : 0
-      const newTask = {
-        id: newId,
-        activity: { content: "", kind: "CUSTOM" }
-      }
       agendaArticle.content.tasks.splice(addIndex, 0, newTask)
       agendaArticle.dirtiness = 'DIRTY'
     },
