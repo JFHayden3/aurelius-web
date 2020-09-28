@@ -7,7 +7,7 @@ import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectArticleById, updateAgendaTask, selectTaskById, moveAgendaTask, addAgendaTask, removeAgendaTask } from '../model/journalArticlesSlice'
 import moment from 'moment';
-import { Timeline, Button, Space, Typography } from 'antd';
+import { Timeline, Button, Space, Typography, Tooltip } from 'antd';
 import { AgendaTaskModal } from './AgendaTaskModal'
 import { MenuOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { useDrop, useDrag } from 'react-dnd'
@@ -43,12 +43,11 @@ const ReadonlyTaskListItem = ({ articleId, taskId, onEditClick }) => {
   }
   return (
     <div ref={drag}
-
       style={{
         opacity: isDragging ? 0.5 : 1,
       }}>
       <Space direction='horizontal' size='small' align='start'>
-        <MenuOutlined style={{ cursor: 'grab' }} />
+        <MenuOutlined style={{ cursor: 'grab', paddingTop:'6px' }} />
         <div
           onMouseEnter={e => setHovered(true)}
           onMouseLeave={e => setHovered(false)}>
@@ -80,7 +79,9 @@ const ReadonlyTaskListItem = ({ articleId, taskId, onEditClick }) => {
                 </Space>
               </Space>
             </div>
-            <div onClick={onDeleteClick} style={{ cursor: 'pointer', visibility: hovered ? 'visible' : 'hidden' }}><CloseOutlined /></div>
+            <Tooltip title="Remove task">
+              <div onClick={onDeleteClick} style={{ cursor: 'pointer', visibility: hovered ? 'visible' : 'hidden' }}><CloseOutlined /></div>
+            </Tooltip>
           </Space>
         </div>
       </Space>

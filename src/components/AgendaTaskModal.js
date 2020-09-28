@@ -1,12 +1,10 @@
 
 import React, { useState } from 'react'
-import { Typography, Button, Tooltip, Divider, TimePicker, Select, Input, Modal, Space } from 'antd';
-import { ClockCircleOutlined, HourglassOutlined, MessageOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Typography, Button, TimePicker, Select, Input, Modal, Space } from 'antd';
+import { ClockCircleOutlined, HourglassOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux'
 import moment from 'moment';
 import { selectAllVirtues } from '../model/tagEntitySlice'
-import { selectTaskById, updateAgendaTask, removeAgendaTask } from '../model/journalArticlesSlice'
-import { setAuthUser } from '../model/metaSlice';
 
 const { TextArea } = Input
 const { Text } = Typography;
@@ -17,10 +15,7 @@ export const AgendaTaskModal = ({ agendaTask, isVisible, onConfirm, onCancel }) 
   const [duration, setDuration] = useState(agendaTask.optDuration)
   const [time, setTime] = useState(agendaTask.optTime)
   const [notes, setNotes] = useState(agendaTask.optNotes)
-  // setActivityContent(agendaTask.activity.content)
-  // setDuration(agendaTask.optDuration)
-  // setTime(agendaTask.optTime)
-  // setNotes(agendaTask.optNotes)
+  
   const allVirtues = useSelector(selectAllVirtues)
   const onActivitySelectionChange = val => {
     setActivityContent(val[val.length - 1])

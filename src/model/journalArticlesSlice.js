@@ -141,18 +141,9 @@ export const journalArticlesSlice = createSlice({
       agendaArticle.dirtiness = 'DIRTY'
     },
     addAgendaRestriction(state, action) {
-      const { articleId } = action.payload
+      const { articleId, addIndex, newRestriction } = action.payload
       const agendaArticle = state.entities[articleId]
-      const newId = agendaArticle.content.restrictions.length > 0 ?
-        Math.max.apply(null, agendaArticle.content.restrictions.map(r => r.id)) + 1
-        : 0
-      const newRestriction = {
-        id: newId,
-        restriction: "",
-        activities: [],
-        optNote: null
-      }
-      agendaArticle.content.restrictions.push(newRestriction)
+      agendaArticle.content.restrictions.splice(addIndex, 0, newRestriction)
       agendaArticle.dirtiness = 'DIRTY'
     },
     removeAgendaRestriction(state, action) {
