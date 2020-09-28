@@ -22,8 +22,7 @@ export const JournalEntry = ({ entryId }) => {
   const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
   const dispatch = useDispatch()
   const store = useStore()
-  function handleAddArticleClick(e) {
-    const articleKind = e.key
+  function addNewArticle(articleKind) {
     const state = store.getState()
     const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
     const articleId = computeNextArticleId(state, entryId)
@@ -37,11 +36,15 @@ export const JournalEntry = ({ entryId }) => {
     }
     dispatch(addArticle(payload))
   }
+  function handleAddArticleClick(e) {
+    addNewArticle(e.key)
+  }
   function handleCreateNewPromptClick(e) {
     setNewPromptModalVisible(true)
   }
-  function hideNewPromptModal() {
+  function onNewPromptOk(newPromptKey) {
     setNewPromptModalVisible(false)
+    addNewArticle(newPromptKey)
   }
   const articleKindsInEntry =
     articleIds.map((id) => selectArticleById(store.getState(), id).kind)
@@ -90,7 +93,7 @@ export const JournalEntry = ({ entryId }) => {
       <Dropdown overlay={menu} trigger={['click']}>
         <Button block size="large" type="dashed"><PlusOutlined />Add Section</Button>
       </Dropdown>
-      <CreateNewPromptModal isVisible={newPromptModalVisible} onClose={hideNewPromptModal} onConfirm={hideNewPromptModal} />
+      <CreateNewPromptModal isVisible={newPromptModalVisible} onClose={()=>setNewPromptModalVisible(false)} onConfirm={onNewPromptOk} />
     </div>
   )
 }

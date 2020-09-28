@@ -173,11 +173,9 @@ export const settingsSlice = createSlice({
   initialState: {},
   reducers: {
     addUserCreatedArticleSettings(state, action) {
-      const { title, hintText, promptFrequency } = action.payload
+      const { key, title, hintText, promptFrequency } = action.payload
       const ordering = Math.max.apply(null, (Object.values(state.articleSettings).map(as => as.ordering))) + 1
-      const key = Math.max.apply(null,
-        Object.keys(state.articleSettings)
-          .map(key => Number.isNaN(Number.parseInt(key)) ? 0 : Number.parseInt(key))) + 1
+
       state.articleSettings[key] = { title, hintText, promptFrequency, ordering, isUserCreated: true }
     },
     updateArticleSetting(state, action) {
@@ -251,3 +249,10 @@ export const selectViceRestrictions =
 
 export const selectTargetDailyWordCount =
   (state) => state.settings.targetDailyWordCount
+
+export const selectNextUserCreatedArticleSettingsId =
+  (state) =>
+    Math.max.apply(null,
+      Object.keys(state.settings.articleSettings)
+        .map(key => Number.isNaN(Number.parseInt(key)) ? 0 : Number.parseInt(key))) + 1
+

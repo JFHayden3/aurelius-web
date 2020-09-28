@@ -2,8 +2,9 @@ import React, { useState } from 'react'
 import {
   saveSettings,
   addUserCreatedArticleSettings,
+  selectNextUserCreatedArticleSettingsId,
 } from '../model/settingsSlice'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   Typography,
   Modal, Input
@@ -11,11 +12,11 @@ import {
 
 const { Text } = Typography;
 
-export const CreateNewPromptModal = ({ isVisible, onConfirm = () => {}, onClose = () => {} }) => {
+export const CreateNewPromptModal = ({ isVisible, onConfirm = (newArticleKey) => {}, onClose = () => {} }) => {
   const dispatch = useDispatch()
   const [newPromptTitle, setNewPromptTitle] = useState("")
   const [newPromptHint, setNewPromptHint] = useState("")
-
+  const newArticlekey = useSelector(state => selectNextUserCreatedArticleSettingsId(state))
   const onNewPromptTitleFormChange = e => {
     setNewPromptTitle(e.target.value)
   }
@@ -25,13 +26,14 @@ export const CreateNewPromptModal = ({ isVisible, onConfirm = () => {}, onClose 
   const onNewPromptConfirm = e => {
     e.preventDefault()
     const payload = {
+      key: newArticlekey,
       title: newPromptTitle,
       hintText: newPromptHint,
       promptFrequency: { kind: 'DAILY', details: null }
     }
     dispatch(addUserCreatedArticleSettings(payload))
     dispatch(saveSettings())
-    onConfirm()
+    onConfirm(newArticlekey)
   }
   const onNewPromptCancel = e => {
     e.preventDefault()
