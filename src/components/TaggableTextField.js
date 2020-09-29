@@ -9,32 +9,8 @@ import { EditorState, ContentState, convertToRaw, convertFromRaw } from 'draft-j
 import Editor from 'draft-js-plugins-editor';
 import createMentionPlugin, { defaultSuggestionsFilter } from 'draft-js-mention-plugin';
 import 'draft-js/dist/Draft.css';
+import { A } from 'aws-amplify-react/lib-esm/AmplifyTheme'
 const { Link } = Typography
-
-
-export const TaggableTextField = ({ value, onChange, placeholder }) => {
-  // TODO: this allows me to create bugs. Shouldn't be necessary. Only doing this because
-  // I have legacy entries I don't want to updgrade to the new format right now
-  let convertedValue
-  try {
-    convertedValue = convertFromRaw(value ?? "")
-  } catch{
-    convertedValue = ContentState.createFromText(value ?? "")
-  }
-  const allViceRefs = useSelector(selectAllVices).map(v => ['VICE', v])
-  const allVirtueRefs = useSelector(selectAllVirtues).map(v => ['VIRTUE', v])
-  const allRefTags = allViceRefs.concat(allVirtueRefs).map(([kind, entity]) => {
-    return { name: entity.refTag, entityId: entity.id, kind: kind }
-  })
-  return (
-    <AutocompleteEditor
-      placeholder={placeholder}
-      allRefTags={allRefTags}
-      value={convertedValue}
-      onChange={onChange} />
-  )
-}
-
 const MentionedTag = (mentionProps) => {
   // TODO: different styling for vices.virtues
   // TODO: less shitty pop-up
@@ -57,9 +33,28 @@ const MentionedTag = (mentionProps) => {
   )
 }
 
+export const TaggableTextField = ({ value, onChange, placeholder }) => {
+  const convertedValue = (value ?? "") === ""
+    ? ContentState.createFromText("") : convertFromRaw(value)
+
+  const allViceRefs = useSelector(selectAllVices).map(v => ['VICE', v])
+  const allVirtueRefs = useSelector(selectAllVirtues).map(v => ['VIRTUE', v])
+  const allRefTags = allViceRefs.concat(allVirtueRefs).map(([kind, entity]) => {
+    return { name: entity.refTag, entityId: entity.id, kind: kind }
+  })
+  return (
+    <AutocompleteEditor
+      placeholder={placeholder}
+      allRefTags={allRefTags}
+      value={convertedValue}
+      onChange={onChange} />
+  )
+}
+
 class AutocompleteEditor extends Component {
   constructor(props) {
     super(props);
+    this.syncIfDirty = this.syncIfDirty.bind(this)
     const { allRefTags } = props
     this.mentionPlugin = createMentionPlugin({
       allRefTags,
@@ -69,16 +64,39 @@ class AutocompleteEditor extends Component {
     });
   }
 
+  syncIfDirty() {
+    // TODO: we're unnecessarily blasting the initial update back down. Fix this
+    if (this.state.isDirty) {
+      this.props.onChange(convertToRaw(this.state.editorState.getCurrentContent()))
+      this.state.isDirty = false
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.dirtySyncTimer)
+  }
+
+  componentDidMount() {
+    this.dirtySyncTimer = setInterval(this.syncIfDirty, 2500);
+  }
+
   state = {
     editorState: EditorState.createWithContent(this.props.value),
     suggestions: this.props.allRefTags,
+    isDirty: false,
   };
 
   onChange = (editorState) => {
+    if (editorState.getCurrentContent() !== this.state.editorState.getCurrentContent()) {
+      this.setState({ isDirty: true })
+    }
     this.setState({
       editorState,
     });
-    this.props.onChange(convertToRaw(editorState.getCurrentContent()))
+
+    // TODO (NOW): this fixes the performance issues I'm seeing but we're no longer propagating
+    // changes to model...
+    //
   };
 
   onSearchChange = ({ value }) => {
@@ -94,7 +112,6 @@ class AutocompleteEditor extends Component {
   render() {
     const { MentionSuggestions } = this.mentionPlugin;
     const plugins = [this.mentionPlugin];
-
     return (
       <div /** className={editorStyles.editor} */ onClick={this.focus}>
         <Editor

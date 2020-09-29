@@ -6,9 +6,7 @@ import {
 } from '@reduxjs/toolkit'
 import { API, graphqlOperation } from "aws-amplify"
 import { selectFetchUserField } from './metaSlice'
-
-import { createJournalArticle, updateJournalArticle, deleteJournalArticle } from '../graphql/mutations'
-import { } from '../graphql/queries'
+import { createJournalArticle, deleteJournalArticle } from '../graphql/mutations'
 import { selectViceLogById } from './viceLogSlice'
 
 const articlesAdapter = createEntityAdapter({
@@ -17,7 +15,7 @@ const articlesAdapter = createEntityAdapter({
 
 const initialState = articlesAdapter.getInitialState()
 
-function convertFeToApi(feArticle, userId) {
+export function convertFeToApiArticle(feArticle, userId) {
   return {
     userId
     , jaId: feArticle.id
@@ -39,23 +37,6 @@ function convertApiToFe(apiArticle) {
   }
 }
 
-export const syncDirtyArticles = createAsyncThunk(
-  'journalArticles/syncDirtyArticles',
-  async (payload, { getState }) => {
-    const dirtyArticles = selectByDirtiness(getState(), 'SAVING')
-    if (dirtyArticles.length === 0) return Promise.resolve();
-    async function syncArticle(apiJournalArticle) {
-      const operation = graphqlOperation(updateJournalArticle,
-        { input: apiJournalArticle })
-
-      return API.graphql(operation)
-    }
-    const userId = selectFetchUserField(getState())
-    let promises = dirtyArticles.map(feArticle => convertFeToApi(feArticle, userId)).map(syncArticle)
-    return Promise.allSettled(promises)
-  }
-)
-
 export const addArticle = createAsyncThunk(
   'journalArticles/addArticle',
   async (payload, { getState }) => {
@@ -72,7 +53,7 @@ export const addArticle = createAsyncThunk(
     const userId = selectFetchUserField(getState())
     const operation = graphqlOperation(createJournalArticle,
       {
-        input: convertFeToApi(newArticle, userId),
+        input: convertFeToApiArticle(newArticle, userId),
       })
     // TODO: figure out how best to do article creation and ID-uniqueness
     // Let's just do something dumb for now so I can start using this and iterating
@@ -109,20 +90,17 @@ export const journalArticlesSlice = createSlice({
       const existingArticle = state.entities[articleId]
       if (existingArticle) {
         existingArticle.content.text = text
-        existingArticle.dirtiness = 'DIRTY'
       }
     },
     addAgendaTask(state, action) {
       const { articleId, addIndex, newTask } = action.payload
       const agendaArticle = state.entities[articleId]
       agendaArticle.content.tasks.splice(addIndex, 0, newTask)
-      agendaArticle.dirtiness = 'DIRTY'
     },
     removeAgendaTask(state, action) {
       const { articleId, removeId } = action.payload
       const agendaArticle = state.entities[articleId]
       agendaArticle.content.tasks = agendaArticle.content.tasks.filter(task => task.id != removeId)
-      agendaArticle.dirtiness = 'DIRTY'
     },
     moveAgendaTask(state, action) {
       const { articleId, taskIdToMove, toIndex } = action.payload
@@ -131,33 +109,28 @@ export const journalArticlesSlice = createSlice({
       const taskToMove = agendaArticle.content.tasks[oldIndex]
       agendaArticle.content.tasks.splice(oldIndex, 1)
       agendaArticle.content.tasks.splice(oldIndex < toIndex ? toIndex - 1 : toIndex, 0, taskToMove)
-      agendaArticle.dirtiness = 'DIRTY'
     },
     updateAgendaTask(state, action) {
       const { articleId, taskId, changedFields } = action.payload
       const agendaArticle = state.entities[articleId]
       const taskToUpdate = agendaArticle.content.tasks.find(task => task.id === taskId)
       Object.entries(changedFields).forEach(([field, value]) => taskToUpdate[field] = value)
-      agendaArticle.dirtiness = 'DIRTY'
     },
     addAgendaRestriction(state, action) {
       const { articleId, addIndex, newRestriction } = action.payload
       const agendaArticle = state.entities[articleId]
       agendaArticle.content.restrictions.splice(addIndex, 0, newRestriction)
-      agendaArticle.dirtiness = 'DIRTY'
     },
     removeAgendaRestriction(state, action) {
       const { articleId, removeId } = action.payload
       const agendaArticle = state.entities[articleId]
       agendaArticle.content.restrictions = agendaArticle.content.restrictions.filter(r => r.id != removeId)
-      agendaArticle.dirtiness = 'DIRTY'
     },
     updateAgendaRestriction(state, action) {
       const { articleId, restrictionId, changedFields } = action.payload
       const agendaArticle = state.entities[articleId]
       const restrictionToUpdate = agendaArticle.content.restrictions.find(r => r.id === restrictionId)
       Object.entries(changedFields).forEach(([field, value]) => restrictionToUpdate[field] = value)
-      agendaArticle.dirtiness = 'DIRTY'
     }
   },
   extraReducers: {
@@ -167,25 +140,6 @@ export const journalArticlesSlice = createSlice({
     },
     [addArticle.fulfilled]: (state, action) => {
       articlesAdapter.addOne(state, action.payload.newArticle)
-    },
-    [syncDirtyArticles.pending]: (state, action) => {
-      const articlesInFlight = Object.values(state.entities).filter((article) => article.dirtiness === 'DIRTY')
-      articlesInFlight.forEach((article) => article.dirtiness = 'SAVING')
-    },
-    [syncDirtyArticles.fulfilled]: (state, action) => {
-      const articlesInFlight = Object.values(state.entities).filter((article) => article.dirtiness === 'SAVING')
-      // Only set the in-flight entries to 'CLEAN' so any changes made during
-      // the request will be sent on the next fetch.
-      articlesInFlight
-        .filter((article) => article.dirtiness === 'SAVING')
-        .forEach((article) => article.dirtiness = 'CLEAN')
-    },
-    [syncDirtyArticles.rejected]: (state, action) => {
-      const articlesInFlight = Object.values(state.entities).filter((article) => article.dirtiness === 'SAVING')
-      // TODO surface error, switch gui togle to manual rather than timed
-      articlesInFlight
-        .filter((article) => article.dirtiness === 'SAVING')
-        .forEach((article) => article.dirtiness = 'DIRTY')
     },
     'journalEntries/fetchEntries/fulfilled': (state, action) => {
       // Note that the payload here is formed in the async thunk in
@@ -235,6 +189,11 @@ export const selectArticlesByEntryId = createSelector(
 export const selectArticleIdsByEntryId = createSelector(
   [(state, entryId) => selectArticlesByEntryId(state, entryId)],
   (articles) => articles.map(article => article.id)
+)
+
+export const selectArticleContentById = createSelector(
+  [selectArticleById],
+  (article) => article ? article.content : null
 )
 
 export const selectArticleTitleById = createSelector(
@@ -299,9 +258,4 @@ function getWordCount(article, state) {
 export const selectWordCount = createSelector(
   [selectArticlesByIds, (state, ids) => state],
   (articles, state) => articles.reduce((total, article) => total + getWordCount(article, state), 0)
-)
-
-export const selectByDirtiness = createSelector(
-  [selectAllArticles, (state, dirtiness) => dirtiness],
-  (articles, dirtiness) => articles.filter((article) => article.dirtiness === dirtiness)
 )

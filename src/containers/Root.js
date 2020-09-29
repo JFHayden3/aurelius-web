@@ -17,10 +17,10 @@ import {
   createNewEntry,
   selectEntryById,
 } from "../model/journalEntriesSlice";
-import { addArticle , computeNextArticleId, syncDirtyArticles} from "../model/journalArticlesSlice";
+import { addArticle, computeNextArticleId } from "../model/journalArticlesSlice";
 import { fetchViceLogEntries, syncDirtyViceLogEntries } from "../model/viceLogSlice"
-import { fetchTagEntitys, syncDirtyTagEntitys } from "../model/tagEntitySlice"
-
+import { fetchTagEntitys } from "../model/tagEntitySlice"
+import { syncDirtyEntities, isAnyDirty } from "../model/dirtinessSlice"
 import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
 import 'antd/dist/antd.css';
@@ -149,9 +149,10 @@ class Root extends Component {
     })
 
     setInterval(() => {
-      store.dispatch(syncDirtyViceLogEntries())
-      store.dispatch(syncDirtyArticles())
-      store.dispatch(syncDirtyTagEntitys())
+      if (isAnyDirty(store.getState())) {
+        store.dispatch(syncDirtyEntities())
+      }
+      //store.dispatch(syncDirtyViceLogEntries())
     }, 2500)
   }
 

@@ -21,7 +21,7 @@ export function computeNextTagEntityId(state) {
 function convertApiToFe(apiItems) {
   const tagEntitys = Array.map(apiItems, (item) => {
     const apiTagEntity = JSON.parse(item.entity)
-    const feTagEntity = { dirtiness: 'CLEAN' }
+    const feTagEntity = { }
     Object.entries(apiTagEntity).forEach(([key, value]) => feTagEntity[key] = value)
     return feTagEntity
   })
@@ -29,10 +29,9 @@ function convertApiToFe(apiItems) {
   return { entities: tagEntitys }
 }
 
-function convertFeToApi(feItem) {
+export function convertFeToApiTagEntity(feItem) {
   const apiItem = {}
   Object.entries(feItem)
-    .filter(([key, _val]) => key !== 'dirtiness')
     .forEach(([key, value]) => apiItem[key] = value)
   return apiItem
 }
@@ -48,31 +47,6 @@ export const fetchTagEntitys = createAsyncThunk(
         return convertApiToFe(response.data.listTagEntitys.items)
       })
   })
-
-export const syncDirtyTagEntitys = createAsyncThunk(
-  'tagEntitys/syncDirtyTagEntitys',
-  async (payload, { getState }) => {
-    const userId = selectFetchUserField(getState())
-    const dirtyTagEntitys = selectAllTagEntitys(getState()).filter(tagEntity => tagEntity.dirtiness === 'SAVING')
-    if (dirtyTagEntitys.length === 0) return Promise.resolve();
-    async function syncEntity(apiTagEntity) {
-      const operation = graphqlOperation(updateTagEntity,
-        {
-          input:
-          {
-            userId
-            , teId: apiTagEntity.id
-            , kind: apiTagEntity.kind
-            , entity: JSON.stringify(apiTagEntity)
-          }
-        })
-
-      return API.graphql(operation)
-    }
-    let promises = dirtyTagEntitys.map(feTagEntity => convertFeToApi(feTagEntity)).map(syncEntity)
-    return Promise.allSettled(promises)
-  }
-)
 
 export const deleteTagEntityAsync = createAsyncThunk(
   'tagEntitys/deleteTagEntityAsync',
@@ -93,7 +67,6 @@ export const createNewTagEntity = createAsyncThunk(
       name,
       refTag,
       kind,
-      dirtiness: 'DIRTY'
     }
     switch (kind) {
       case "CHALLENGE":
@@ -118,7 +91,7 @@ export const createNewTagEntity = createAsyncThunk(
     }
 
     const userId = selectFetchUserField(getState())
-    const apiTagEntity = convertFeToApi(newTagEntity)
+    const apiTagEntity = convertFeToApiTagEntity(newTagEntity)
     const operation = graphqlOperation(createTagEntity,
       {
         input:
@@ -142,7 +115,6 @@ export const tagEntitySlice = createSlice({
       const { tagEntityId, changedFields } = action.payload
       const tagEntity = state.entities[tagEntityId]
       Object.entries(changedFields).forEach(([field, value]) => tagEntity[field] = value)
-      tagEntity.dirtiness = 'DIRTY'
     },
   },
   extraReducers: {
@@ -151,25 +123,6 @@ export const tagEntitySlice = createSlice({
     },
     [createNewTagEntity.fulfilled]: (state, action) => {
       tagEntityAdapter.addOne(state, action.payload.newEntity)
-    },
-    [syncDirtyTagEntitys.pending]: (state, action) => {
-      const tagEntitysInFlight = Object.values(state.entities).filter((tagEntity) => tagEntity.dirtiness === 'DIRTY')
-      tagEntitysInFlight.forEach((tagEntity) => tagEntity.dirtiness = 'SAVING')
-    },
-    [syncDirtyTagEntitys.fulfilled]: (state, action) => {
-      const tagEntitysInFlight = Object.values(state.entities).filter((tagEntity) => tagEntity.dirtiness === 'SAVING')
-      // Only set the in-flight entries to 'CLEAN' so any changes made during
-      // the request will be sent on the next fetch.
-      tagEntitysInFlight
-        .filter((tagEntity) => tagEntity.dirtiness === 'SAVING')
-        .forEach((tagEntity) => tagEntity.dirtiness = 'CLEAN')
-    },
-    [syncDirtyTagEntitys.rejected]: (state, action) => {
-      const tagEntitysInFlight = Object.values(state.entities).filter((tagEntity) => tagEntity.dirtiness === 'SAVING')
-      // TODO surface error, switch gui togle to manual rather than timed
-      tagEntitysInFlight
-        .filter((tagEntity) => tagEntity.dirtiness === 'SAVING')
-        .forEach((tagEntity) => tagEntity.dirtiness = 'DIRTY')
     },
     [deleteTagEntityAsync.fulfilled]: (state, action) => {
       tagEntityAdapter.removeOne(state, action.meta.arg.tagEntityId)
@@ -187,6 +140,11 @@ export const {
   selectIds: selectTagEntityIds
   // Pass in a selector that returns the posts slice of state
 } = tagEntityAdapter.getSelectors(state => state.tagEntitys)
+
+export const selectTagEntitysByIds =
+  (state, entityIds) => {
+    return entityIds.map(id => state.tagEntitys.entities[id])
+  }
 
 export const selectByRefTag = createSelector(
   [selectAllTagEntitys, (state, refTag) => refTag],

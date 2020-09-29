@@ -4,17 +4,17 @@ import React from 'react'
 import { TaskList } from './TaskList'
 import { RestrictionList } from './RestrictionList'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectArticleById, textUpdated } from '../model/journalArticlesSlice'
+import { selectArticleContentById, textUpdated } from '../model/journalArticlesSlice'
 import { TaggableTextField } from './TaggableTextField'
 import { Input, Divider } from 'antd';
 
 export const AgendaArticleContent = ({ articleId }) => {
-  const article = useSelector((state) => selectArticleById(state, articleId))
+  const content = useSelector((state) => selectArticleContentById(state, articleId))
   const dispatch = useDispatch()
   return (
     <div>
       <TaggableTextField placeholder="High-level notes about today's agenda..."
-        value={article.content.text}
+        value={content.text}
         onChange={(val) =>
           dispatch(textUpdated({ articleId: articleId, text: val }))}
       />
