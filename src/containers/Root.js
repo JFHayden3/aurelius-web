@@ -1,12 +1,11 @@
 import React, { Component } from 'react'
-import { Provider, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import {
   Switch,
   Route,
   useLocation,
   useHistory,
   Link,
-  Redirect,
 } from 'react-router-dom'
 import store from '../configureStore'
 import { Layout, Menu, Spin } from 'antd';
@@ -18,7 +17,7 @@ import {
   selectEntryById,
 } from "../model/journalEntriesSlice";
 import { addArticle, computeNextArticleId } from "../model/journalArticlesSlice";
-import { fetchViceLogEntries, syncDirtyViceLogEntries } from "../model/viceLogSlice"
+import { fetchViceLogEntries } from "../model/viceLogSlice"
 import { fetchTagEntitys } from "../model/tagEntitySlice"
 import { syncDirtyEntities, isAnyDirty } from "../model/dirtinessSlice"
 import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
@@ -152,7 +151,6 @@ class Root extends Component {
       if (isAnyDirty(store.getState())) {
         store.dispatch(syncDirtyEntities())
       }
-      //store.dispatch(syncDirtyViceLogEntries())
     }, 2500)
   }
 

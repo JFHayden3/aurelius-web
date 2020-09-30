@@ -5,11 +5,11 @@ import {
 } from '@reduxjs/toolkit'
 import { API, graphqlOperation } from "aws-amplify"
 
-import { updateJournalArticle, updateTagEntity } from '../graphql/mutations'
+import { updateJournalArticle, updateTagEntity, updateViceLog } from '../graphql/mutations'
 import { convertFeToApiArticle, selectArticlesByIds } from './journalArticlesSlice'
 import { selectTagEntitysByIds, convertFeToApiTagEntity } from './tagEntitySlice'
 import { selectFetchUserField } from './metaSlice'
-import { } from './viceLogSlice'
+import { selectViceLogsByIds, convertFeToApiViceLog } from './viceLogSlice'
 
 const syncDirtyArticles = async (getState) => {
   const dirtyArticleIds = selectSavingEntityIdsByKind(getState(), 'ARTICLE')
@@ -49,12 +49,28 @@ const syncDirtyTagEntitys = async (getState) => {
   return Promise.allSettled(promises)
 }
 
+const syncDirtyViceLogs = async (getState) => {
+  const dirtyVlIds = selectSavingEntityIdsByKind(getState(), 'VICE_LOG')
+  const dirtyLogs = selectViceLogsByIds(getState(), dirtyVlIds)
+  if (dirtyLogs.length === 0) return Promise.resolve();
+  async function syncEntity(apiLogEntry) {
+    const operation = graphqlOperation(updateViceLog,
+      { input: apiLogEntry })
+
+    return API.graphql(operation)
+  }
+  const userId = selectFetchUserField(getState())
+  let promises = dirtyLogs.map(feEntry => convertFeToApiViceLog(feEntry, userId)).map(syncEntity)
+  return Promise.allSettled(promises)
+}
+
 export const syncDirtyEntities = createAsyncThunk(
   'dirtiness/syncDirtyEntities',
   async (payload, { getState }) => {
     const doSyncArticles = syncDirtyArticles(getState)
     const doSyncTagEntitys = syncDirtyTagEntitys(getState)
-    return Promise.allSettled([doSyncArticles, doSyncTagEntitys])
+    const doSyncViceLogs = syncDirtyViceLogs(getState)
+    return Promise.allSettled([doSyncArticles, doSyncTagEntitys, doSyncViceLogs])
   })
 
 export const dirtinessSlice = createSlice({
@@ -104,8 +120,11 @@ export const dirtinessSlice = createSlice({
     'journalArticles/addAgendaRestriction': markArticleDirty,
     'journalArticles/removeAgendaRestriction': markArticleDirty,
     'journalArticles/updateAgendaRestriction': markArticleDirty,
-    'tagEntitys/updateEntity'(state,action) {
+    'tagEntitys/updateEntity'(state, action) {
       state.entities['TAG_ENTITY'][action.payload.tagEntityId] = 'DIRTY'
+    },
+    'viceLogs/updateViceLogEntry'(state, action) {
+      state.entities['VICE_LOG'][action.payload.id] = 'DIRTY'
     }
   },
 })

@@ -5,7 +5,7 @@ import {
   createSlice
 } from '@reduxjs/toolkit'
 import { listViceLogs } from '../graphql/queries'
-import { updateViceLog, createViceLog, deleteViceLog } from '../graphql/mutations'
+import { createViceLog, deleteViceLog } from '../graphql/mutations'
 import { API, graphqlOperation } from "aws-amplify"
 import { selectFetchUserField } from './metaSlice'
 
@@ -18,7 +18,6 @@ const dummyState = {
     impactAnalysis: "Lost about an hour down a youtube hole and had a lot of trouble focusing for the rest of the afternoon",
     counterfactualAnalysis: "Could have left my phone out of the bathroom, would have been out and back to productive work in no time and spent the rest of the afternoon happily clickin away instead of constantly distracted.",
     attonement: "I'm removing the youtube app from my phone",
-    dirtiness: 'CLEAN'
   },
 }
 
@@ -43,14 +42,13 @@ function convertApiToFe(apiItems) {
       impactAnalysis: apiEntry.impactAnalysis,
       counterfactualAnalysis: apiEntry.counterfactualAnalysis,
       attonement: apiEntry.attonement,
-      dirtiness: 'CLEAN'
     }
   })
 
   return { entities: logEntries }
 }
 
-function convertFeToApi(feItem, userId) {
+export function convertFeToApiViceLog(feItem, userId) {
   return {
     userId,
     vlId: feItem.id,
@@ -82,23 +80,6 @@ export const fetchViceLogEntries = createAsyncThunk(
       })
   })
 
-export const syncDirtyViceLogEntries = createAsyncThunk(
-  'viceLogs/syncDirtyViceLogEntries',
-  async (payload, { getState }) => {
-    const dirtyLogs = selectAllViceLogs(getState()).filter(entry => entry.dirtiness === 'SAVING')
-    if (dirtyLogs.length === 0) return Promise.resolve();
-    async function syncEntity(apiLogEntry) {
-      const operation = graphqlOperation(updateViceLog,
-        { input: apiLogEntry })
-
-      return API.graphql(operation)
-    }
-    const userId = selectFetchUserField(getState())
-    let promises = dirtyLogs.map(feEntry => convertFeToApi(feEntry, userId)).map(syncEntity)
-    return Promise.allSettled(promises)
-  }
-)
-
 export const deleteViceLogEntry = createAsyncThunk(
   'viceLogs/deleteViceLogEntry',
   async (payload, { getState }) => {
@@ -127,12 +108,11 @@ export const createNewViceLogEntry = createAsyncThunk(
       impactAnalysis: "",
       counterfactualAnalysis: "",
       attonement: "",
-      dirtiness: 'CLEAN'
     }
     const userId = selectFetchUserField(getState())
     const operation = graphqlOperation(createViceLog,
       {
-        input: convertFeToApi(newViceLog, userId)
+        input: convertFeToApiViceLog(newViceLog, userId)
       })
 
     return API.graphql(operation).then(r => { return { newViceLog } })
@@ -147,7 +127,6 @@ export const viceLogSlice = createSlice({
       const { id, changedFields } = action.payload
       const logEntry = state.entities[id]
       Object.entries(changedFields).forEach(([field, value]) => logEntry[field] = value)
-      logEntry.dirtiness = 'DIRTY'
     },
   },
   extraReducers: {
@@ -156,25 +135,6 @@ export const viceLogSlice = createSlice({
     },
     [fetchViceLogEntries.fulfilled]: (state, action) => {
       viceLogsAdapter.setAll(state, action.payload.entities)
-    },
-    [syncDirtyViceLogEntries.pending]: (state, action) => {
-      const logsInFlight = Object.values(state.entities).filter((entry) => entry.dirtiness === 'DIRTY')
-      logsInFlight.forEach((entry) => entry.dirtiness = 'SAVING')
-    },
-    [syncDirtyViceLogEntries.fulfilled]: (state, action) => {
-      const logsInFlight = Object.values(state.entities).filter((entry) => entry.dirtiness === 'SAVING')
-      // Only set the in-flight entries to 'CLEAN' so any changes made during
-      // the request will be sent on the next fetch.
-      logsInFlight
-        .filter((entry) => entry.dirtiness === 'SAVING')
-        .forEach((entry) => entry.dirtiness = 'CLEAN')
-    },
-    [syncDirtyViceLogEntries.rejected]: (state, action) => {
-      const logsInFlight = Object.values(state.entities).filter((entry) => entry.dirtiness === 'SAVING')
-      // TODO surface error, switch gui togle to manual rather than timed
-      logsInFlight
-        .filter((entry) => entry.dirtiness === 'SAVING')
-        .forEach((entry) => entry.dirtiness = 'DIRTY')
     },
     [deleteViceLog.fulfilled]: (state, action) => {
       const { logId } = action.payload
@@ -198,3 +158,7 @@ export const selectViceLogsByVice = createSelector(
   [selectAllViceLogs, (state, refTag) => refTag],
   (allViceLogs, refTag) => allViceLogs.filter(vl => vl.vices.includes(refTag))
 )
+
+export const selectViceLogsByIds = (state, ids) => {
+  return ids.map(id => state.viceLogs.entities[id])
+}
