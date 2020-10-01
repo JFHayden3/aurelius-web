@@ -21,6 +21,7 @@ const { Title, Text } = Typography;
 const { Option } = Select
 
 const ArticleSettingsSetter = ({ articleKind }) => {
+  const hasFixedFrequency = articleKind === 'VICE_LOG'
   const dispatch = useDispatch()
   const artSettings = useSelector(state => selectArticleSettingByArticleKind(state, articleKind))
   function changeFields(updates) {
@@ -78,6 +79,7 @@ const ArticleSettingsSetter = ({ articleKind }) => {
         <Col flex="auto">
           <Select
             onChange={onFrequencyChange}
+            disabled={hasFixedFrequency}
             optionLabelProp="title"
             style={{ minWidth: 130 }}
             value={journalPromptFrequencies[artSettings.promptFrequency.kind]}>

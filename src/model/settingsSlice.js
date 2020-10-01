@@ -73,7 +73,7 @@ export function computeNewSavedViceRestrictionId(state) {
   const numericalKeys = Object.keys(state.settings.savedViceRestrictions)
     .map(viceKey => Number.parseInt(viceKey))
     .filter(e => e)
-  return "" + Math.max.apply(null, numericalKeys) + 1
+  return "" + (Math.max.apply(null, numericalKeys) + 1)
 }
 
 function mergeSystemSettingsWithUserSettings(userSettings) {
