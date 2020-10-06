@@ -130,7 +130,7 @@ export const ViceEditor = ({ match }) => {
       />
       <Row gutter={gutter}>
         <Col span={colSpan}>
-          <Text strong={true}>What are some tactics you can take to make it more difficult to engage in this behavior or to divert yourself when you feel a strong urge?</Text>
+          <Text strong={true}>What are some steps you can take to make it more difficult to engage in this behavior or to divert yourself when you feel a strong urge?</Text>
           <List dataSource={vice.mitigationTactics}
             itemLayout="vertical"
             bordered

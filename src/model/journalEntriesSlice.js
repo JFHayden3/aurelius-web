@@ -40,19 +40,10 @@ export const fetchEntries = createAsyncThunk(
     const userId = selectFetchUserField(getState())
     return API.graphql(graphqlOperation(listJournalEntrys,
       {
-        filter: {
-          userId: { eq: userId },
-          and: [
-            {
-              or: [
-                { jeId: { lt: payload.maxEndDate } },
-                { jeId: { eq: payload.maxEndDate } }
-              ]
-            }
-          ]
-        }
-        , limit: payload.maxNumEntries
-        , sort: "DESC"
+        userId: userId,
+        jeId: { le: payload.maxEndDate, },
+        limit: payload.maxNumEntries,
+        sortDirection: "DESC"
       }))
       .then(response => {
         return convertApiToFe(response.data.listJournalEntrys.items)

@@ -7,9 +7,10 @@ import {
   , computeNewSavedViceRestrictionId
 } from '../model/settingsSlice'
 
+import { ConditionEditor } from './ConditionEditor'
 import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons'
-import { Typography, List, Button, Tooltip, Space, Select } from 'antd';
+import { Typography, List, Button, Tooltip, Space, Select, Cascader, Modal, Input } from 'antd';
 
 const { Text } = Typography;
 const { Option } = Select
@@ -19,7 +20,7 @@ export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentR
   const nextSavedViceRestrictionId = useSelector(state => computeNewSavedViceRestrictionId(state))
   const customKey = 'CUSTOM-FOR-' + customKeyId
   const savedViceRestrictions = useSelector(state => selectViceRestrictions(state))
-  const currentRestriction = savedViceRestrictions[currentRestrictionId] 
+  const currentRestriction = savedViceRestrictions[currentRestrictionId]
   function filterOtherCustomRestrictions([key, _]) {
     if (key.startsWith("CUSTOM-") && key !== customKey) {
       return false
@@ -35,7 +36,7 @@ export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentR
     // Setting the name saves the current (CUSTOM), spec as a new standard restriction
     // option and changes the vice to reference the saved setting
     const displayName = newVal
-    dispatch(makeCustomViceRestrictionSaved({ customRestrictionKey:customKey, newKey, displayName }))
+    dispatch(makeCustomViceRestrictionSaved({ customRestrictionKey: customKey, newKey, displayName }))
     onRestrictionIdChange(newKey)
     dispatch(saveSettings())
   }
@@ -76,8 +77,8 @@ export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentR
 
     dispatchAppropriateSpecChangeAction(newSpec)
   }
-  const onRestrictionTextChange = specComponent => val => {
-    changeSpecComponent(specComponent, "restriction", val)
+  const onRestrictionConditionChange = specComponent => val => {
+    changeSpecComponent(specComponent, "condition", val)
   }
   const onAppliesOnChange = specComponent => val => {
     let newAppliesOn = val.sort()
@@ -131,18 +132,13 @@ export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentR
                 <Option value={5}>Fri</Option>
                 <Option value={6}>Sat</Option>
               </Select>
-
-              <Text editable={{ onChange: onRestrictionTextChange(specComponent) }} style={{ width: '100%' }}>
-                {specComponent.restriction}
-              </Text>
+              <ConditionEditor style={{ width: '100%' }} onChange={onRestrictionConditionChange(specComponent)} value={specComponent.condition} />
             </Space>
-
           </List.Item>}>
         <List.Item>
           <Button block type="dashed" onClick={onAddRestrictionComponentClick}><PlusOutlined />Additional restrictions</Button>
         </List.Item>
       </List>
-
     </Space>
   )
 }
