@@ -85,7 +85,7 @@ function getStartingContentForAgenda(today, state) {
         const { spec, relevantVices } = specAndRelevantVices
         return {
           id: restrictionIdCounter++,
-          restriction: spec.restriction,
+          restriction: spec.condition,
           activities: relevantVices.map(vice => vice.refTag),
           optNote: spec.notes
         }

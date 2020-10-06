@@ -8,7 +8,7 @@ import { Typography, Space, Cascader, Modal, Input } from 'antd';
 const { Text } = Typography;
 
 function convertModelToPresentation(modelValue) {
-  if (!modelValue) {
+  if (!modelValue || !modelValue.details) {
     return []
   }
   var presValue = modelValue.isNegation ? ['FORBIDDEN'] : ['ALLOWED']
@@ -98,12 +98,12 @@ function conditionAsHumanReadable(selectedPresOptions) {
         return optVal.label
       case 'SPECIFIC_TIME':
       case 'ACTIVITY':
+      case 'ENTIRELY':
         return null
       case 'BEFORE':
       case 'AFTER':
       case 'BETWEEN':
       case 'DURING':
-      case 'ENTIRELY':
         return optVal.label.toLowerCase()
       case 'CUSTOM_CONDITION':
       case 'CUSTOM_ACTIVITY':
@@ -120,7 +120,7 @@ function conditionAsHumanReadable(selectedPresOptions) {
   return readableStrs.join(' ')
 }
 
-export const ConditionEditor = ({ value, onChange }) => {
+export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
   const [showCustomActivityModal, setShowCustomActivityModal] = useState(false)
   const [customActivityText, setCustomActivityText] = useState("")
   const [customActivityPreamble, setCustomActivityPreamble] = useState([])
@@ -208,7 +208,7 @@ export const ConditionEditor = ({ value, onChange }) => {
     }
   ]
   const onCascaderSelectionChange = (val, selectedOptions) => {
-    if (selectedOptions[selectedOptions.length - 1].openModal) {
+    if ((selectedOptions[selectedOptions.length - 1] ?? {}).openModal) {
       setCustomActivityPreamble(selectedOptions)
       setShowCustomActivityModal(true)
     } else {
@@ -221,9 +221,16 @@ export const ConditionEditor = ({ value, onChange }) => {
       conditionAsHumanReadable(selectedOptions)
     )
   }
+  // This algorithm does two things:
+  // primarily, it fixes up the available options to include anything missing from
+  // the selected value (mainly to handle the 'CUSTOM_CONDITION/CUSTOM_ACTIVITY case)
+  // and second, it builds the array of our currently selected options so we can convert
+  // that to human readable (the human-readable algorithm operates on options rather than labels
+  // or model value) for the readonly display
   const presVal = convertModelToPresentation(value)
   var i = 0
   var presValOptionsLevel = options
+  const selectedOptions = []
   while (i < presVal.length) {
     // Either find the corresponding value in the presentation options, or add it 
     // This allows us to nicely handle custom conditions/activities
@@ -232,12 +239,20 @@ export const ConditionEditor = ({ value, onChange }) => {
       opt = { value: presVal[i], label: presVal[i], children: [] }
       presValOptionsLevel.push(opt)
     }
+    selectedOptions.push(opt)
     ++i
     presValOptionsLevel = opt.children ?? []
   }
+  const selectionAsHumanReadable = conditionAsHumanReadable(selectedOptions)
   return (
     <div>
-      <Cascader style={{ width: '285px' }} displayRender={displayRender} value={presVal} options={options} onChange={onCascaderSelectionChange} />
+      {!isReadOnly &&
+        <Cascader style={{ width: '285px' }}
+          displayRender={displayRender}
+          value={presVal}
+          options={options}
+          onChange={onCascaderSelectionChange} />}
+      {isReadOnly && <Text>{selectionAsHumanReadable}</Text>}
       <Modal
         onOk={onCustomActivityModalOk}
         onCancel={onCustomActivityModalCancel}

@@ -126,6 +126,14 @@ export const journalArticlesSlice = createSlice({
       const agendaArticle = state.entities[articleId]
       agendaArticle.content.restrictions = agendaArticle.content.restrictions.filter(r => r.id != removeId)
     },
+    moveAgendaRestriction(state, action) {
+      const { articleId, restrictionIdToMove, toIndex } = action.payload
+      const agendaArticle = state.entities[articleId]
+      const oldIndex = agendaArticle.content.restrictions.findIndex(t => t.id === restrictionIdToMove)
+      const toMove = agendaArticle.content.restrictions[oldIndex]
+      agendaArticle.content.restrictions.splice(oldIndex, 1)
+      agendaArticle.content.restrictions.splice(oldIndex < toIndex ? toIndex - 1 : toIndex, 0, toMove)
+    },
     updateAgendaRestriction(state, action) {
       const { articleId, restrictionId, changedFields } = action.payload
       const agendaArticle = state.entities[articleId]
@@ -164,6 +172,7 @@ export const { textUpdated,
   moveAgendaTask,
   addAgendaRestriction,
   removeAgendaRestriction,
+  moveAgendaRestriction,
   updateAgendaRestriction } = journalArticlesSlice.actions
 
 export default journalArticlesSlice.reducer

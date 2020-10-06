@@ -4,6 +4,7 @@ import { Typography, Select, Input, Modal, Space } from 'antd';
 import { } from '@ant-design/icons';
 import { useSelector } from 'react-redux'
 import { selectAllVices } from '../model/tagEntitySlice'
+import { ConditionEditor } from './ConditionEditor'
 
 const { TextArea } = Input
 const { Text } = Typography;
@@ -21,8 +22,8 @@ export const RestrictionModal = ({ agendaRestriction, isVisible, onConfirm, onCa
   const onNoteTextChange = e => {
     setNote(e.target.value)
   }
-  const onRestrictionChange = e => {
-    setRestriction(e.target.value)
+  const onRestrictionChange = val => {
+    setRestriction(val)
   }
 
   const onConfirmClick = e => {
@@ -52,7 +53,7 @@ export const RestrictionModal = ({ agendaRestriction, isVisible, onConfirm, onCa
         </Space>
         <Space direction='horizontal' size='small' style={{ width: '100%' }}>
           <Text strong={true}>Restriction</Text>
-          <Input onChange={onRestrictionChange} value={restriction} />
+          <ConditionEditor onChange={onRestrictionChange} value={restriction} />
         </Space>
         <Space direction='vertical' size='small' style={{ width: '100%' }}>
           <Text strong={true}>Details</Text>
