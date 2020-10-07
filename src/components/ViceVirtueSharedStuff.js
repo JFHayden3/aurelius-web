@@ -1,12 +1,47 @@
 
 import React, { useState } from 'react'
-import { Typography, Row, Col, Input, Modal, Space } from 'antd';
+import { Typography, Row, Col, Input, Modal, Space, List } from 'antd';
 
 const { TextArea } = Input
 const { Text } = Typography;
 
 export const gutter = [24, 24]
 export const colSpan = 18
+
+export const TextItemList = ({ values, nextId, onAddItem, onRemoveItem, onChangeItem, placeholder = 'Add item' }) => {
+  const items = values.map(v => { return { id: v.id, text: v.text, placeholder: "" } })
+  items.push({ id: nextId, text: "", placeholder: placeholder })
+  const onFocus = item => e => {
+    if (item.id === nextId) {
+      onAddItem()
+    }
+  }
+  const onBlur = item => e => {
+    if (item.text.trim() === "") {
+      onRemoveItem(item.id)
+    }
+  }
+  return (
+    <List dataSource={items}
+      itemLayout="vertical"
+      bordered
+      split={true}
+      style={{ backgroundColor: '#fff', borderRadius:'20px' }}
+      renderItem={item =>
+        <List.Item key={item.id} style={{padding:'8px'}}>
+          <Input
+            style={{ padding: 0, borderStyle: 'none' }}
+            allowClear
+            value={item.text}
+            onFocus={onFocus(item)}
+            onBlur={onBlur(item)}
+            placeholder={item.placeholder}
+            onChange={e => onChangeItem(item.id, e.target.value)} />
+        </List.Item>
+      } >
+    </List>
+  )
+}
 
 export const WrittenResponse = ({ text, entity, fieldName, minRows = 6, isReadonly = false, onValueChange }) => {
   const onTextChange = e => {
@@ -15,7 +50,7 @@ export const WrittenResponse = ({ text, entity, fieldName, minRows = 6, isReadon
   return (
     <Row gutter={gutter}>
       <Col span={colSpan}>
-        <Space direction='vertical' style={{width:'100%'}}>
+        <Space direction='vertical' style={{ width: '100%' }}>
           <Text strong={true}>{text}</Text>
           {isReadonly && <Text>{entity[fieldName]}</Text>}
           {!isReadonly && <TextArea autoSize={{ minRows }} value={entity[fieldName]} onChange={onTextChange} />}
@@ -52,7 +87,7 @@ export const AddNewModal = ({ visible, onOk, onCancel }) => {
   }
 
   return (
-    <Modal 
+    <Modal
       visible={visible}
       onOk={onAddNewConfirm}
       onCancel={onCancelClick}

@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons'
 import { Typography, List, Row, Col, Button } from 'antd';
 import { EngagementScheduleEditor } from './EngagementScheduleEditor'
-import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
+import { WrittenResponse, gutter, colSpan, TextItemList } from './ViceVirtueSharedStuff'
 const { Title, Text } = Typography;
 
 export const VirtueEditor = ({ match }) => {
@@ -14,24 +14,26 @@ export const VirtueEditor = ({ match }) => {
   const onTextFieldChange = ({ fieldName, value }) => {
     dispatch(updateEntity({ tagEntityId: virtue.id, changedFields: { [fieldName]: value } }))
   }
+  const newTacticId = virtue.engagementTactics.length > 0 ?
+    (Math.max.apply(null, virtue.engagementTactics.map(mt => mt.id)) + 1)
+    : 0
   const onAddTacticClick = e => {
-    const newId = virtue.engagementTactics.length > 0 ?
-      (Math.max.apply(null, virtue.engagementTactics.map(mt => mt.id)) + 1)
-      : 0
-    const newTactics = virtue.engagementTactics.concat({ id: newId, text: "" })
+    const newTactics = virtue.engagementTactics.concat({ id: newTacticId, text: "" })
     dispatch(updateEntity({ tagEntityId: virtueId, changedFields: { engagementTactics: newTactics } }))
   }
-  function onTacticTextChange(targetId) {
-    return str => {
-      const newTactics = virtue.engagementTactics.map(tactic => {
-        if (tactic.id === targetId) {
-          return { id: tactic.id, text: str }
-        } else {
-          return tactic
-        }
-      })
-      dispatch(updateEntity({ tagEntityId: virtueId, changedFields: { engagementTactics: newTactics } }))
-    }
+  const onRemoveTactic = targetId => {
+    const newTactics = virtue.engagementTactics.filter(et => et.id !== targetId)
+    dispatch(updateEntity({ tagEntityId: virtueId, changedFields: { engagementTactics: newTactics } }))
+  }
+  function onTacticTextChange(targetId, str) {
+    const newTactics = virtue.engagementTactics.map(tactic => {
+      if (tactic.id === targetId) {
+        return { id: tactic.id, text: str }
+      } else {
+        return tactic
+      }
+    })
+    dispatch(updateEntity({ tagEntityId: virtueId, changedFields: { engagementTactics: newTactics } }))
   }
   const onEngagementScheduleChange = val => {
     dispatch(updateEntity({ tagEntityId: virtueId, changedFields: { engagementSchedule: val } }))
@@ -80,20 +82,13 @@ export const VirtueEditor = ({ match }) => {
       <Row gutter={gutter}>
         <Col span={colSpan}>
           <Text strong={true}>What are some ways you can make it easier for yourself to engage in this behavior?</Text>
-          <List dataSource={virtue.engagementTactics}
-            itemLayout="vertical"
-            bordered
-            split={true}
-            style={{ backgroundColor: '#fff' }}
-            renderItem={tactic =>
-              <List.Item key={tactic.id}>
-                <Text editable={{ onChange: onTacticTextChange(tactic.id) }}>{tactic.text}</Text>
-              </List.Item>
-            } >
-            <List.Item>
-              <Button block size="large" type="dashed" onClick={onAddTacticClick}><PlusOutlined />Add Tactic</Button>
-            </List.Item>
-          </List>
+          <TextItemList
+            values={virtue.engagementTactics}
+            nextId={newTacticId}
+            onAddItem={onAddTacticClick}
+            onRemoveItem={onRemoveTactic}
+            onChangeItem={onTacticTextChange}
+          />
         </Col>
       </Row>
     </div>

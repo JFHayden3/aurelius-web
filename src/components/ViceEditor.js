@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { selectViceById, updateEntity } from '../model/tagEntitySlice'
 import { selectViceLogsByVice, createNewViceLogEntry, computeNextViceLogId } from '../model/viceLogSlice'
-import { useSelector, useDispatch, useStore } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons'
 import { RestrictionEditor } from './RestrictionEditor'
 import { DirtyViceTracker } from './DirtyViceTracker'
-import { Typography, List, Row, Col, Button, Collapse, Space, Modal } from 'antd';
-import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
+import { Typography, Row, Col, Button, Collapse, Space } from 'antd';
+import { WrittenResponse, gutter, colSpan, TextItemList } from './ViceVirtueSharedStuff'
 import { ViceLogEntry } from './ViceLogEntry'
 import { dateAsYyyyMmDd, apiDateToFe } from '../kitchenSink'
 const { Title, Text } = Typography;
@@ -30,12 +30,15 @@ export const ViceEditor = ({ match }) => {
         changedFields: { defaultEngagementRestriction: { kind: newRestrictionId } }
       }))
   }
-
+  const nextMitigationTacticId = vice.mitigationTactics.length > 0 ?
+    (Math.max.apply(null, vice.mitigationTactics.map(mt => mt.id)) + 1)
+    : 0
   const onAddTacticClick = e => {
-    const newId = vice.mitigationTactics.length > 0 ?
-      (Math.max.apply(null, vice.mitigationTactics.map(mt => mt.id)) + 1)
-      : 0
-    const newTactics = vice.mitigationTactics.concat({ id: newId, text: "" })
+    const newTactics = vice.mitigationTactics.concat({ id: nextMitigationTacticId, text: "" })
+    dispatch(updateEntity({ tagEntityId: vice.id, changedFields: { mitigationTactics: newTactics } }))
+  }
+  const onRemoveTactic = (targetId) => {
+    const newTactics = vice.mitigationTactics.filter(mt => mt.id !== targetId)
     dispatch(updateEntity({ tagEntityId: vice.id, changedFields: { mitigationTactics: newTactics } }))
   }
   const onAddViceLogEntryClick = e => {
@@ -65,17 +68,15 @@ export const ViceEditor = ({ match }) => {
       setEditingLogId(logId)
     }
   }
-  function onTacticTextChange(targetId) {
-    return str => {
-      const newTactics = vice.mitigationTactics.map(tactic => {
-        if (tactic.id === targetId) {
-          return { id: tactic.id, text: str }
-        } else {
-          return tactic
-        }
-      })
-      dispatch(updateEntity({ tagEntityId: viceId, changedFields: { mitigationTactics: newTactics } }))
-    }
+  function onTacticTextChange(targetId, str) {
+    const newTactics = vice.mitigationTactics.map(tactic => {
+      if (tactic.id === targetId) {
+        return { id: tactic.id, text: str }
+      } else {
+        return tactic
+      }
+    })
+    dispatch(updateEntity({ tagEntityId: viceId, changedFields: { mitigationTactics: newTactics } }))
   }
   if (!vice) {
     return (
@@ -131,20 +132,13 @@ export const ViceEditor = ({ match }) => {
       <Row gutter={gutter}>
         <Col span={colSpan}>
           <Text strong={true}>What are some steps you can take to make it more difficult to engage in this behavior or to divert yourself when you feel a strong urge?</Text>
-          <List dataSource={vice.mitigationTactics}
-            itemLayout="vertical"
-            bordered
-            split={true}
-            style={{ backgroundColor: '#fff' }}
-            renderItem={tactic =>
-              <List.Item key={tactic.id}>
-                <Text editable={{ onChange: onTacticTextChange(tactic.id) }}>{tactic.text}</Text>
-              </List.Item>
-            } >
-            <List.Item>
-              <Button block size="large" type="dashed" onClick={onAddTacticClick}><PlusOutlined />Add Tactic</Button>
-            </List.Item>
-          </List>
+          <TextItemList
+            values={vice.mitigationTactics}
+            nextId={nextMitigationTacticId}
+            onAddItem={onAddTacticClick}
+            onRemoveItem={onRemoveTactic}
+            onChangeItem={onTacticTextChange}
+          />
         </Col>
       </Row>
       <Col span={colSpan}>
