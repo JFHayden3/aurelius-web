@@ -250,7 +250,7 @@ function extractRefTags(article, state) {
         [].concat.apply([], article.content.restrictions.map(r => r.activities)))
       break;
     case 'VICE_LOG':
-      const viceLog = selectViceLogById(state, article.content.logId)
+      const viceLog = selectViceLogById(state, article.content.logId) ?? {}
       refTags = refTags.concat(viceLog.vices)
       break;
     default:
@@ -266,12 +266,13 @@ function extractUserText(article, state) {
   var userTextBlocks = []
   switch (article.kind) {
     case 'AGENDA':
-      userTextBlocks.push(article.content.text)
+      userTextBlocks = userTextBlocks.concat(((article.content.text ?? {}).blocks ?? []).map(block => block.text))
       userTextBlocks = userTextBlocks.concat(article.content.tasks.map(task => (task.optNotes ?? "")))
       userTextBlocks = userTextBlocks.concat((article.content.restrictions ?? []).map(r => (r.optNote ?? "")))
       break;
     case 'VICE_LOG':
-      const viceLog = selectViceLogById(state, article.content.logId)
+      // Race condition initial vice log article creation.
+      const viceLog = selectViceLogById(state, article.content.logId) ?? {}
       userTextBlocks.push(viceLog.failureAnalysis)
       userTextBlocks.push(viceLog.impactAnalysis)
       userTextBlocks.push(viceLog.counterfactualAnalysis)

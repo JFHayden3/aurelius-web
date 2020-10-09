@@ -58,7 +58,7 @@ function getStartingContentForAgenda(today, state) {
       restrictions: cume.restrictions.concat(curr.restrictions),
       tasks: cume.tasks.concat(curr.tasks)
     }
-  }, { restrictions: [], tasks: [] })
+  }, { restrictions: [], tasks: [], text:"" })
 
   // TODO: possibly filter or conditionally filter (based on user setting) the vices/virtues that
   // are already coming in as part of a challenge
