@@ -89,6 +89,9 @@ export const getJournalEntry = /* GraphQL */ `
           entryId
           kind
           content
+          searchableText
+          refTags
+          wordCount
           createdAt
           updatedAt
         }
@@ -137,6 +140,9 @@ export const getJournalArticle = /* GraphQL */ `
       entryId
       kind
       content
+      searchableText
+      refTags
+      wordCount
       createdAt
       updatedAt
     }
@@ -165,6 +171,9 @@ export const listJournalArticles = /* GraphQL */ `
         entryId
         kind
         content
+        searchableText
+        refTags
+        wordCount
         createdAt
         updatedAt
       }

@@ -15,13 +15,16 @@ const articlesAdapter = createEntityAdapter({
 
 const initialState = articlesAdapter.getInitialState()
 
-export function convertFeToApiArticle(feArticle, userId) {
+export function convertFeToApiArticle(feArticle, userId, state) {
   return {
     userId
     , jaId: feArticle.id
     , entryId: feArticle.entryId
     , kind: feArticle.kind
     , content: JSON.stringify({ title: feArticle.title, content: feArticle.content })
+    , searchableText: extractUserText(feArticle, state)
+    , refTags: extractRefTags(feArticle, state)
+    , wordCount: getWordCount(feArticle, state)
   }
 }
 
@@ -49,11 +52,11 @@ export const addArticle = createAsyncThunk(
       content: defaultContent,
       dirtiness: 'CLEAN'
     }
-
-    const userId = selectFetchUserField(getState())
+    const state = getState()
+    const userId = selectFetchUserField(state)
     const operation = graphqlOperation(createJournalArticle,
       {
-        input: convertFeToApiArticle(newArticle, userId),
+        input: convertFeToApiArticle(newArticle, userId, state),
       })
     // TODO: figure out how best to do article creation and ID-uniqueness
     // Let's just do something dumb for now so I can start using this and iterating
@@ -230,6 +233,57 @@ export const selectRestrictionById = createSelector(
   (article, restrictionId) => article.content.restrictions.find(r => r.id === restrictionId)
 )
 
+function extractRefTags(article, state) {
+  const extractFromDraftContentState = contentState => {
+    return Object.values(contentState.entityMap).map(entity => entity.data.mention.name)
+  }
+  let refTags = []
+  switch (article.kind) {
+    case 'AGENDA':
+      refTags = refTags.concat(extractFromDraftContentState(article.content.text))
+      // TODO: the activity could be custom, not a refTag. I need to start recording the difference
+      // and filtering here
+      refTags = refTags.concat(article.content.tasks.map(task => task.activity.content))
+      // TODO: the activities here could be custom and not a reftag. I need to start recording the
+      // difference and filtering here
+      refTags = refTags.concat(
+        [].concat.apply([], article.content.restrictions.map(r => r.activities)))
+      break;
+    case 'VICE_LOG':
+      const viceLog = selectViceLogById(state, article.content.logId)
+      refTags = refTags.concat(viceLog.vices)
+      break;
+    default:
+      refTags = extractFromDraftContentState(article.content.text)
+      break;
+  }
+  let tagSet = new Set()
+  refTags.forEach(t => tagSet.add(t))
+  return Array.from(tagSet)
+}
+
+function extractUserText(article, state) {
+  var userTextBlocks = []
+  switch (article.kind) {
+    case 'AGENDA':
+      userTextBlocks.push(article.content.text)
+      userTextBlocks = userTextBlocks.concat(article.content.tasks.map(task => (task.optNotes ?? "")))
+      userTextBlocks = userTextBlocks.concat((article.content.restrictions ?? []).map(r => (r.optNote ?? "")))
+      break;
+    case 'VICE_LOG':
+      const viceLog = selectViceLogById(state, article.content.logId)
+      userTextBlocks.push(viceLog.failureAnalysis)
+      userTextBlocks.push(viceLog.impactAnalysis)
+      userTextBlocks.push(viceLog.counterfactualAnalysis)
+      userTextBlocks.push(viceLog.attonement)
+      break;
+    default:
+      userTextBlocks = userTextBlocks.concat((article.content.text.blocks ?? []).map(block => block.text))
+      break;
+  }
+  return userTextBlocks.join(' ')
+}
+
 function getWordCount(article, state) {
   function countWords(s) {
     s = s.replace(/(^\s*)|(\s*$)/gi, "");//exclude  start and end white-space
@@ -237,31 +291,8 @@ function getWordCount(article, state) {
     s = s.replace(/\n /, "\n"); // exclude newline with a start spacing
     return s.split(' ').filter(String).length;
   }
-  function countWordsInBlocks(rawValue) {
-    if (!rawValue) {
-      return 0
-    } else {
-      // Mainly me being lazy for historical entries.
-      return (rawValue.blocks ?? []).reduce((total, block) => total + countWords(block.text), 0)
-    }
-  }
-  switch (article.kind) {
-    case 'AGENDA':
-      const textCount = countWordsInBlocks(article.content.text)
-      const taskCount = article.content.tasks.reduce((total, task) => total + countWords(task.optNotes ?? ""), 0)
-      // Me being lazy to avoid deleting old entries created before there were restrictions
-      const restrictionCount = (article.content.restrictions ?? []).reduce((total, r) => total + countWords(r.optNote ?? ""), 0)
-      return textCount + taskCount + restrictionCount
-    case 'VICE_LOG':
-      const viceLog = selectViceLogById(state, article.content.logId)
-      return (
-        countWords(viceLog.failureAnalysis) +
-        countWords(viceLog.impactAnalysis) +
-        countWords(viceLog.counterfactualAnalysis) +
-        countWords(viceLog.attonement))
-    default:
-      return countWordsInBlocks(article.content.text)
-  }
+  const userText = extractUserText(article, state)
+  return countWords(userText)
 }
 
 export const selectWordCount = createSelector(

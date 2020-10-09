@@ -21,8 +21,9 @@ const syncDirtyArticles = async (getState) => {
 
     return API.graphql(operation)
   }
-  const userId = selectFetchUserField(getState())
-  let promises = dirtyArticles.map(feArticle => convertFeToApiArticle(feArticle, userId)).map(syncArticle)
+  const state = getState()
+  const userId = selectFetchUserField(state)
+  let promises = dirtyArticles.map(feArticle => convertFeToApiArticle(feArticle, userId, state)).map(syncArticle)
   return Promise.allSettled(promises)
 }
 

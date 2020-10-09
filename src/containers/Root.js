@@ -142,7 +142,6 @@ class Root extends Component {
               })
             }
             store.dispatch(setInitialized())
-
           }
         })
     })

@@ -4,7 +4,6 @@ import {
   createSlice,
   createSelector,
 } from '@reduxjs/toolkit'
-
 import { selectFetchUserField } from './metaSlice'
 import { listJournalEntrys, listJournalEntryKeys } from '../graphql/customQueries'
 import { createJournalEntry } from '../graphql/customMutations'
@@ -94,7 +93,6 @@ export const createNewEntry = createAsyncThunk(
   }
 )
 
-
 const initialState = entriesAdapter.getInitialState({
   entriesLoading: false,
   allKeys: []
@@ -144,13 +142,3 @@ export const selectUnfetchedEntriesExist = createSelector(
 )
 
 export const selectEntriesLoading = (state) => state.journalEntries.entriesLoading
-
-export const selectByDirtiness = createSelector(
-  [selectAllEntries, (state, dirtiness) => dirtiness],
-  (entries, dirtiness) => entries.filter((entry) => entry.dirtiness === dirtiness)
-)
-
-export const selectDirtyEntries = createSelector(
-  [selectAllEntries, (state, dirtiness) => dirtiness],
-  (entries) => entries.filter((entry) => entry.dirtiness === 'DIRTY')
-)

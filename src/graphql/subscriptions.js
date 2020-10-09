@@ -79,6 +79,9 @@ export const onCreateJournalEntry = /* GraphQL */ `
           entryId
           kind
           content
+          searchableText
+          refTags
+          wordCount
           createdAt
           updatedAt
         }
@@ -101,6 +104,9 @@ export const onUpdateJournalEntry = /* GraphQL */ `
           entryId
           kind
           content
+          searchableText
+          refTags
+          wordCount
           createdAt
           updatedAt
         }
@@ -123,6 +129,9 @@ export const onDeleteJournalEntry = /* GraphQL */ `
           entryId
           kind
           content
+          searchableText
+          refTags
+          wordCount
           createdAt
           updatedAt
         }
@@ -141,6 +150,9 @@ export const onCreateJournalArticle = /* GraphQL */ `
       entryId
       kind
       content
+      searchableText
+      refTags
+      wordCount
       createdAt
       updatedAt
     }
@@ -154,6 +166,9 @@ export const onUpdateJournalArticle = /* GraphQL */ `
       entryId
       kind
       content
+      searchableText
+      refTags
+      wordCount
       createdAt
       updatedAt
     }
@@ -167,6 +182,9 @@ export const onDeleteJournalArticle = /* GraphQL */ `
       entryId
       kind
       content
+      searchableText
+      refTags
+      wordCount
       createdAt
       updatedAt
     }

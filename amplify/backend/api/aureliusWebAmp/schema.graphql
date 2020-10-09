@@ -67,6 +67,9 @@ type JournalArticle
   entryId:ID!
   kind:String!
   content:String!
+  searchableText:String!
+  refTags:[String]!
+  wordCount:Int!
 } 
 
 type ViceLog

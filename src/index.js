@@ -22,4 +22,5 @@ render(
         <AuthRoot />
       </DndProvider>
     </Router>
-  </Provider>, document.getElementById('root'))
+  </Provider>
+  , document.getElementById('root'))
