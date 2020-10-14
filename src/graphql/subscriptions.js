@@ -72,6 +72,7 @@ export const onCreateJournalEntry = /* GraphQL */ `
     onCreateJournalEntry(owner: $owner) {
       userId
       jeId
+      jeIdAgain
       articles {
         items {
           userId
@@ -97,6 +98,7 @@ export const onUpdateJournalEntry = /* GraphQL */ `
     onUpdateJournalEntry(owner: $owner) {
       userId
       jeId
+      jeIdAgain
       articles {
         items {
           userId
@@ -122,6 +124,7 @@ export const onDeleteJournalEntry = /* GraphQL */ `
     onDeleteJournalEntry(owner: $owner) {
       userId
       jeId
+      jeIdAgain
       articles {
         items {
           userId

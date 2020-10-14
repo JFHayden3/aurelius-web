@@ -93,6 +93,7 @@ export const createJournalEntry = /* GraphQL */ `
     createJournalEntry(input: $input, condition: $condition) {
       userId
       jeId
+      jeIdAgain
       articles {
         items {
           userId
@@ -121,6 +122,7 @@ export const updateJournalEntry = /* GraphQL */ `
     updateJournalEntry(input: $input, condition: $condition) {
       userId
       jeId
+      jeIdAgain
       articles {
         items {
           userId
@@ -149,6 +151,7 @@ export const deleteJournalEntry = /* GraphQL */ `
     deleteJournalEntry(input: $input, condition: $condition) {
       userId
       jeId
+      jeIdAgain
       articles {
         items {
           userId

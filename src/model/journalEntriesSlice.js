@@ -4,7 +4,7 @@ import {
   createSlice,
   createSelector,
 } from '@reduxjs/toolkit'
-import { selectFetchUserField } from './metaSlice'
+import { selectFetchUserField, selectFilteredKeys } from './metaSlice'
 import { listJournalEntrys, listJournalEntryKeys } from '../graphql/customQueries'
 import { createJournalEntry } from '../graphql/customMutations'
 import { API, graphqlOperation } from "aws-amplify"
@@ -36,13 +36,40 @@ function convertApiToFe(entries) {
 export const fetchEntries = createAsyncThunk(
   'journalEntries/fetchEntries',
   async (payload, { getState }) => {
-    const userId = selectFetchUserField(getState())
+    const state = getState()
+    const userId = selectFetchUserField(state)
+    const allKeys = selectAllKeys(state)
+    // Initial fetch. This is a shit way of handling things
+    // TODO: make less shit
+    if (allKeys.length === 0) {
+      return API.graphql(graphqlOperation(listJournalEntrys,
+        {
+          userId: userId,
+          jeId: { le: payload.maxEndDate, },
+          limit: payload.maxNumEntries,
+          sortDirection: "DESC"
+        }))
+        .then(response => {
+          return convertApiToFe(response.data.listJournalEntrys.items)
+        })
+    }
+
+    const effectiveKeys = selectEffectiveKeys(state)
+    const keyIndex = payload.maxEndDate !== undefined
+      ? effectiveKeys.findIndex(k => k == payload.maxEndDate)
+      : effectiveKeys.length - 1
+    const toFetch = effectiveKeys.slice(Math.max(0, keyIndex - payload.maxNumEntries), keyIndex + 1)
     return API.graphql(graphqlOperation(listJournalEntrys,
       {
         userId: userId,
-        jeId: { le: payload.maxEndDate, },
-        limit: payload.maxNumEntries,
-        sortDirection: "DESC"
+        // TODO(maybe): add a 'between' filter on jeId here to potentially narrow the scanned range
+        filter: {
+          or: toFetch.map(key => { return { jeIdAgain: { eq: Number.parseInt(key) } } }),
+        },
+        // This is the scanned limit not the actual limit that is returned. We guarantee that we
+        // return the right number of elements because of the slicing of the keys to only the number
+        // that were requested.
+        limit: 10000, 
       }))
       .then(response => {
         return convertApiToFe(response.data.listJournalEntrys.items)
@@ -55,9 +82,7 @@ export const fetchAllKeys = createAsyncThunk(
     const userId = selectFetchUserField(getState())
     return API.graphql(graphqlOperation(listJournalEntryKeys,
       {
-        filter: {
-          userId: { eq: userId },
-        }
+        userId: userId
         , limit: 10000
       }))
       .then(res => {
@@ -81,12 +106,14 @@ export const createNewEntry = createAsyncThunk(
       dirtiness: 'DIRTY',
     }
     const userId = selectFetchUserField(getState())
+    const jeId = Number.parseInt(newEntry.id)
     const operation = graphqlOperation(createJournalEntry,
       {
         input:
         {
           userId
-          , jeId: Number.parseInt(newEntry.id)
+          , jeId
+          , jeIdAgain: jeId
         },
       })
     return API.graphql(operation).then(r => { return { newEntry } })
@@ -118,6 +145,9 @@ export const journalEntriesSlice = createSlice({
     [fetchAllKeys.fulfilled]: (state, action) => {
       state.allKeys = action.payload
     },
+    'meta/changeFilter/fulfilled': (state, action) => {
+      entriesAdapter.removeAll(state)
+    },
   },
 })
 
@@ -134,11 +164,22 @@ export const {
 } = entriesAdapter.getSelectors(state => state.journalEntries)
 
 export const selectUnfetchedEntriesExist = createSelector(
-  [selectEntryIds, (state) => state.journalEntries.allKeys],
-  (fetchedEntryIds, allKeys) => {
+  [selectEntryIds, state => selectEffectiveKeys(state)],
+  (fetchedEntryIds, effectiveKeys) => {
     const fetched = new Set(fetchedEntryIds)
-    return !(allKeys.every(key => fetched.has(key)))
+    return !(effectiveKeys.every(key => fetched.has(key)))
   }
 )
+
+const selectEffectiveKeys = state => {
+  const allKeys = selectAllKeys(state)
+  const filteredKeys = selectFilteredKeys(state)
+  const effectiveKeys = filteredKeys != null ?
+    Array.from(new Set(filteredKeys.map(fk => fk.entryId)))
+    : allKeys
+  return effectiveKeys
+}
+
+const selectAllKeys = state => state.journalEntries ? state.journalEntries.allKeys : []
 
 export const selectEntriesLoading = (state) => state.journalEntries.entriesLoading

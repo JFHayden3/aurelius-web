@@ -82,6 +82,7 @@ export const getJournalEntry = /* GraphQL */ `
     getJournalEntry(userId: $userId, jeId: $jeId) {
       userId
       jeId
+      jeIdAgain
       articles {
         items {
           userId
@@ -122,6 +123,7 @@ export const listJournalEntrys = /* GraphQL */ `
       items {
         userId
         jeId
+        jeIdAgain
         articles {
           nextToken
         }

@@ -46,6 +46,7 @@ type JournalEntry
 ) {
   userId:ID!
   jeId:ID!
+  jeIdAgain:ID!
   articles: [JournalArticle] @connection(keyName:"byEntry", fields:["jeId"])
 }
 

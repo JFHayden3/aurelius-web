@@ -158,6 +158,9 @@ export const journalArticlesSlice = createSlice({
       // fetched results.
       articlesAdapter.addMany(state, action.payload.articles.map(convertApiToFe))
     },
+    'meta/changeFilter/fulfilled':(state, action) => {
+      articlesAdapter.removeAll(state)
+    },
   }
 })
 
@@ -235,7 +238,9 @@ export const selectRestrictionById = createSelector(
 
 function extractRefTags(article, state) {
   const extractFromDraftContentState = contentState => {
-    return Object.values(contentState.entityMap).map(entity => entity.data.mention.name)
+    return contentState
+      ? Object.values(contentState.entityMap).map(entity => entity.data.mention.name)
+      : []
   }
   let refTags = []
   switch (article.kind) {
