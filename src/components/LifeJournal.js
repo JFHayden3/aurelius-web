@@ -33,6 +33,7 @@ const FilterDrawer = ({ close }) => {
   const currentFilter = useSelector(state => selectFilter(state))
   const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
   const allTagEntities = useSelector((state) => selectAllTagEntitys(state))
+  const [searchText, setSearchText] = useState((currentFilter ?? {}).searchText)
   const [minWordCount, setMinWordCount] = useState((currentFilter ?? {}).minWordCount)
   const [startDate, setStartDate] = useState((currentFilter ?? {}).startDate)
   const [endDate, setEndDate] = useState((currentFilter ?? {}).endDate)
@@ -52,10 +53,11 @@ const FilterDrawer = ({ close }) => {
     setEndDate(endDate)
   }
   const onApply = e => {
-    dispatchChangeFilter({ minWordCount, startDate, endDate, articleTypes, tagsReferenced })
+    dispatchChangeFilter({ searchText, minWordCount, startDate, endDate, articleTypes, tagsReferenced })
     close()
   }
   const onClear = e => {
+    setSearchText(null)
     dispatchChangeFilter(null)
     setMinWordCount(null)
     setStartDate(null)
@@ -69,6 +71,9 @@ const FilterDrawer = ({ close }) => {
   }
   return (
     <Space direction='vertical' size='middle'>
+      <Space direction='vertical'>
+        <Input placeholder='Search...' value={searchText} onChange={e => setSearchText(e.target.value)}/>
+      </Space>
       <Space direction='vertical' size='small'>
         <Text>Date range</Text>
         <RangePicker disabledDate={disabledDate}

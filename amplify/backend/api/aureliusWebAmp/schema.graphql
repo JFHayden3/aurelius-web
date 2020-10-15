@@ -52,6 +52,7 @@ type JournalEntry
 
 type JournalArticle
 @model
+@searchable
 @key(fields:["userId", "jaId"])
 @key(name:"byEntry", fields:["entryId"])
 @auth(

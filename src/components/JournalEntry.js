@@ -25,6 +25,7 @@ export const JournalEntry = ({ entryId }) => {
   // show those articles even if they don't match the filter or at least communicate to the user that
   // they exist
   const articleIds = useSelector((state) => selectFilteredArticleIdsByEntryId(state, entryId))
+  const unfilteredArticleIds = useSelector(state => selectArticleIdsByEntryId(state, entryId))
   const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
   const dispatch = useDispatch()
   const store = useStore()
@@ -53,7 +54,7 @@ export const JournalEntry = ({ entryId }) => {
     addNewArticle(newPromptKey)
   }
   const articleKindsInEntry =
-    articleIds.map((id) => selectArticleById(store.getState(), id).kind)
+    unfilteredArticleIds.map((id) => selectArticleById(store.getState(), id).kind)
   const menu = (
     <Menu>
       {Object.entries(allArticleSettings)

@@ -4,8 +4,7 @@ import {
   createSlice
 } from '@reduxjs/toolkit'
 import { API, graphqlOperation } from "aws-amplify"
-import { listFilteredJournalKeys } from '../graphql/customQueries'
-import { fetchEntries } from './journalEntriesSlice'
+import { searchFilteredJournalKeys } from '../graphql/customQueries'
 
 export const changeFilter = createAsyncThunk(
   'meta/changeFilter',
@@ -16,15 +15,19 @@ export const changeFilter = createAsyncThunk(
       return Promise.resolve(null)
     }
     const fetchParam = { userId, limit: 5000 }
-    fetchParam.filter = { }
+    fetchParam.filter = {}
     const and = []
-    if (newFilter.minWordCount) {
-      fetchParam.filter.wordCount = { ge: newFilter.minWordCount }
+    if (newFilter.searchText) {
+      fetchParam.filter.searchableText = { match: newFilter.searchText }
     }
-    if (newFilter.startDate && newFilter.endDate) {
-      fetchParam.filter.entryId = {
-        between: [newFilter.startDate, newFilter.endDate]
-      }
+    if (newFilter.minWordCount) {
+      fetchParam.filter.wordCount = { gte: newFilter.minWordCount }
+    }
+    if (newFilter.startDate) {
+      and.push({ entryId: { gte: newFilter.startDate } })
+    }
+    if (newFilter.endDate) {
+      and.push({ entryId: { lte: newFilter.endDate } })
     }
     if (newFilter.articleTypes && newFilter.articleTypes.length > 0) {
       and.push(
@@ -36,17 +39,18 @@ export const changeFilter = createAsyncThunk(
     if (newFilter.tagsReferenced && newFilter.tagsReferenced.length > 0) {
       and.push(
         {
-          or: newFilter.tagsReferenced.map(rt => { return { refTags: { contains: rt } } })
+          // Might want to make this an 'AND' or possibly configurable by the user
+          or: newFilter.tagsReferenced.map(rt => { return { refTags: { match: rt } } })
         }
       )
     }
     if (and.length > 0) {
-      newFilter.filter.and = and
+      fetchParam.filter.and = and
     }
-    return API.graphql(graphqlOperation(listFilteredJournalKeys,
+    return API.graphql(graphqlOperation(searchFilteredJournalKeys,
       fetchParam))
       .then(response => {
-        return response.data.listJournalArticles.items
+        return response.data.searchJournalArticles.items
       })
   })
 

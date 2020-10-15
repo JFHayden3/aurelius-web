@@ -25,6 +25,29 @@ export const listJournalEntryKeys = /* GraphQL */ `
   }
 `;
 
+export const searchFilteredJournalKeys = /* GraphQL */ `
+  query SearchJournalArticles(
+    $filter: SearchableJournalArticleFilterInput
+    $sort: SearchableJournalArticleSortInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    searchJournalArticles(
+      filter: $filter
+      sort: $sort
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        jaId
+        entryId
+      }
+      nextToken
+      total
+    }
+  }
+`;
+
 export const listFilteredJournalKeys = /* GraphQL */` 
   query ListJournalArticles(
     $userId: ID

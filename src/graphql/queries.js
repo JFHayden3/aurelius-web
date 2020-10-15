@@ -222,3 +222,33 @@ export const listViceLogs = /* GraphQL */ `
     }
   }
 `;
+export const searchJournalArticles = /* GraphQL */ `
+  query SearchJournalArticles(
+    $filter: SearchableJournalArticleFilterInput
+    $sort: SearchableJournalArticleSortInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    searchJournalArticles(
+      filter: $filter
+      sort: $sort
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        userId
+        jaId
+        entryId
+        kind
+        content
+        searchableText
+        refTags
+        wordCount
+        createdAt
+        updatedAt
+      }
+      nextToken
+      total
+    }
+  }
+`;
