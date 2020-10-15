@@ -55,7 +55,7 @@ export const fetchEntries = createAsyncThunk(
     }
 
     const effectiveKeys = selectEffectiveKeys(state)
-    const keyIndex = payload.maxEndDate !== undefined
+    const keyIndex = payload.maxEndDate
       ? effectiveKeys.findIndex(k => k == payload.maxEndDate)
       : effectiveKeys.length - 1
     const toFetch = effectiveKeys.slice(Math.max(0, keyIndex - payload.maxNumEntries), keyIndex + 1)

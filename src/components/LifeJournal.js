@@ -4,49 +4,113 @@
 
 import { JournalEntry } from './JournalEntry'
 import React, { useState } from 'react'
-import { List, Card, Divider, Layout, Typography, Button, Spin, Drawer, Space, Input, InputNumber } from 'antd';
+import {
+  List, Card, Divider, Layout, Typography,
+  Button, Spin, Drawer, Space, Input, InputNumber, DatePicker,
+  Select
+} from 'antd';
 import { useSelector, useDispatch } from 'react-redux'
+import { dateAsMoment, momentAsDate } from '../kitchenSink'
 import {
   selectEntryIds,
   selectUnfetchedEntriesExist,
   selectEntriesLoading,
   fetchEntries
 } from '../model/journalEntriesSlice'
+import { selectAllTagEntitys } from '../model/tagEntitySlice'
 import { changeFilter, selectFilter } from '../model/metaSlice'
+import { selectAllArticleSettings } from '../model/settingsSlice'
 import InfiniteScroll from 'react-infinite-scroller';
+import moment from 'moment'
 
+const pageSize = 11
 const { Title, Text } = Typography
 const { Header } = Layout
+const { RangePicker } = DatePicker
+const { Option } = Select;
 
-const FilterDrawer = ({ isVisible, close }) => {
+const FilterDrawer = ({ close }) => {
   const currentFilter = useSelector(state => selectFilter(state))
+  const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
+  const allTagEntities = useSelector((state) => selectAllTagEntitys(state))
   const [minWordCount, setMinWordCount] = useState((currentFilter ?? {}).minWordCount)
+  const [startDate, setStartDate] = useState((currentFilter ?? {}).startDate)
+  const [endDate, setEndDate] = useState((currentFilter ?? {}).endDate)
+  const [articleTypes, setArticleTypes] = useState((currentFilter ?? { articleTypes: [] }).articleTypes)
+  const [tagsReferenced, setTagsReferenced] = useState((currentFilter ?? { tagsReferenced: [] }).tagsReferenced)
+
   const dispatch = useDispatch()
+
+  function dispatchChangeFilter(newFilter) {
+    dispatch(changeFilter({ newFilter }))
+      .then(r => dispatch(fetchEntries({ maxEndDate: null, maxNumEntries: pageSize })))
+  }
+  const onDateRangeChange = ([sd, ed]) => {
+    const startDate = momentAsDate(sd)
+    const endDate = momentAsDate(ed)
+    setStartDate(startDate)
+    setEndDate(endDate)
+  }
   const onApply = e => {
-    dispatch(changeFilter({ newFilter: { minWordCount: minWordCount } }))
+    dispatchChangeFilter({ minWordCount, startDate, endDate, articleTypes, tagsReferenced })
     close()
   }
   const onClear = e => {
-    dispatch(changeFilter({ newFilter: null }))
+    dispatchChangeFilter(null)
+    setMinWordCount(null)
+    setStartDate(null)
+    setEndDate(null)
+    setArticleTypes([])
+    setTagsReferenced([])
+  }
+  function disabledDate(current) {
+    // Can not select days before today and today
+    return current && current > moment().endOf('day');
   }
   return (
-    <Drawer
-      title="Filter entries"
-      placement="right"
-      visible={isVisible}
-      onClose={close}>
+    <Space direction='vertical' size='middle'>
+      <Space direction='vertical' size='small'>
+        <Text>Date range</Text>
+        <RangePicker disabledDate={disabledDate}
+          value={[dateAsMoment(startDate), dateAsMoment(endDate)]}
+          onChange={onDateRangeChange} />
+      </Space>
       <Space direction='horizontal'>
-        <Text>Minimum Word Count</Text>
+        <Text>Minimum word count</Text>
         <InputNumber value={minWordCount} onChange={v => setMinWordCount(v)} min={0} />
+      </Space>
+      <Space direction='vertical' style={{ width: '100%' }}>
+        <Text>Article types</Text>
+        <Select
+          style={{ width: '100%' }}
+          mode="multiple"
+          value={articleTypes}
+          onChange={v => setArticleTypes(v)}>
+          {Object.entries(allArticleSettings).map(([key, setting]) =>
+            <Option key={key}>{setting.title}</Option>)}
+        </Select>
+      </Space>
+      <Space direction='vertical' style={{ width: '100%' }}>
+        <Text>Ref tags in article</Text>
+        <Select
+          style={{ width: '100%' }}
+          mode="multiple"
+          value={tagsReferenced}
+          onChange={v => setTagsReferenced(v)}>
+          {Object.values(allTagEntities).map((te) =>
+            <Option key={te.refTag}>#{te.refTag}</Option>)}
+        </Select>
       </Space>
       <Space direction='horizontal'>
         <Button type='primary' onClick={onApply}>Apply</Button>
         <Button type='primary' danger disabled={currentFilter === null} onClick={onClear}>Clear</Button>
       </Space>
-    </Drawer>)
+    </Space>
+  )
 }
 
 export const LifeJournal = () => {
+
   const [filterDrawerVisible, setFilterDrawerVisible] = useState(false)
   const dispatch = useDispatch()
   const entryIds = useSelector(selectEntryIds)
@@ -55,12 +119,20 @@ export const LifeJournal = () => {
   const handleInfiniteOnLoad = (pageNum) => {
     const lastLoadedEntryId = entryIds[entryIds.length - 1]
     dispatch(
-      fetchEntries({ user: 'testUser', maxEndDate: lastLoadedEntryId, maxNumEntries: 11 }))
+      fetchEntries({ maxEndDate: lastLoadedEntryId, maxNumEntries: pageSize }))
   }
   return (
     <div>
       <Button onClick={e => setFilterDrawerVisible(true)}>Open Filter</Button>
-      <FilterDrawer isVisible={filterDrawerVisible} close={() => setFilterDrawerVisible(false)} />
+      <Drawer
+        destroyOnClose
+        title="Filter"
+        width={300}
+        placement="right"
+        visible={filterDrawerVisible}
+        onClose={() => setFilterDrawerVisible(false)}>
+        <FilterDrawer close={() => setFilterDrawerVisible(false)} />
+      </Drawer>
       <InfiniteScroll
         initialLoad={false}
         pageStart={0}

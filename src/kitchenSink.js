@@ -1,4 +1,5 @@
 //utilities and shit
+import moment from 'moment'
 
 /**
  * Takes an api date (a number in the format yyyyMMdd) and returns a renderable
@@ -20,6 +21,13 @@ export function apiDateToFe(apiDate) {
   var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(Number.parseInt(y), Number.parseInt(m - 1), Number.parseInt(d))
     .toLocaleDateString("en-US", options)
+}
+
+export function dateAsMoment(date) {
+  return date ? moment(date, "YYYYMMDD") : null
+}
+export function momentAsDate(moment) {
+  return Number.parseInt(moment.format("YYYYMMDD"))
 }
 
 export function dateAsYyyyMmDd(date) {

@@ -5,7 +5,7 @@ import {
   createSlice
 } from '@reduxjs/toolkit'
 import { API, graphqlOperation } from "aws-amplify"
-import { selectFetchUserField } from './metaSlice'
+import { selectFetchUserField, selectFilteredKeys } from './metaSlice'
 import { createJournalArticle, deleteJournalArticle } from '../graphql/mutations'
 import { selectViceLogById } from './viceLogSlice'
 
@@ -158,7 +158,7 @@ export const journalArticlesSlice = createSlice({
       // fetched results.
       articlesAdapter.addMany(state, action.payload.articles.map(convertApiToFe))
     },
-    'meta/changeFilter/fulfilled':(state, action) => {
+    'meta/changeFilter/fulfilled': (state, action) => {
       articlesAdapter.removeAll(state)
     },
   }
@@ -204,6 +204,18 @@ export const selectArticlesByEntryId = createSelector(
 export const selectArticleIdsByEntryId = createSelector(
   [(state, entryId) => selectArticlesByEntryId(state, entryId)],
   (articles) => articles.map(article => article.id)
+)
+
+export const selectFilteredArticleIdsByEntryId = createSelector(
+  [(state, entryId) => selectArticleIdsByEntryId(state, entryId),
+  (state, entryId) => selectFilteredKeys(state)],
+  (articleIds, filteredKeys) => {
+    if (filteredKeys === null) {
+      return articleIds
+    }
+    const filteredArticleIds = new Set(filteredKeys.map(fk => Number.parseInt(fk.jaId)))
+    return articleIds.filter(aid => filteredArticleIds.has(aid))
+  }
 )
 
 export const selectArticleContentById = createSelector(

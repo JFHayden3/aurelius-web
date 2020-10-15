@@ -4,7 +4,11 @@
 import React, { useState } from 'react'
 import { JournalArticle } from './JournalArticle'
 import { List, Typography, Dropdown, Button, Menu, Row, Col, Affix } from 'antd';
-import { addArticle, selectArticleById, selectArticleIdsByEntryId, computeNextArticleId } from '../model/journalArticlesSlice'
+import {
+  addArticle, selectArticleById,
+  selectFilteredArticleIdsByEntryId,
+  selectArticleIdsByEntryId, computeNextArticleId
+} from '../model/journalArticlesSlice'
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
 import { EntryWordCountDisplay } from "./EntryWordCountDisplay"
 import { PlusOutlined } from '@ant-design/icons';
@@ -17,8 +21,10 @@ const { Title } = Typography
 
 export const JournalEntry = ({ entryId }) => {
   const [newPromptModalVisible, setNewPromptModalVisible] = useState(false)
-
-  const articleIds = useSelector((state) => selectArticleIdsByEntryId(state, entryId))
+  // TODO: when there are articles filtered for a given entry, provide the user a way to manually
+  // show those articles even if they don't match the filter or at least communicate to the user that
+  // they exist
+  const articleIds = useSelector((state) => selectFilteredArticleIdsByEntryId(state, entryId))
   const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
   const dispatch = useDispatch()
   const store = useStore()
@@ -69,7 +75,7 @@ export const JournalEntry = ({ entryId }) => {
   return (
     <div ref={setContainer}>
       <Affix >
-        <Row style={{backgroundColor:'white', borderBottomStyle:'solid', borderBottomWidth:'1px'}}>
+        <Row style={{ backgroundColor: 'white', borderBottomStyle: 'solid', borderBottomWidth: '1px' }}>
           <Col span={12}>
             <Title level={3}>{apiDateToFe(entryId)}</Title>
           </Col>
@@ -93,7 +99,7 @@ export const JournalEntry = ({ entryId }) => {
       <Dropdown overlay={menu} trigger={['click']}>
         <Button block size="large" type="dashed"><PlusOutlined />Add Section</Button>
       </Dropdown>
-      <CreateNewPromptModal isVisible={newPromptModalVisible} onClose={()=>setNewPromptModalVisible(false)} onConfirm={onNewPromptOk} />
+      <CreateNewPromptModal isVisible={newPromptModalVisible} onClose={() => setNewPromptModalVisible(false)} onConfirm={onNewPromptOk} />
     </div>
   )
 }

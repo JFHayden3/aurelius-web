@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { selectChallengeById, updateEntity, selectAllVirtues, selectAllVices } from '../model/tagEntitySlice'
 import { useSelector, useDispatch, useStore } from 'react-redux'
-import { PlusOutlined, EditOutlined, CheckOutlined, ClockCircleOutlined, HourglassOutlined } from '@ant-design/icons'
-import { Typography, TimePicker, List, Divider, Button, Collapse, Space, DatePicker, Input, Radio, Select, Tooltip, Menu, Dropdown } from 'antd';
-import { dateAsYyyyMmDd, apiDateToFe } from '../kitchenSink'
+import { PlusOutlined } from '@ant-design/icons'
+import { Typography, List, Divider, Button, Collapse, Space, DatePicker, Input, Radio, Select, Tooltip, Menu, Dropdown } from 'antd';
 import { RestrictionEditor } from './RestrictionEditor'
 import { EngagementScheduleEditor } from './EngagementScheduleEditor'
+import { dateAsMoment, momentAsDate } from '../kitchenSink'
 import moment from 'moment';
 const { Title, Text } = Typography;
 const { Panel } = Collapse
@@ -129,12 +129,7 @@ export const ChallengeEditor = ({ match }) => {
   const nextEffectId = challenge.effects.length > 0
     ? Math.max.apply(null, challenge.effects.map(e => e.id)) + 1
     : 0
-  function dateAsMoment(date) {
-    return date ? moment(date, "YYYYMMDD") : null
-  }
-  function momentAsDate(moment) {
-    return Number.parseInt(moment.format("YYYYMMDD"))
-  }
+
   const onDescriptionChange = e => {
     dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { description: e.target.value } }))
   }

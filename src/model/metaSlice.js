@@ -5,6 +5,7 @@ import {
 } from '@reduxjs/toolkit'
 import { API, graphqlOperation } from "aws-amplify"
 import { listFilteredJournalKeys } from '../graphql/customQueries'
+import { fetchEntries } from './journalEntriesSlice'
 
 export const changeFilter = createAsyncThunk(
   'meta/changeFilter',
@@ -15,9 +16,32 @@ export const changeFilter = createAsyncThunk(
       return Promise.resolve(null)
     }
     const fetchParam = { userId, limit: 5000 }
-    fetchParam.filter = {}
+    fetchParam.filter = { }
+    const and = []
     if (newFilter.minWordCount) {
       fetchParam.filter.wordCount = { ge: newFilter.minWordCount }
+    }
+    if (newFilter.startDate && newFilter.endDate) {
+      fetchParam.filter.entryId = {
+        between: [newFilter.startDate, newFilter.endDate]
+      }
+    }
+    if (newFilter.articleTypes && newFilter.articleTypes.length > 0) {
+      and.push(
+        {
+          or: newFilter.articleTypes.map(at => { return { kind: { eq: at } } })
+        }
+      )
+    }
+    if (newFilter.tagsReferenced && newFilter.tagsReferenced.length > 0) {
+      and.push(
+        {
+          or: newFilter.tagsReferenced.map(rt => { return { refTags: { contains: rt } } })
+        }
+      )
+    }
+    if (and.length > 0) {
+      newFilter.filter.and = and
     }
     return API.graphql(graphqlOperation(listFilteredJournalKeys,
       fetchParam))
