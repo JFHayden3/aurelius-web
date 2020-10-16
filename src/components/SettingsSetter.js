@@ -16,6 +16,7 @@ import {
 import { DeleteOutlined } from '@ant-design/icons';
 import { journalPromptFrequencies } from '../kitchenSink'
 import { CreateNewPromptModal } from './CreateNewPromptModal'
+import { DowPicker } from './DowPicker'
 
 const { Title, Text } = Typography;
 const { Option } = Select
@@ -88,19 +89,10 @@ const ArticleSettingsSetter = ({ articleKind }) => {
           </Select>
           {artSettings.promptFrequency.kind === 'SPECIFIC_DOW'
             &&
-            <Select mode='multiple' placeholder='Select days'
-              style={{ minWidth: 200 }}
-
+            <DowPicker
               value={artSettings.promptFrequency.details}
-              onChange={onSelectDaysChange}>
-              <Option value={1}>Monday</Option>
-              <Option value={2}>Tuesday</Option>
-              <Option value={3}>Wednesday</Option>
-              <Option value={4}>Thursday</Option>
-              <Option value={5}>Friday</Option>
-              <Option value={0}>Sunday</Option>
-              <Option value={6}>Saturday</Option>
-            </Select>}
+              onChange={onSelectDaysChange} />
+          }
           {artSettings.promptFrequency.kind === 'RANDOMLY'
             &&
             <InputNumber

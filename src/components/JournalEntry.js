@@ -75,7 +75,7 @@ export const JournalEntry = ({ entryId }) => {
 
   return (
     <div ref={setContainer}>
-      <Affix >
+      <Affix>
         <Row style={{ backgroundColor: 'white', borderBottomStyle: 'solid', borderBottomWidth: '1px' }}>
           <Col span={12}>
             <Title level={3}>{apiDateToFe(entryId)}</Title>

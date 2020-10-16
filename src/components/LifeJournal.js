@@ -5,10 +5,14 @@
 import { JournalEntry } from './JournalEntry'
 import React, { useState } from 'react'
 import {
+  Affix,
   List, Card, Divider, Layout, Typography,
   Button, Spin, Drawer, Space, Input, InputNumber, DatePicker,
-  Select
+  Select,
+  Tooltip
 } from 'antd';
+import { SearchOutlined } from '@ant-design/icons'
+
 import { useSelector, useDispatch } from 'react-redux'
 import { dateAsMoment, momentAsDate } from '../kitchenSink'
 import {
@@ -72,7 +76,7 @@ const FilterDrawer = ({ close }) => {
   return (
     <Space direction='vertical' size='middle'>
       <Space direction='vertical'>
-        <Input placeholder='Search...' value={searchText} onChange={e => setSearchText(e.target.value)}/>
+        <Input placeholder='Search...' value={searchText} onChange={e => setSearchText(e.target.value)} />
       </Space>
       <Space direction='vertical' size='small'>
         <Text>Date range</Text>
@@ -126,12 +130,13 @@ export const LifeJournal = () => {
     dispatch(
       fetchEntries({ maxEndDate: lastLoadedEntryId, maxNumEntries: pageSize }))
   }
+  const onSearchClick = e => {
+    setFilterDrawerVisible(true)
+  }
   return (
     <div>
-      <Button onClick={e => setFilterDrawerVisible(true)}>Open Filter</Button>
       <Drawer
         destroyOnClose
-        title="Filter"
         width={300}
         placement="right"
         visible={filterDrawerVisible}
@@ -167,6 +172,13 @@ export const LifeJournal = () => {
               <Spin />
             </div>}
         </List>
+        <Affix offsetBottom={70} style={{ position: 'absolute', left: '90%' }}>
+          <Tooltip title="Search">
+            <Button type='primary' shape='circle' size='large' onClick={onSearchClick}>
+              <SearchOutlined />
+            </Button>
+          </Tooltip>
+        </Affix>
       </InfiniteScroll>
     </div>
   )

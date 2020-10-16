@@ -8,9 +8,10 @@ import {
 } from '../model/settingsSlice'
 
 import { ConditionEditor } from './ConditionEditor'
+import { DowPicker } from './DowPicker'
 import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons'
-import { Typography, List, Button, Tooltip, Space, Select, Cascader, Modal, Input } from 'antd';
+import { Typography, List, Button, Tooltip, Space, Select } from 'antd';
 
 const { Text } = Typography;
 const { Option } = Select
@@ -118,20 +119,9 @@ export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentR
         renderItem={specComponent =>
           <List.Item>
             <Space direction='horizontal' style={{ width: '100%' }}>
-              <Select value={specComponent.appliesOn}
-                mode="tags"
-                placeholder="Days"
-                style={{ minWidth: '100px' }}
-                onChange={onAppliesOnChange(specComponent)}
-              >
-                <Option value={0}>Sun</Option>
-                <Option value={1}>Mon</Option>
-                <Option value={2}>Tues</Option>
-                <Option value={3}>Wed</Option>
-                <Option value={4}>Thur</Option>
-                <Option value={5}>Fri</Option>
-                <Option value={6}>Sat</Option>
-              </Select>
+              <DowPicker
+                value={specComponent.appliesOn}
+                onChange={onAppliesOnChange(specComponent)} />
               <ConditionEditor style={{ width: '100%' }} onChange={onRestrictionConditionChange(specComponent)} value={specComponent.condition} />
             </Space>
           </List.Item>}>

@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react'
+import React from 'react'
 import { PlusOutlined, ClockCircleOutlined, HourglassOutlined } from '@ant-design/icons'
-import { TimePicker, Divider, Button, Space, Select, Tooltip,  } from 'antd';
+import { TimePicker, Divider, Button, Space, Select, Tooltip, } from 'antd';
+import { DowPicker } from './DowPicker'
 import moment from 'moment';
 const { Option } = Select
 
@@ -76,20 +77,7 @@ export const EngagementScheduleEditor = ({ engagementSchedule, onScheduleChange 
     <Space direction='vertical'>
       {engagementSchedule.map(sched =>
         <Space direction='horizontal' align='start'>
-          <Select value={sched.days}
-            mode="tags"
-            placeholder="Days"
-            style={{ minWidth: '100px' }}
-            onChange={onDaysChange(sched)}
-          >
-            <Option value={0}>Sun</Option>
-            <Option value={1}>Mon</Option>
-            <Option value={2}>Tues</Option>
-            <Option value={3}>Wed</Option>
-            <Option value={4}>Thur</Option>
-            <Option value={5}>Fri</Option>
-            <Option value={6}>Sat</Option>
-          </Select>
+          <DowPicker value={sched.days} onChange={onDaysChange(sched)}/>
           <Space direction='vertical' >
             {sched.instances.map(instance =>
               <Space direction='horizontal'>
