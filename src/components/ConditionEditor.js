@@ -250,6 +250,7 @@ export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
         <Cascader style={{ width: '285px' }}
           displayRender={displayRender}
           value={presVal}
+          placeholder="Choose condition"
           options={options}
           onChange={onCascaderSelectionChange} />}
       {isReadOnly && <Text>{selectionAsHumanReadable}</Text>}

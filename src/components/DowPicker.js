@@ -8,6 +8,7 @@ export const DowPicker = ({ value, onChange }) => {
   const [menuVisible, setMenuVisible] = useState(false)
   const sortedVal = [...value].map(v => "" + v)
   sortedVal.sort()
+  
   const options = {
     0: { abrev: 'S', short: 'Sun', long: 'Sunday' },
     1: { abrev: 'M', short: 'Mon', long: 'Monday' },
@@ -37,7 +38,6 @@ export const DowPicker = ({ value, onChange }) => {
         return sortedVal.map(v => options[v].abrev).join('')
       case 7:
         return 'Everyday'
-
     }
   }
   const selectedText = computeSelectedText(sortedVal)
@@ -74,16 +74,5 @@ export const DowPicker = ({ value, onChange }) => {
       overlay={menu} trigger={['click']}>
       <Button>{selectedText} <DownOutlined /></Button>
     </Dropdown>
-    /* <Select value={value}
-    mode="multiple"
-    maxTagCount={3}
-    placeholder="Days"
-    style={{ minWidth: '100px' }}
-    onChange={onSelect}
-    labelInValue
-  > {
-      Object.entries(options).map(([k, v]) => <Option value={k}>{v.short}</Option>)
-    }
-  </Select> */
   )
 }
