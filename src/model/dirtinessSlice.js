@@ -114,6 +114,7 @@ export const dirtinessSlice = createSlice({
       )
     },
     'journalArticles/textUpdated': markArticleDirty,
+    'journalArticles/updateContent':markArticleDirty,
     'journalArticles/addAgendaTask': markArticleDirty,
     'journalArticles/removeAgendaTask': markArticleDirty,
     'journalArticles/moveAgendaTask': markArticleDirty,

@@ -18,6 +18,15 @@ export function getStartingContent(articleKind, state, dispatch) {
     }
     dispatch(createNewViceLogEntry(payload))
     additionalContent = { logId: payload.id }
+  } else if (articleKind === 'VICE_LOG_V2') {
+    additionalContent = {
+      date: null,
+      vices: [],
+      failureAnalysis: "",
+      impactAnalysis: "",
+      counterfactualAnalysis: "",
+      attonement: "",
+    }
   } else {
     additionalContent = { text: "" }
   }
@@ -58,7 +67,7 @@ function getStartingContentForAgenda(today, state) {
       restrictions: cume.restrictions.concat(curr.restrictions),
       tasks: cume.tasks.concat(curr.tasks)
     }
-  }, { restrictions: [], tasks: [], text:"" })
+  }, { restrictions: [], tasks: [], text: "" })
 
   // TODO: possibly filter or conditionally filter (based on user setting) the vices/virtues that
   // are already coming in as part of a challenge

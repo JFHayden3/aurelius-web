@@ -12,6 +12,7 @@ import { DeleteOutlined, MoreOutlined } from '@ant-design/icons';
 import { AgendaArticleContent } from './AgendaArticleContent'
 import { WrittenArticleContent } from './WrittenArticleContent'
 import { ViceLogArticleContent } from './ViceLogArticleContent'
+import { ViceLogV2ArticleContent } from './ViceLogV2ArticleContent'
 
 export const JournalArticle = ({ articleId }) => {
   const title = useSelector((state) => selectArticleTitleById(state, articleId))
@@ -23,6 +24,8 @@ export const JournalArticle = ({ articleId }) => {
         return (<AgendaArticleContent articleId={articleId} />)
       case 'VICE_LOG':
         return (<ViceLogArticleContent articleId={articleId} />)
+      case 'VICE_LOG_V2':
+        return (<ViceLogV2ArticleContent articleId={articleId} />)
       default:
         return (<WrittenArticleContent articleId={articleId} />)
     }
@@ -30,7 +33,7 @@ export const JournalArticle = ({ articleId }) => {
   if (kind) {
     const menu = (
       <Menu>
-        <Menu.Item key="delete" onClick={(e) => dispatch(removeArticle({ articleId }))}><DeleteOutlined/>Delete</Menu.Item>
+        <Menu.Item key="delete" onClick={(e) => dispatch(removeArticle({ articleId }))}><DeleteOutlined />Delete</Menu.Item>
       </Menu>
     )
     return (

@@ -1,16 +1,13 @@
 import React from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { selectViceLogById, updateViceLogEntry } from '../model/viceLogSlice'
+import { useSelector } from 'react-redux'
 import { selectAllVices } from '../model/tagEntitySlice'
-import { Typography, List, Row, Col, Button, DatePicker, Select } from 'antd';
+import { Typography, Row, Col, DatePicker, Select } from 'antd';
 import { WrittenResponse, gutter, colSpan } from './ViceVirtueSharedStuff'
 import moment from 'moment';
 const { Text } = Typography;
 const { Option } = Select
 
-export const ViceLogEntry = ({ logId, isReadOnlyMode }) => {
-  const dispatch = useDispatch()
-  const entry = useSelector(state => selectViceLogById(state, logId))
+export const ViceLogEntry = ({ entry, isReadOnlyMode, onChange }) => {
   const allVices = useSelector(state => selectAllVices(state))
 
   if (!entry) {
@@ -18,7 +15,7 @@ export const ViceLogEntry = ({ logId, isReadOnlyMode }) => {
   }
   const dateAsMoment = entry.date ? moment(entry.date, "YYYYMMDD") : null
   const onFieldChange = ({ fieldName, value }) => {
-    dispatch(updateViceLogEntry({ id: logId, changedFields: { [fieldName]: value } }))
+    onChange({ [fieldName]: value })
   }
   const onDateChange = val => {
     const newDate = Number.parseInt(val.format("YYYYMMDD"))
@@ -31,15 +28,12 @@ export const ViceLogEntry = ({ logId, isReadOnlyMode }) => {
     if (val.length === 0) {
       return
     }
-    onFieldChange({fieldName:'vices', value:val})
+    onFieldChange({ fieldName: 'vices', value: val })
   }
   return (
     <div style={{ margin: 16 }}>
       {!isReadOnlyMode &&
         <div>
-          <Row>
-            <div>TODO dirtiness tracker</div>
-          </Row>
           <Row gutter={gutter}>
             <Col>
               <Text strong={true}>Date</Text>

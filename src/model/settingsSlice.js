@@ -66,6 +66,13 @@ const systemSettings = {
       ordering: 6,
       isUserCreated: false,
     },
+    VICE_LOG_V2: {
+      title: "Vice log entry (TODO remove this V2)",
+      hintText: "A recording and accounting of a particular unintentional lapse into a negative behavior",
+      promptFrequency: { kind: "NEVER", details: null },
+      ordering: 6,
+      isUserCreated: false,
+    },
   }
 }
 

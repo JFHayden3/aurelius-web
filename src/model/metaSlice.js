@@ -93,4 +93,4 @@ export const selectFetchUserField = (state) => state.meta.authUser.sub
 
 export const selectFilter = (state) => state.meta.filter
 
-export const selectFilteredKeys = (state) => state.meta.filteredKeys
+export const selectFilteredKeys = createSelector([(state) => state.meta.filteredKeys], f => f)

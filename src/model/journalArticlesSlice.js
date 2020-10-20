@@ -2,12 +2,15 @@ import {
   createAsyncThunk,
   createEntityAdapter,
   createSelector,
-  createSlice
+  createSlice,
 } from '@reduxjs/toolkit'
+import { defaultMemoize, createSelectorCreator } from 'reselect'
 import { API, graphqlOperation } from "aws-amplify"
 import { selectFetchUserField, selectFilteredKeys } from './metaSlice'
 import { createJournalArticle, deleteJournalArticle } from '../graphql/mutations'
 import { selectViceLogById } from './viceLogSlice'
+import { isEqual } from 'lodash'
+
 
 const articlesAdapter = createEntityAdapter({
   sortComparer: (a, b) => a.id - b.id
@@ -95,6 +98,11 @@ export const journalArticlesSlice = createSlice({
         existingArticle.content.text = text
       }
     },
+    updateContent(state, action) {
+      const { articleId, changedFields } = action.payload
+      const article = state.entities[articleId]
+      Object.entries(changedFields).forEach(([field, value]) => article.content[field] = value)
+    },
     addAgendaTask(state, action) {
       const { articleId, addIndex, newTask } = action.payload
       const agendaArticle = state.entities[articleId]
@@ -171,7 +179,9 @@ export function computeNextArticleId(state, forEntryId) {
     : Math.max.apply(null, existingIds) + 1
 }
 
-export const { textUpdated,
+export const {
+  textUpdated,
+  updateContent,
   addAgendaTask,
   removeAgendaTask,
   updateAgendaTask,
@@ -196,26 +206,33 @@ export const selectArticlesByIds =
     return articleIds.map(id => state.journalArticles.entities[id])
   }
 
-export const selectArticlesByEntryId = createSelector(
-  [selectAllArticles, (state, entryId) => entryId],
-  (articles, entryId) => articles.filter(article => article.entryId == entryId)
+// create a "selector creator" that uses lodash.isEqual instead of ===
+const createDeepEqualSelector = createSelectorCreator(
+  defaultMemoize,
+  isEqual
 )
 
-export const selectArticleIdsByEntryId = createSelector(
-  [(state, entryId) => selectArticlesByEntryId(state, entryId)],
-  (articles) => articles.map(article => article.id)
-)
+export const makeSelectArticleIdsByEntryId = () => createDeepEqualSelector(
+  [(state, entryId) => selectAllArticles(state).map(art => art.entryId == entryId ? art.id : null).filter(a => a)],
+  (ids) => ids)
 
-export const selectFilteredArticleIdsByEntryId = createSelector(
-  [(state, entryId) => selectArticleIdsByEntryId(state, entryId),
-  (state, entryId) => selectFilteredKeys(state)],
-  (articleIds, filteredKeys) => {
-    if (filteredKeys === null) {
-      return articleIds
-    }
-    const filteredArticleIds = new Set(filteredKeys.map(fk => Number.parseInt(fk.jaId)))
-    return articleIds.filter(aid => filteredArticleIds.has(aid))
-  }
+const selectArticleIdsByEntryId = makeSelectArticleIdsByEntryId()
+
+export const makeSelectFilteredArticleIdsByEntryId = () =>
+  createDeepEqualSelector(
+    [(state, entryId) => selectArticleIdsByEntryId(state, entryId),
+    (state, entryId) => selectFilteredKeys(state)],
+    (articleIds, filteredKeys) => {
+      if (filteredKeys === null) {
+        return articleIds
+      }
+      const filteredArticleIds = new Set(filteredKeys.map(fk => Number.parseInt(fk.jaId)))
+      return articleIds.filter(aid => filteredArticleIds.has(aid))
+    })
+
+export const makeSelectArticleKindsByIds = () => createDeepEqualSelector(
+  [(state, articleIds) => selectArticlesByIds(state, articleIds).map(article => article ? article.kind : null)],
+  (kinds) => kinds.filter(k => k)
 )
 
 export const selectArticleContentById = createSelector(
@@ -270,6 +287,8 @@ function extractRefTags(article, state) {
       const viceLog = selectViceLogById(state, article.content.logId) ?? {}
       refTags = refTags.concat(viceLog.vices)
       break;
+    case 'VICE_LOG_V2':
+      refTags = refTags.concat(article.content.vices)
     default:
       refTags = extractFromDraftContentState(article.content.text)
       break;
@@ -294,6 +313,12 @@ function extractUserText(article, state) {
       userTextBlocks.push(viceLog.impactAnalysis)
       userTextBlocks.push(viceLog.counterfactualAnalysis)
       userTextBlocks.push(viceLog.attonement)
+      break;
+    case 'VICE_LOG_V2':
+      userTextBlocks.push(article.content.failureAnalysis)
+      userTextBlocks.push(article.content.impactAnalysis)
+      userTextBlocks.push(article.content.counterfactualAnalysis)
+      userTextBlocks.push(article.content.attonement)
       break;
     default:
       userTextBlocks = userTextBlocks.concat((article.content.text.blocks ?? []).map(block => block.text))

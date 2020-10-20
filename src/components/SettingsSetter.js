@@ -22,7 +22,7 @@ const { Title, Text } = Typography;
 const { Option } = Select
 
 const ArticleSettingsSetter = ({ articleKind }) => {
-  const hasFixedFrequency = articleKind === 'VICE_LOG'
+  const hasFixedFrequency = articleKind === 'VICE_LOG_V2'
   const dispatch = useDispatch()
   const artSettings = useSelector(state => selectArticleSettingByArticleKind(state, articleKind))
   function changeFields(updates) {

@@ -37,6 +37,7 @@ const FilterDrawer = ({ close }) => {
   const currentFilter = useSelector(state => selectFilter(state))
   const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
   const allTagEntities = useSelector((state) => selectAllTagEntitys(state))
+  
   const [searchText, setSearchText] = useState((currentFilter ?? {}).searchText)
   const [minWordCount, setMinWordCount] = useState((currentFilter ?? {}).minWordCount)
   const [startDate, setStartDate] = useState((currentFilter ?? {}).startDate)
@@ -119,7 +120,6 @@ const FilterDrawer = ({ close }) => {
 }
 
 export const LifeJournal = () => {
-
   const [filterDrawerVisible, setFilterDrawerVisible] = useState(false)
   const dispatch = useDispatch()
   const entryIds = useSelector(selectEntryIds)

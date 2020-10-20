@@ -9,8 +9,8 @@ import { EditorState, ContentState, convertToRaw, convertFromRaw } from 'draft-j
 import Editor from 'draft-js-plugins-editor';
 import createMentionPlugin, { defaultSuggestionsFilter } from 'draft-js-mention-plugin';
 import 'draft-js/dist/Draft.css';
-import { A } from 'aws-amplify-react/lib-esm/AmplifyTheme'
 const { Link } = Typography
+
 const MentionedTag = (mentionProps) => {
   // TODO: different styling for vices.virtues
   // TODO: less shitty pop-up
@@ -93,10 +93,6 @@ class AutocompleteEditor extends Component {
     this.setState({
       editorState,
     });
-
-    // TODO (NOW): this fixes the performance issues I'm seeing but we're no longer propagating
-    // changes to model...
-    //
   };
 
   onSearchChange = ({ value }) => {

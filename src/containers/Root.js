@@ -125,7 +125,7 @@ class Root extends Component {
             if (!selectEntryById(store.getState(), payload.dateId)) {
               store.dispatch(createNewEntry(payload)).then(res => {
                 var nextArticleId = computeNextArticleId(store.getState(), payload.dateId)
-                getDefaultArticleKindsForToday(store.getState())
+                getDefaultArticleKindsForToday(store.getState(), new Date(Date.now()))
                   .forEach((articleKind) => {
                     const state = store.getState()
                     const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title

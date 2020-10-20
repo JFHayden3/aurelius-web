@@ -1,13 +1,15 @@
 // Contains/arranges all the journal articles for a given day.
 // Has a child button with popup for adding new journal articles to the day.
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { JournalArticle } from './JournalArticle'
 import { List, Typography, Dropdown, Button, Menu, Row, Col, Affix } from 'antd';
 import {
-  addArticle, selectArticleById,
-  selectFilteredArticleIdsByEntryId,
-  selectArticleIdsByEntryId, computeNextArticleId
+  addArticle,
+  makeSelectFilteredArticleIdsByEntryId,
+  makeSelectArticleIdsByEntryId, 
+  computeNextArticleId, 
+  makeSelectArticleKindsByIds
 } from '../model/journalArticlesSlice'
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
 import { EntryWordCountDisplay } from "./EntryWordCountDisplay"
@@ -24,9 +26,17 @@ export const JournalEntry = ({ entryId }) => {
   // TODO: when there are articles filtered for a given entry, provide the user a way to manually
   // show those articles even if they don't match the filter or at least communicate to the user that
   // they exist
-  const articleIds = useSelector((state) => selectFilteredArticleIdsByEntryId(state, entryId))
+  
+  const selectArticleIdsByEntryId = useMemo(makeSelectArticleIdsByEntryId, [])
   const unfilteredArticleIds = useSelector(state => selectArticleIdsByEntryId(state, entryId))
+
+  const selectFilteredArticleIdsByEntryId = useMemo(makeSelectFilteredArticleIdsByEntryId, [])
+  const articleIds = useSelector((state) => selectFilteredArticleIdsByEntryId(state, entryId))
+
   const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
+
+  const selectArticleKindsByIds = useMemo(makeSelectArticleKindsByIds, [])
+  const articleKindsInEntry = useSelector(state => selectArticleKindsByIds(state, unfilteredArticleIds))
   const dispatch = useDispatch()
   const store = useStore()
   function addNewArticle(articleKind) {
@@ -53,8 +63,6 @@ export const JournalEntry = ({ entryId }) => {
     setNewPromptModalVisible(false)
     addNewArticle(newPromptKey)
   }
-  const articleKindsInEntry =
-    unfilteredArticleIds.map((id) => selectArticleById(store.getState(), id).kind)
   const menu = (
     <Menu>
       {Object.entries(allArticleSettings)

@@ -53,7 +53,7 @@ export const WrittenResponse = ({ text, entity, fieldName, minRows = 6, isReadon
         <Space direction='vertical' style={{ width: '100%' }}>
           <Text strong={true}>{text}</Text>
           {isReadonly && <Text>{entity[fieldName]}</Text>}
-          {!isReadonly && <TextArea autoSize={{ minRows }} value={entity[fieldName]} onChange={onTextChange} />}
+          {!isReadonly && <TextArea autoSize={{ minRows }} defaultValue={entity[fieldName]} onChange={onTextChange} />}
         </Space>
       </Col>
     </Row>
