@@ -1,25 +1,33 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { selectViceById, updateEntity } from '../model/tagEntitySlice'
-import { selectViceLogsByVice, createNewViceLogEntry, computeNextViceLogId } from '../model/viceLogSlice'
-import { useSelector, useDispatch } from 'react-redux'
+import {
+  addArticle,
+  fetchFilteredArticles,
+  makeSelectArticleDatesByIds,
+  selectArticleById,
+  updateContent,
+  computeNextArticleId
+} from '../model/journalArticlesSlice'
+import { selectArticleSettingByArticleKind } from '../model/settingsSlice'
+import { getStartingContent } from '../model/newArticleStartingContentArbiter'
+import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons'
 import { RestrictionEditor } from './RestrictionEditor'
 import { DirtyViceTracker } from './DirtyViceTracker'
-import { Typography, Row, Col, Button, Collapse, Space } from 'antd';
+import { Typography, Row, Col, Button, Collapse, Space, Spin } from 'antd';
 import { WrittenResponse, gutter, colSpan, TextItemList } from './ViceVirtueSharedStuff'
 import { ViceLogEntry } from './ViceLogEntry'
-import { dateAsYyyyMmDd, apiDateToFe } from '../kitchenSink'
+import { dateAsYyyyMmDd, apiDateToFe, dateAsMoment } from '../kitchenSink'
+import { zip } from 'lodash'
+import { wait } from '@testing-library/react'
 const { Title, Text } = Typography;
-const { Panel } = Collapse
 
 export const ViceEditor = ({ match }) => {
-  const [editingLogId, setEditingLogId] = useState(null)
-  const [expandedLogPanelIds, setExpandedLogPanelIds] = useState([])
-  const { viceId } = match.params
-  const nextViceLogId = useSelector(state => computeNextViceLogId(state))
-  const vice = useSelector(state => selectViceById(state, viceId))
   const dispatch = useDispatch()
-  const associatedViceLogs = useSelector(state => selectViceLogsByVice(state, vice ? vice.refTag : ""))
+  const { viceId } = match.params
+  const nextViceLogId = useSelector(state => computeNextArticleId(state, dateAsYyyyMmDd(new Date(Date.now()))))
+  const vice = useSelector(state => selectViceById(state, viceId))
+
   const onTextFieldChange = ({ fieldName, value }) => {
     dispatch(updateEntity({ tagEntityId: vice.id, changedFields: { [fieldName]: value } }))
   }
@@ -41,33 +49,7 @@ export const ViceEditor = ({ match }) => {
     const newTactics = vice.mitigationTactics.filter(mt => mt.id !== targetId)
     dispatch(updateEntity({ tagEntityId: vice.id, changedFields: { mitigationTactics: newTactics } }))
   }
-  const onAddViceLogEntryClick = e => {
-    const payload = {
-      id: nextViceLogId,
-      vices: [vice.refTag],
-      date: dateAsYyyyMmDd(new Date(Date.now()))
-    }
-    dispatch(createNewViceLogEntry(payload))
-      .then(res => {
-        setEditingLogId(payload.id)
-        setExpandedLogPanelIds(expandedLogPanelIds.concat("" + payload.id))
-      })
-  }
-  const onLogPanelExpansionChange = val => {
-    if (!val.includes(editingLogId + "")) {
-      setEditingLogId(null)
-    }
-    setExpandedLogPanelIds(val)
-  }
-  function onEditViceLogEntryClick(logId) {
-    return e => {
-      e.stopPropagation()
-      if (logId !== null && !expandedLogPanelIds.includes("" + logId)) {
-        setExpandedLogPanelIds(expandedLogPanelIds.concat("" + logId))
-      }
-      setEditingLogId(logId)
-    }
-  }
+
   function onTacticTextChange(targetId, str) {
     const newTactics = vice.mitigationTactics.map(tactic => {
       if (tactic.id === targetId) {
@@ -144,30 +126,126 @@ export const ViceEditor = ({ match }) => {
       <Col span={colSpan}>
         <Space direction='vertical' style={{ width: '100%' }} >
           <Text strong={true}>Log entries</Text>
+          <ViceLogsPresenter
+            viceRefTag={vice.refTag}
+            nextViceLogId={nextViceLogId} />
+        </Space>
+      </Col>
+    </div>
+  )
+}
+
+const ViceLogsPresenter = ({ nextViceLogId, viceRefTag }) => {
+  const [viceLogIds, setViceLogIds] = useState("UNINITIALIZED")
+  const [editingLogId, setEditingLogId] = useState(null)
+  const [expandedLogPanelIds, setExpandedLogPanelIds] = useState([])
+  const dispatch = useDispatch()
+
+  // This is fucky ultimately because of a race condition on the database side:
+  // We can't just create the new article and then re-run the filter to get the
+  // proper set of vice logs as the new entry won't be included (unless we threadsleep).
+  // So we query the initial set of logs, store them in our component state and then
+  // manually add new entries to that state upon creation. 
+  if (viceLogIds === 'UNINITIALIZED') {
+    setViceLogIds('LOADING')
+    const viceLogArticleFilter = {
+      tagsReferenced: [viceRefTag],
+      articleTypes: ['VICE_LOG_V2']
+    }
+    dispatch(fetchFilteredArticles({ filter: viceLogArticleFilter }))
+      .then(r => {
+        setViceLogIds(r.payload.items.map(art => art.id))
+      })
+  }
+
+  const selectArticleDatesByIds = useMemo(makeSelectArticleDatesByIds, [])
+  const viceLogDates = useSelector(state => selectArticleDatesByIds(state, viceLogIds))
+  const viceLogIdsAndDates = viceLogIds && Array.isArray(viceLogIds) ?
+    zip(viceLogIds, viceLogDates) : []
+
+  const store = useStore()
+  const onAddViceLogEntryClick = e => {
+    const state = store.getState()
+    const articleKind = 'VICE_LOG_V2'
+    const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
+    const defaultContent = getStartingContent(articleKind, state)
+    const todayYyyMmDd = dateAsYyyyMmDd(new Date(Date.now()))
+    defaultContent.vices = [viceRefTag]
+    defaultContent.date = todayYyyMmDd
+    const payload = {
+      entryId: todayYyyMmDd
+      , articleId: nextViceLogId
+      , articleKind
+      , articleTitle
+      , defaultContent
+    }
+    dispatch(addArticle(payload))
+      .then(res => {
+        setViceLogIds(viceLogIds.concat([payload.articleId]))
+        setEditingLogId(payload.articleId)
+        setExpandedLogPanelIds(expandedLogPanelIds.concat("" + payload.articleId))
+      })
+  }
+  const onLogPanelExpansionChange = val => {
+    if (!val.includes(editingLogId + "")) {
+      setEditingLogId(null)
+    }
+    setExpandedLogPanelIds(val)
+  }
+  function onEditViceLogEntryClick(logId) {
+    return e => {
+      e.stopPropagation()
+      if (logId !== null && !expandedLogPanelIds.includes("" + logId)) {
+        setExpandedLogPanelIds(expandedLogPanelIds.concat("" + logId))
+      }
+      setEditingLogId(logId)
+    }
+  }
+
+  return (
+    <div>
+      {(!viceLogIds || viceLogIds === 'LOADING') &&
+        <Spin />
+      }
+      {viceLogIds && Array.isArray(viceLogIds) &&
+        <Space direction='vertical' style={{ width: '100%' }}>
           <Collapse activeKey={expandedLogPanelIds} onChange={onLogPanelExpansionChange} >
-            {associatedViceLogs.map(vl =>
-              <Panel key={vl.id}
-                header={apiDateToFe(vl.date)}
+            {viceLogIdsAndDates.map(([id, date]) =>
+              <Collapse.Panel key={id}
+                header={apiDateToFe(date)}
                 extra={(
                   <div>
-                    {editingLogId !== vl.id &&
-                      <Button size="small" type="text"
-                        onClick={onEditViceLogEntryClick(vl.id)}>
+                    {editingLogId !== id &&
+                      <Button size="small" type="text" onClick={onEditViceLogEntryClick(id)}>
                         <EditOutlined />
                       </Button>}
-                    {editingLogId === vl.id &&
+                    {editingLogId === id &&
                       <Button size="small" type="text"
                         onClick={onEditViceLogEntryClick(null)}>
                         <CheckOutlined />
                       </Button>}
                   </div>)}>
-                <ViceLogEntry logId={vl.id} isReadOnlyMode={editingLogId !== vl.id} />
-              </Panel>
+                <ViceLogPanel
+                  logArticleId={id}
+                  isEditing={editingLogId === id} />
+              </Collapse.Panel>
             )}
           </Collapse>
           <Button block size="large" type="dashed" onClick={onAddViceLogEntryClick}><PlusOutlined />Add Entry</Button>
         </Space>
-      </Col>
+      }
     </div>
+  )
+}
+
+const ViceLogPanel = ({ logArticleId, isEditing }) => {
+  const logEntry = useSelector(state => selectArticleById(state, logArticleId))
+  const dispatch = useDispatch()
+  const onFieldChange = cf => {
+    const payload = { articleId: logArticleId, changedFields: cf }
+    dispatch(updateContent(payload))
+  }
+  return (
+    <ViceLogEntry entry={logEntry.content} onChange={onFieldChange} isReadOnlyMode={!isEditing} />
   )
 }

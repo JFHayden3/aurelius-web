@@ -43,7 +43,7 @@ export const JournalEntry = ({ entryId }) => {
     const state = store.getState()
     const articleTitle = selectArticleSettingByArticleKind(state, articleKind).title
     const articleId = computeNextArticleId(state, entryId)
-    const defaultContent = getStartingContent(articleKind, state, dispatch)
+    const defaultContent = getStartingContent(articleKind, state)
     const payload = {
       entryId
       , articleId

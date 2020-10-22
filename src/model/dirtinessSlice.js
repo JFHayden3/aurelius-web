@@ -5,11 +5,10 @@ import {
 } from '@reduxjs/toolkit'
 import { API, graphqlOperation } from "aws-amplify"
 
-import { updateJournalArticle, updateTagEntity, updateViceLog } from '../graphql/mutations'
+import { updateJournalArticle, updateTagEntity } from '../graphql/mutations'
 import { convertFeToApiArticle, selectArticlesByIds } from './journalArticlesSlice'
 import { selectTagEntitysByIds, convertFeToApiTagEntity } from './tagEntitySlice'
 import { selectFetchUserField } from './metaSlice'
-import { selectViceLogsByIds, convertFeToApiViceLog } from './viceLogSlice'
 
 const syncDirtyArticles = async (getState) => {
   const dirtyArticleIds = selectSavingEntityIdsByKind(getState(), 'ARTICLE')
@@ -23,7 +22,7 @@ const syncDirtyArticles = async (getState) => {
   }
   const state = getState()
   const userId = selectFetchUserField(state)
-  let promises = dirtyArticles.map(feArticle => convertFeToApiArticle(feArticle, userId, state)).map(syncArticle)
+  let promises = dirtyArticles.map(feArticle => convertFeToApiArticle(feArticle, userId)).map(syncArticle)
   return Promise.allSettled(promises)
 }
 
@@ -50,33 +49,17 @@ const syncDirtyTagEntitys = async (getState) => {
   return Promise.allSettled(promises)
 }
 
-const syncDirtyViceLogs = async (getState) => {
-  const dirtyVlIds = selectSavingEntityIdsByKind(getState(), 'VICE_LOG')
-  const dirtyLogs = selectViceLogsByIds(getState(), dirtyVlIds)
-  if (dirtyLogs.length === 0) return Promise.resolve();
-  async function syncEntity(apiLogEntry) {
-    const operation = graphqlOperation(updateViceLog,
-      { input: apiLogEntry })
-
-    return API.graphql(operation)
-  }
-  const userId = selectFetchUserField(getState())
-  let promises = dirtyLogs.map(feEntry => convertFeToApiViceLog(feEntry, userId)).map(syncEntity)
-  return Promise.allSettled(promises)
-}
-
 export const syncDirtyEntities = createAsyncThunk(
   'dirtiness/syncDirtyEntities',
   async (payload, { getState }) => {
     const doSyncArticles = syncDirtyArticles(getState)
     const doSyncTagEntitys = syncDirtyTagEntitys(getState)
-    const doSyncViceLogs = syncDirtyViceLogs(getState)
-    return Promise.allSettled([doSyncArticles, doSyncTagEntitys, doSyncViceLogs])
+    return Promise.allSettled([doSyncArticles, doSyncTagEntitys])
   })
 
 export const dirtinessSlice = createSlice({
   name: 'dirtiness',
-  initialState: { entities: { ARTICLE: {}, TAG_ENTITY: {}, VICE_LOG: {} } },
+  initialState: { entities: { ARTICLE: {}, TAG_ENTITY: {} } },
   reducers: {
     markDirty(state, action) {
       const { kind, id } = action.payload
@@ -125,9 +108,6 @@ export const dirtinessSlice = createSlice({
     'tagEntitys/updateEntity'(state, action) {
       state.entities['TAG_ENTITY'][action.payload.tagEntityId] = 'DIRTY'
     },
-    'viceLogs/updateViceLogEntry'(state, action) {
-      state.entities['VICE_LOG'][action.payload.id] = 'DIRTY'
-    }
   },
 })
 

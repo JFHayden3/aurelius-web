@@ -27,7 +27,7 @@ export function dateAsMoment(date) {
   return date ? moment(date, "YYYYMMDD") : null
 }
 export function momentAsDate(moment) {
-  return Number.parseInt(moment.format("YYYYMMDD"))
+  return moment ? Number.parseInt(moment.format("YYYYMMDD")) : null
 }
 
 export function dateAsYyyyMmDd(date) {

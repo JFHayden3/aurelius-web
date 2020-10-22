@@ -17,7 +17,6 @@ import {
   selectEntryById,
 } from "../model/journalEntriesSlice";
 import { addArticle, computeNextArticleId } from "../model/journalArticlesSlice";
-import { fetchViceLogEntries } from "../model/viceLogSlice"
 import { fetchTagEntitys } from "../model/tagEntitySlice"
 import { syncDirtyEntities, isAnyDirty } from "../model/dirtinessSlice"
 import { fetchSettings, getDefaultArticleKindsForToday, selectArticleSettingByArticleKind } from "../model/settingsSlice"
@@ -112,10 +111,9 @@ class Root extends Component {
       const doFetchSettings = store.dispatch(fetchSettings())
       const doFetchJournalEntries = store.dispatch(
         fetchEntries({ maxEndDate: todayAsYyyyMmDd(), maxNumEntries: 10 }))
-      const doFetchViceLogs = store.dispatch(fetchViceLogEntries())
       const doFetchTagEntities = store.dispatch(fetchTagEntitys())
       const doFetchKeys = store.dispatch(fetchAllKeys())
-      Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchTagEntities, doFetchViceLogs])
+      Promise.allSettled([doFetchSettings, doFetchJournalEntries, doFetchTagEntities])
         .then((action) => {
           if (action.error) {
             // TODO retry and/or put the UI into an error state

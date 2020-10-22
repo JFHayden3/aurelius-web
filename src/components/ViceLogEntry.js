@@ -18,7 +18,7 @@ export const ViceLogEntry = ({ entry, isReadOnlyMode, onChange }) => {
     onChange({ [fieldName]: value })
   }
   const onDateChange = val => {
-    const newDate = Number.parseInt(val.format("YYYYMMDD"))
+    const newDate = val ? Number.parseInt(val.format("YYYYMMDD")) : null
     onFieldChange({ fieldName: 'date', value: newDate })
   }
   const onVicesChange = val => {

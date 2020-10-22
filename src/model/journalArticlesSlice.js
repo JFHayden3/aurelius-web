@@ -6,28 +6,28 @@ import {
 } from '@reduxjs/toolkit'
 import { defaultMemoize, createSelectorCreator } from 'reselect'
 import { API, graphqlOperation } from "aws-amplify"
-import { selectFetchUserField, selectFilteredKeys } from './metaSlice'
+import { selectFetchUserField, selectFilteredKeys, convertDomainArticleFilterToApi } from './metaSlice'
 import { createJournalArticle, deleteJournalArticle } from '../graphql/mutations'
-import { selectViceLogById } from './viceLogSlice'
+import { searchJournalArticles } from '../graphql/queries'
 import { isEqual } from 'lodash'
-
+import { selectTargetDailyWordCount } from './settingsSlice'
 
 const articlesAdapter = createEntityAdapter({
   sortComparer: (a, b) => a.id - b.id
 })
 
-const initialState = articlesAdapter.getInitialState()
+const initialState = articlesAdapter.getInitialState({ filterCache: {} })
 
-export function convertFeToApiArticle(feArticle, userId, state) {
+export function convertFeToApiArticle(feArticle, userId) {
   return {
     userId
     , jaId: feArticle.id
     , entryId: feArticle.entryId
     , kind: feArticle.kind
     , content: JSON.stringify({ title: feArticle.title, content: feArticle.content })
-    , searchableText: extractUserText(feArticle, state)
-    , refTags: extractRefTags(feArticle, state)
-    , wordCount: getWordCount(feArticle, state)
+    , searchableText: extractUserText(feArticle)
+    , refTags: extractRefTags(feArticle)
+    , wordCount: getWordCount(feArticle)
   }
 }
 
@@ -39,7 +39,6 @@ function convertApiToFe(apiArticle) {
     kind: apiArticle.kind,
     title,
     content,
-    dirtiness: 'CLEAN'
   }
 }
 
@@ -53,7 +52,6 @@ export const addArticle = createAsyncThunk(
       kind: articleKind,
       title: articleTitle,
       content: defaultContent,
-      dirtiness: 'CLEAN'
     }
     const state = getState()
     const userId = selectFetchUserField(state)
@@ -61,12 +59,6 @@ export const addArticle = createAsyncThunk(
       {
         input: convertFeToApiArticle(newArticle, userId, state),
       })
-    // TODO: figure out how best to do article creation and ID-uniqueness
-    // Let's just do something dumb for now so I can start using this and iterating
-    // interactively:
-    // - Hardcoding 2 article IDs in here which will be picked up in a reducer
-    // - in articlesSlice and will automatically create entries for refelections,
-    // intetions, and agenda
     return API.graphql(operation).then(r => { return { newArticle } })
   }
 )
@@ -86,6 +78,63 @@ export const removeArticle = createAsyncThunk(
     return API.graphql(operation).then(r => { return { articleId } })
   }
 )
+
+function filterToCacheKey(filter) {
+  return JSON.stringify(filter)
+}
+
+export const fetchFilteredArticles = createAsyncThunk(
+  'journalArticles/fetchFilteredArticles',
+  async (payload, { getState }) => {
+    const { filter } = payload
+    // TODO: This is an error. Probably shouldn't handle like this
+    if (!filter) {
+      return []
+    }
+    const filterAsStr = filterToCacheKey(filter)
+    const state = getState()
+    const cacheEntry = state.journalArticles.filterCache[filterAsStr]
+    if (!cacheEntry || cacheEntry === 'LOADING') {
+      // Nothing in the cache, fetch the full articles matching the filter, and in
+      // the '.fufilled', insert the jaIds into the cache and the converted articles
+      // into the entity adapter
+      const userId = selectFetchUserField(getState())
+      const fetchParam = { userId, limit: 5000 }
+      fetchParam.filter = convertDomainArticleFilterToApi(filter)
+
+      if (Object.entries(fetchParam.filter).length === 0) {
+        // Filter has been cleared, no reason to query.
+        return Promise.resolve(null)
+      }
+      return API.graphql(graphqlOperation(searchJournalArticles,
+        fetchParam))
+        .then(response => {
+          return {
+            cacheKey: filterAsStr,
+            items: response.data.searchJournalArticles.items.map(convertApiToFe)
+          }
+        })
+    } else {
+      // Should have cached keys (article IDs) here, can look up articles directly in the
+      // entity adapater and return them without fetching.
+      // TODO validate and log nulls as that could only happen if something went wrong (or if I deleted
+      // the article)
+      return Promise.resolve(
+        {
+          cacheKey: filterAsStr,
+          items: cacheEntry.map(jaId => state.journalArticles.entities[jaId])
+        })
+    }
+  }
+)
+
+// Filter cache Qs:
+// Do I make the filter cache part of this slice, metaSlice, or a new slice?
+// - This slice has a lot going on already... However on fetch complete I'm going to need to
+// take the results and shove them in the articles entity adapter one way or another. Doing
+// it here prevents the need for more awkward cross-slice listening...
+// Let's just do it here for now. I can refactor easily enough later.
+// How to hash the filter by val?
 
 export const journalArticlesSlice = createSlice({
   name: 'journalArticles',
@@ -150,27 +199,42 @@ export const journalArticlesSlice = createSlice({
       const agendaArticle = state.entities[articleId]
       const restrictionToUpdate = agendaArticle.content.restrictions.find(r => r.id === restrictionId)
       Object.entries(changedFields).forEach(([field, value]) => restrictionToUpdate[field] = value)
-    }
+    },
   },
   extraReducers: {
+    [fetchFilteredArticles.pending]: (state, action) => {
+      const { filter } = action.meta.arg
+      const cacheKey = filterToCacheKey(filter)
+      if (!state.filterCache[cacheKey]) {
+        state.filterCache[cacheKey] = 'LOADING'
+      }
+    },
+    [fetchFilteredArticles.fulfilled]: (state, action) => {
+      const { cacheKey, items } = action.payload
+      state.filterCache[cacheKey] = items.map(art => art.id)
+      articlesAdapter.upsertMany(state, items)
+    },
     [removeArticle.fulfilled]: (state, action) => {
       const { articleId } = action.payload
       articlesAdapter.removeOne(state, articleId)
+      doInvalidateFilterCache(state)
     },
     [addArticle.fulfilled]: (state, action) => {
       articlesAdapter.addOne(state, action.payload.newArticle)
+      doInvalidateFilterCache(state)
     },
     'journalEntries/fetchEntries/fulfilled': (state, action) => {
       // Note that the payload here is formed in the async thunk in
       // Journal entries slice as that's where we first fondle the
       // fetched results.
-      articlesAdapter.addMany(state, action.payload.articles.map(convertApiToFe))
-    },
-    'meta/changeFilter/fulfilled': (state, action) => {
-      articlesAdapter.removeAll(state)
+      articlesAdapter.upsertMany(state, action.payload.articles.map(convertApiToFe))
     },
   }
 })
+
+function doInvalidateFilterCache(state) {
+  state.filterCache = {}
+}
 
 export function computeNextArticleId(state, forEntryId) {
   const existingIds = selectArticleIdsByEntryId(state, forEntryId)
@@ -203,7 +267,9 @@ export const {
 
 export const selectArticlesByIds =
   (state, articleIds) => {
-    return articleIds.map(id => state.journalArticles.entities[id])
+    return articleIds && Array.isArray(articleIds) ?
+      articleIds.map(id => state.journalArticles.entities[id])
+      : []
   }
 
 // create a "selector creator" that uses lodash.isEqual instead of ===
@@ -211,6 +277,23 @@ const createDeepEqualSelector = createSelectorCreator(
   defaultMemoize,
   isEqual
 )
+
+export const makeSelectArticleDatesByIds = () => createDeepEqualSelector(
+  [(state, articleIds) => selectArticlesByIds(state, articleIds).map(
+    art => {
+      switch (art.kind) {
+        case 'VICE_LOG_V2':
+          return art.content.date
+        default:
+          return art.entryId
+      }
+    })],
+  dates => dates
+)
+
+export const makeSelectArticleIdsByFilter = () => createDeepEqualSelector(
+  [(state, filter) => state.journalArticles.filterCache[filterToCacheKey(filter)]],
+  ids => ids)
 
 export const makeSelectArticleIdsByEntryId = () => createDeepEqualSelector(
   [(state, entryId) => selectAllArticles(state).map(art => art.entryId == entryId ? art.id : null).filter(a => a)],
@@ -265,7 +348,7 @@ export const selectRestrictionById = createSelector(
   (article, restrictionId) => article.content.restrictions.find(r => r.id === restrictionId)
 )
 
-function extractRefTags(article, state) {
+function extractRefTags(article) {
   const extractFromDraftContentState = contentState => {
     return contentState
       ? Object.values(contentState.entityMap).map(entity => entity.data.mention.name)
@@ -283,12 +366,9 @@ function extractRefTags(article, state) {
       refTags = refTags.concat(
         [].concat.apply([], article.content.restrictions.map(r => r.activities)))
       break;
-    case 'VICE_LOG':
-      const viceLog = selectViceLogById(state, article.content.logId) ?? {}
-      refTags = refTags.concat(viceLog.vices)
-      break;
     case 'VICE_LOG_V2':
       refTags = refTags.concat(article.content.vices)
+      break;
     default:
       refTags = extractFromDraftContentState(article.content.text)
       break;
@@ -298,21 +378,13 @@ function extractRefTags(article, state) {
   return Array.from(tagSet)
 }
 
-function extractUserText(article, state) {
+function extractUserText(article) {
   var userTextBlocks = []
   switch (article.kind) {
     case 'AGENDA':
       userTextBlocks = userTextBlocks.concat(((article.content.text ?? {}).blocks ?? []).map(block => block.text))
       userTextBlocks = userTextBlocks.concat(article.content.tasks.map(task => (task.optNotes ?? "")))
       userTextBlocks = userTextBlocks.concat((article.content.restrictions ?? []).map(r => (r.optNote ?? "")))
-      break;
-    case 'VICE_LOG':
-      // Race condition initial vice log article creation.
-      const viceLog = selectViceLogById(state, article.content.logId) ?? {}
-      userTextBlocks.push(viceLog.failureAnalysis)
-      userTextBlocks.push(viceLog.impactAnalysis)
-      userTextBlocks.push(viceLog.counterfactualAnalysis)
-      userTextBlocks.push(viceLog.attonement)
       break;
     case 'VICE_LOG_V2':
       userTextBlocks.push(article.content.failureAnalysis)
@@ -327,18 +399,18 @@ function extractUserText(article, state) {
   return userTextBlocks.join(' ')
 }
 
-function getWordCount(article, state) {
+function getWordCount(article) {
   function countWords(s) {
     s = s.replace(/(^\s*)|(\s*$)/gi, "");//exclude  start and end white-space
     s = s.replace(/[ ]{2,}/gi, " ");//2 or more space to 1
     s = s.replace(/\n /, "\n"); // exclude newline with a start spacing
     return s.split(' ').filter(String).length;
   }
-  const userText = extractUserText(article, state)
+  const userText = extractUserText(article)
   return countWords(userText)
 }
 
 export const selectWordCount = createSelector(
-  [selectArticlesByIds, (state, ids) => state],
-  (articles, state) => articles.reduce((total, article) => total + getWordCount(article, state), 0)
+  [selectArticlesByIds],
+  (articles) => articles.reduce((total, article) => total + getWordCount(article), 0)
 )

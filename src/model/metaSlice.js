@@ -6,6 +6,45 @@ import {
 import { API, graphqlOperation } from "aws-amplify"
 import { searchFilteredJournalKeys } from '../graphql/customQueries'
 
+export function convertDomainArticleFilterToApi(domainFilter) {
+  if (domainFilter === null) {
+    return {}
+  }
+  const apiFilter = {}
+  const and = []
+  if (domainFilter.searchText) {
+    apiFilter.searchableText = { match: domainFilter.searchText }
+  }
+  if (domainFilter.minWordCount) {
+    apiFilter.wordCount = { gte: domainFilter.minWordCount }
+  }
+  if (domainFilter.startDate) {
+    and.push({ entryId: { gte: domainFilter.startDate } })
+  }
+  if (domainFilter.endDate) {
+    and.push({ entryId: { lte: domainFilter.endDate } })
+  }
+  if (domainFilter.articleTypes && domainFilter.articleTypes.length > 0) {
+    and.push(
+      {
+        or: domainFilter.articleTypes.map(at => { return { kind: { eq: at } } })
+      }
+    )
+  }
+  if (domainFilter.tagsReferenced && domainFilter.tagsReferenced.length > 0) {
+    and.push(
+      {
+        // Might want to make this an 'AND' or possibly configurable by the user
+        or: domainFilter.tagsReferenced.map(rt => { return { refTags: { match: rt } } })
+      }
+    )
+  }
+  if (and.length > 0) {
+    apiFilter.and = and
+  }
+  return apiFilter
+}
+
 export const changeFilter = createAsyncThunk(
   'meta/changeFilter',
   async (payload, { getState }) => {
@@ -15,37 +54,11 @@ export const changeFilter = createAsyncThunk(
       return Promise.resolve(null)
     }
     const fetchParam = { userId, limit: 5000 }
-    fetchParam.filter = {}
-    const and = []
-    if (newFilter.searchText) {
-      fetchParam.filter.searchableText = { match: newFilter.searchText }
-    }
-    if (newFilter.minWordCount) {
-      fetchParam.filter.wordCount = { gte: newFilter.minWordCount }
-    }
-    if (newFilter.startDate) {
-      and.push({ entryId: { gte: newFilter.startDate } })
-    }
-    if (newFilter.endDate) {
-      and.push({ entryId: { lte: newFilter.endDate } })
-    }
-    if (newFilter.articleTypes && newFilter.articleTypes.length > 0) {
-      and.push(
-        {
-          or: newFilter.articleTypes.map(at => { return { kind: { eq: at } } })
-        }
-      )
-    }
-    if (newFilter.tagsReferenced && newFilter.tagsReferenced.length > 0) {
-      and.push(
-        {
-          // Might want to make this an 'AND' or possibly configurable by the user
-          or: newFilter.tagsReferenced.map(rt => { return { refTags: { match: rt } } })
-        }
-      )
-    }
-    if (and.length > 0) {
-      fetchParam.filter.and = and
+    fetchParam.filter = convertDomainArticleFilterToApi(newFilter)
+    
+    if (Object.entries(fetchParam.filter).length === 0) {
+      // Filter has been cleared, no reason to query.
+      return Promise.resolve(null)
     }
     return API.graphql(graphqlOperation(searchFilteredJournalKeys,
       fetchParam))

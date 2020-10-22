@@ -37,7 +37,7 @@ const FilterDrawer = ({ close }) => {
   const currentFilter = useSelector(state => selectFilter(state))
   const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
   const allTagEntities = useSelector((state) => selectAllTagEntitys(state))
-  
+
   const [searchText, setSearchText] = useState((currentFilter ?? {}).searchText)
   const [minWordCount, setMinWordCount] = useState((currentFilter ?? {}).minWordCount)
   const [startDate, setStartDate] = useState((currentFilter ?? {}).startDate)
@@ -51,7 +51,8 @@ const FilterDrawer = ({ close }) => {
     dispatch(changeFilter({ newFilter }))
       .then(r => dispatch(fetchEntries({ maxEndDate: null, maxNumEntries: pageSize })))
   }
-  const onDateRangeChange = ([sd, ed]) => {
+  const onDateRangeChange = (dr) => {
+    const [sd, ed] = dr ? dr : [null, null]
     const startDate = momentAsDate(sd)
     const endDate = momentAsDate(ed)
     setStartDate(startDate)

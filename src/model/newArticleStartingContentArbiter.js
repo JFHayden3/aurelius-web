@@ -1,23 +1,13 @@
 import { selectArticleSettingByArticleKind, selectViceRestrictions } from "./settingsSlice"
-import { computeNextViceLogId, createNewViceLogEntry } from './viceLogSlice'
 import { selectActiveChallengesForDate, selectAllVirtues, selectAllVices } from "./tagEntitySlice"
 import { dateAsYyyyMmDd } from '../kitchenSink'
 
-export function getStartingContent(articleKind, state, dispatch) {
+export function getStartingContent(articleKind, state) {
   const articleSettings = selectArticleSettingByArticleKind(state, articleKind)
   const hint = articleSettings.hintText
   let additionalContent = {}
   if (articleKind === 'AGENDA') {
     additionalContent = getStartingContentForAgenda(new Date(Date.now()), state)
-  } else if (articleKind === 'VICE_LOG') {
-    const nextViceLogId = computeNextViceLogId(state)
-    const payload = {
-      id: nextViceLogId,
-      vices: [],
-      date: null
-    }
-    dispatch(createNewViceLogEntry(payload))
-    additionalContent = { logId: payload.id }
   } else if (articleKind === 'VICE_LOG_V2') {
     additionalContent = {
       date: null,

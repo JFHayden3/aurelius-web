@@ -55,6 +55,9 @@ export const fetchEntries = createAsyncThunk(
     }
 
     const effectiveKeys = selectEffectiveKeys(state)
+    if (effectiveKeys.length === 0) {
+      return Promise.resolve(convertApiToFe([]))
+    }
     const keyIndex = payload.maxEndDate
       ? effectiveKeys.findIndex(k => k == payload.maxEndDate)
       : effectiveKeys.length - 1

@@ -11,7 +11,6 @@ import { Button, Divider, Dropdown, Menu } from 'antd'
 import { DeleteOutlined, MoreOutlined } from '@ant-design/icons';
 import { AgendaArticleContent } from './AgendaArticleContent'
 import { WrittenArticleContent } from './WrittenArticleContent'
-import { ViceLogArticleContent } from './ViceLogArticleContent'
 import { ViceLogV2ArticleContent } from './ViceLogV2ArticleContent'
 
 export const JournalArticle = ({ articleId }) => {
@@ -22,8 +21,6 @@ export const JournalArticle = ({ articleId }) => {
     switch (kind) {
       case 'AGENDA':
         return (<AgendaArticleContent articleId={articleId} />)
-      case 'VICE_LOG':
-        return (<ViceLogArticleContent articleId={articleId} />)
       case 'VICE_LOG_V2':
         return (<ViceLogV2ArticleContent articleId={articleId} />)
       default:
