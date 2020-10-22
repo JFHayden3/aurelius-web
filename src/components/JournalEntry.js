@@ -69,7 +69,7 @@ export const JournalEntry = ({ entryId }) => {
         .map(([kind, settings]) =>
           <Menu.Item
             key={kind}
-            disabled={articleKindsInEntry.includes(kind)}
+            disabled={articleKindsInEntry.includes(kind) && !settings.allowMultiplePerEntry}
             onClick={handleAddArticleClick}>
             {settings.title}
           </Menu.Item>)}

@@ -36,6 +36,7 @@ const systemSettings = {
       hintText: "How have things been going lately? Spend some time thinking about recent triumphs, troubles, concerns, etc",
       promptFrequency: { kind: "DAILY", details: null },
       ordering: 1,
+      allowMultiplePerEntry: false,
       isUserCreated: false,
     },
     DREAMS: {
@@ -43,6 +44,7 @@ const systemSettings = {
       hintText: "Any dreams last night you'd like to record?",
       promptFrequency: { kind: "DAILY", details: null },
       ordering: 2,
+      allowMultiplePerEntry: false,
       isUserCreated: false,
     },
     GRATITUDE: {
@@ -50,6 +52,7 @@ const systemSettings = {
       hintText: "Anything happen recently that you'd like to express something positive about?",
       promptFrequency: { kind: "DAILY", details: null },
       ordering: 4,
+      allowMultiplePerEntry: false,
       isUserCreated: false,
     },
     AGENDA: {
@@ -57,13 +60,15 @@ const systemSettings = {
       hintText: "What kind of day would you like to have? When you're in bed tonight reflecting on the day, what will make you feel proud -- like the day was worth showing up for?",
       promptFrequency: { kind: "DAILY", details: null },
       ordering: 3,
+      allowMultiplePerEntry: false,
       isUserCreated: false,
     },
     VICE_LOG_V2: {
-      title: "Vice log entry (TODO remove this V2)",
+      title: "Vice log entry",
       hintText: "A recording and accounting of a particular unintentional lapse into a negative behavior",
       promptFrequency: { kind: "NEVER", details: null },
       ordering: 6,
+      allowMultiplePerEntry: true,
       isUserCreated: false,
     },
   }
@@ -75,6 +80,7 @@ export function computeNewSavedViceRestrictionId(state) {
     .filter(e => e)
   return "" + (Math.max.apply(null, numericalKeys) + 1)
 }
+
 
 function mergeSystemSettingsWithUserSettings(userSettings) {
   // Pull in any missing top-level settings
@@ -98,6 +104,13 @@ function mergeSystemSettingsWithUserSettings(userSettings) {
       userSettings.articleSettings[key].hintText = systemArticleSetting.hintText
     } else {
       userSettings.articleSettings[key] = systemArticleSetting
+    }
+  })
+
+  // Kill any legacy system-defined article settings
+  Object.entries(userSettings.articleSettings).forEach(([key, settingFromUser]) => {
+    if (!(key in systemSettings.articleSettings) && !settingFromUser.isUserCreated) {
+      delete userSettings.articleSettings[key]
     }
   })
 }
