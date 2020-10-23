@@ -8,7 +8,7 @@ export const DowPicker = ({ value, onChange }) => {
   const [menuVisible, setMenuVisible] = useState(false)
   const sortedVal = [...value].map(v => "" + v)
   sortedVal.sort()
-  
+
   const options = {
     0: { abrev: 'S', short: 'Sun', long: 'Sunday' },
     1: { abrev: 'M', short: 'Mon', long: 'Monday' },
@@ -34,6 +34,15 @@ export const DowPicker = ({ value, onChange }) => {
       case 4:
         return sortedVal.map(v => options[v].short).join(', ')
       case 5:
+        if (sortedVal.includes('1')
+          && sortedVal.includes('2')
+          && sortedVal.includes('3')
+          && sortedVal.includes('4')
+          && sortedVal.includes('5')) {
+            return 'Weekdays'
+          } else {
+            return sortedVal.map(v => options[v].abrev).join('')
+          }
       case 6:
         return sortedVal.map(v => options[v].abrev).join('')
       case 7:

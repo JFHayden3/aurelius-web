@@ -30,10 +30,12 @@ export function momentAsDate(moment) {
   return moment ? Number.parseInt(moment.format("YYYYMMDD")) : null
 }
 
+export function makeNumTwoDigit(num) {
+  return num < 10 ? "0" + num : num.toString()
+}
+
 export function dateAsYyyyMmDd(date) {
-  function makeNumTwoDigit(num) {
-    return num < 10 ? "0" + num : num.toString()
-  }
+  
   function monthStr(date) {
     const monthNum = date.getMonth() + 1
     return makeNumTwoDigit(monthNum)
