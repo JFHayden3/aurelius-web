@@ -6,112 +6,43 @@ import { JournalEntry } from './JournalEntry'
 import React, { useState } from 'react'
 import {
   Affix,
-  List, Card, Divider, Layout, Typography,
-  Button, Spin, Drawer, Space, Input, InputNumber, DatePicker,
-  Select,
+  List, Card, Divider,
+  Button, Spin, Drawer, Space,
   Tooltip
 } from 'antd';
-import { SearchOutlined } from '@ant-design/icons'
-
+import { SearchOutlined, DownloadOutlined } from '@ant-design/icons'
 import { useSelector, useDispatch } from 'react-redux'
-import { dateAsMoment, momentAsDate } from '../kitchenSink'
+import { ExportModal } from './ExportModal'
+import { ArticleFilterWidget } from './ArticleFilterWidget'
 import {
   selectEntryIds,
   selectUnfetchedEntriesExist,
   selectEntriesLoading,
   fetchEntries
 } from '../model/journalEntriesSlice'
-import { selectAllTagEntitys } from '../model/tagEntitySlice'
 import { changeFilter, selectFilter } from '../model/metaSlice'
-import { selectAllArticleSettings } from '../model/settingsSlice'
 import InfiniteScroll from 'react-infinite-scroller';
-import moment from 'moment'
 
 const pageSize = 11
-const { Title, Text } = Typography
-const { Header } = Layout
-const { RangePicker } = DatePicker
-const { Option } = Select;
 
 const FilterDrawer = ({ close }) => {
   const currentFilter = useSelector(state => selectFilter(state))
-  const allArticleSettings = useSelector((state) => selectAllArticleSettings(state))
-  const allTagEntities = useSelector((state) => selectAllTagEntitys(state))
-
-  const [searchText, setSearchText] = useState((currentFilter ?? {}).searchText)
-  const [minWordCount, setMinWordCount] = useState((currentFilter ?? {}).minWordCount)
-  const [startDate, setStartDate] = useState((currentFilter ?? {}).startDate)
-  const [endDate, setEndDate] = useState((currentFilter ?? {}).endDate)
-  const [articleTypes, setArticleTypes] = useState((currentFilter ?? { articleTypes: [] }).articleTypes)
-  const [tagsReferenced, setTagsReferenced] = useState((currentFilter ?? { tagsReferenced: [] }).tagsReferenced)
+  const emptyFilter = { articleTypes: [], tagsReferenced: [] }
+  const [filterValue, setFilterValue] = useState(currentFilter ?? emptyFilter)
 
   const dispatch = useDispatch()
 
-  function dispatchChangeFilter(newFilter) {
-    dispatch(changeFilter({ newFilter }))
-      .then(r => dispatch(fetchEntries({ maxEndDate: null, maxNumEntries: pageSize })))
-  }
-  const onDateRangeChange = (dr) => {
-    const [sd, ed] = dr ? dr : [null, null]
-    const startDate = momentAsDate(sd)
-    const endDate = momentAsDate(ed)
-    setStartDate(startDate)
-    setEndDate(endDate)
-  }
   const onApply = e => {
-    dispatchChangeFilter({ searchText, minWordCount, startDate, endDate, articleTypes, tagsReferenced })
+    dispatch(changeFilter({ newFilter: filterValue }))
+      .then(r => dispatch(fetchEntries({ maxEndDate: null, maxNumEntries: pageSize })))
     close()
   }
   const onClear = e => {
-    setSearchText(null)
-    dispatchChangeFilter(null)
-    setMinWordCount(null)
-    setStartDate(null)
-    setEndDate(null)
-    setArticleTypes([])
-    setTagsReferenced([])
-  }
-  function disabledDate(current) {
-    // Can not select days before today and today
-    return current && current > moment().endOf('day');
+    setFilterValue(emptyFilter)
   }
   return (
     <Space direction='vertical' size='middle'>
-      <Space direction='vertical'>
-        <Input placeholder='Search...' value={searchText} onChange={e => setSearchText(e.target.value)} />
-      </Space>
-      <Space direction='vertical' size='small'>
-        <Text>Date range</Text>
-        <RangePicker disabledDate={disabledDate}
-          value={[dateAsMoment(startDate), dateAsMoment(endDate)]}
-          onChange={onDateRangeChange} />
-      </Space>
-      <Space direction='horizontal'>
-        <Text>Minimum word count</Text>
-        <InputNumber value={minWordCount} onChange={v => setMinWordCount(v)} min={0} />
-      </Space>
-      <Space direction='vertical' style={{ width: '100%' }}>
-        <Text>Article types</Text>
-        <Select
-          style={{ width: '100%' }}
-          mode="multiple"
-          value={articleTypes}
-          onChange={v => setArticleTypes(v)}>
-          {Object.entries(allArticleSettings).map(([key, setting]) =>
-            <Option key={key}>{setting.title}</Option>)}
-        </Select>
-      </Space>
-      <Space direction='vertical' style={{ width: '100%' }}>
-        <Text>Ref tags in article</Text>
-        <Select
-          style={{ width: '100%' }}
-          mode="multiple"
-          value={tagsReferenced}
-          onChange={v => setTagsReferenced(v)}>
-          {Object.values(allTagEntities).map((te) =>
-            <Option key={te.refTag}>#{te.refTag}</Option>)}
-        </Select>
-      </Space>
+      <ArticleFilterWidget defaultValue={filterValue} onChange={v => setFilterValue(v)} />
       <Space direction='horizontal'>
         <Button type='primary' onClick={onApply}>Apply</Button>
         <Button type='primary' danger disabled={currentFilter === null} onClick={onClear}>Clear</Button>
@@ -121,6 +52,7 @@ const FilterDrawer = ({ close }) => {
 }
 
 export const LifeJournal = () => {
+  const [exportModalVisible, setExportModalVisible] = useState(false)
   const [filterDrawerVisible, setFilterDrawerVisible] = useState(false)
   const dispatch = useDispatch()
   const entryIds = useSelector(selectEntryIds)
@@ -133,6 +65,9 @@ export const LifeJournal = () => {
   }
   const onSearchClick = e => {
     setFilterDrawerVisible(true)
+  }
+  const onDownloadClick = e => {
+    setExportModalVisible(true)
   }
   return (
     <div>
@@ -173,6 +108,13 @@ export const LifeJournal = () => {
               <Spin />
             </div>}
         </List>
+        <Affix offsetBottom={120} style={{ position: 'absolute', left: '90%' }}>
+          <Tooltip title="Download">
+            <Button type='primary' shape='circle' size='large' onClick={onDownloadClick}>
+              <DownloadOutlined />
+            </Button>
+          </Tooltip>
+        </Affix>
         <Affix offsetBottom={70} style={{ position: 'absolute', left: '90%' }}>
           <Tooltip title="Search">
             <Button type='primary' shape='circle' size='large' onClick={onSearchClick}>
@@ -181,6 +123,7 @@ export const LifeJournal = () => {
           </Tooltip>
         </Affix>
       </InfiniteScroll>
+      <ExportModal isVisible={exportModalVisible} close={e => setExportModalVisible(false)} />
     </div>
   )
 }

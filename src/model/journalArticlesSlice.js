@@ -9,8 +9,9 @@ import { API, graphqlOperation } from "aws-amplify"
 import { selectFetchUserField, selectFilteredKeys, convertDomainArticleFilterToApi } from './metaSlice'
 import { createJournalArticle, deleteJournalArticle } from '../graphql/mutations'
 import { searchJournalArticles } from '../graphql/queries'
-import { isEqual } from 'lodash'
-import { selectTargetDailyWordCount } from './settingsSlice'
+import { isEqual, orderBy } from 'lodash'
+import { apiDateToFe } from '../kitchenSink'
+import { Storage } from 'aws-amplify'
 
 const articlesAdapter = createEntityAdapter({
   sortComparer: (a, b) => a.id - b.id
@@ -41,6 +42,66 @@ function convertApiToFe(apiArticle) {
     content,
   }
 }
+
+export const downloadArticles = createAsyncThunk(
+  'journalArticles/downloadArticles',
+  async (payload, { getState }) => {
+    // TODO: URL cache
+    const { downloadFilter } = payload
+
+    const userId = selectFetchUserField(getState())
+    const fetchParam = { userId, limit: 5000 }
+
+    const filterParam = convertDomainArticleFilterToApi(downloadFilter)
+    if (Object.entries(filterParam).length > 0) {
+      fetchParam.filter = filterParam
+    }
+    return API.graphql(graphqlOperation(searchJournalArticles, fetchParam))
+      .then(response => response.data.searchJournalArticles.items.map(convertApiToFe))
+      .then(res => {
+        const strs = []
+        var currentEntryId = ""
+        orderBy(res, res => res.entryId + ' ' + res.id, 'asc').forEach(article => {
+          if (article.entryId !== currentEntryId) {
+            strs.push('-- ' + apiDateToFe(article.entryId) + ' --')
+            currentEntryId = article.entryId
+          }
+
+          strs.push('[' + article.title + ']')
+          switch (article.kind) {
+            case 'AGENDA':
+              // TODO
+              break;
+            case 'VICE_LOG_V2':
+              // TODO add specific vices 
+              strs.push('- Failure analysis:')
+              strs.push(article.content.failureAnalysis)
+              strs.push('- Impact analysis:')
+              strs.push(article.content.impactAnalysis)
+              strs.push('- Counterfactual analysis:')
+              strs.push(article.content.counterfactualAnalysis)
+              strs.push('- Atonement plan:')
+              strs.push(article.content.attonement)
+              break;
+            default:
+              strs.push(extractUserText(article))
+              break;
+          }
+          strs.push('')
+        })
+        const storageKey = 'export - ' + Date.now()
+        return Storage.vault.put(storageKey, strs.join('\n'), {
+          level: 'private',
+          contentType: 'text/plain'
+        }).then(storeRes =>
+          Storage.vault.get(storageKey, { level: 'private', expires: 600 })
+            .then(link => {
+              return { link, fileName: storageKey }
+            })
+        )
+      })
+  }
+)
 
 export const addArticle = createAsyncThunk(
   'journalArticles/addArticle',
