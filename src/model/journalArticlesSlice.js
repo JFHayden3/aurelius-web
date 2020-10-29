@@ -10,7 +10,7 @@ import { selectFetchUserField, selectFilteredKeys, convertDomainArticleFilterToA
 import { createJournalArticle, deleteJournalArticle } from '../graphql/mutations'
 import { searchJournalArticles } from '../graphql/queries'
 import { isEqual, orderBy } from 'lodash'
-import { apiDateToFe } from '../kitchenSink'
+import { apiDateToFe, prettyPrintDuration, prettyPrintTime, RestrictionConversion } from '../kitchenSink'
 import { Storage } from 'aws-amplify'
 
 const articlesAdapter = createEntityAdapter({
@@ -70,10 +70,33 @@ export const downloadArticles = createAsyncThunk(
           strs.push('[' + article.title + ']')
           switch (article.kind) {
             case 'AGENDA':
-              // TODO
+              strs.push(extractTextFromBlocks(article.content.text).join(' '))
+              strs.push('\t- Agenda:')
+              article.content.tasks.forEach(task => {
+                const { activity, optDuration, optTime, optNotes } = task
+                const prettyTime = prettyPrintTime(optTime)
+                const timeStr = prettyTime ? prettyTime + ": " : ""
+                const activityStr = activity && activity.content ? activity.content : ""
+                const durationStr = prettyPrintDuration(optDuration)
+                strs.push('\t * ' + timeStr + activityStr + ' ' + durationStr)
+                if (optNotes) {
+                  strs.push('\t\t - ' + optNotes)
+                }
+              })
+              strs.push('\t- Restrictions:')
+              article.content.restrictions.forEach(r => {
+                const { activities, optNote, restriction } = r
+                const restrictionStr = RestrictionConversion.prettyPrintRestriction(
+                  RestrictionConversion.convertModelToPresentation(restriction))
+                const activitiesStr = activities.join(', ')
+                strs.push('\t * ' + activitiesStr + ': ' + restrictionStr)
+                if (optNote) {
+                  strs.push('\t\t\ - ' + optNote)
+                }
+              })
               break;
             case 'VICE_LOG_V2':
-              // TODO add specific vices 
+              strs.push('- Behavior(s): ' + article.content.vices.join(', '))
               strs.push('- Failure analysis:')
               strs.push(article.content.failureAnalysis)
               strs.push('- Impact analysis:')
@@ -439,11 +462,15 @@ function extractRefTags(article) {
   return Array.from(tagSet)
 }
 
+function extractTextFromBlocks(textBlock) {
+  return ((textBlock ?? {}).blocks ?? []).map(block => block.text)
+}
+
 function extractUserText(article) {
   var userTextBlocks = []
   switch (article.kind) {
     case 'AGENDA':
-      userTextBlocks = userTextBlocks.concat(((article.content.text ?? {}).blocks ?? []).map(block => block.text))
+      userTextBlocks = userTextBlocks.concat(extractTextFromBlocks(article.content.text))
       userTextBlocks = userTextBlocks.concat(article.content.tasks.map(task => (task.optNotes ?? "")))
       userTextBlocks = userTextBlocks.concat((article.content.restrictions ?? []).map(r => (r.optNote ?? "")))
       break;
@@ -454,7 +481,7 @@ function extractUserText(article) {
       userTextBlocks.push(article.content.attonement)
       break;
     default:
-      userTextBlocks = userTextBlocks.concat((article.content.text.blocks ?? []).map(block => block.text))
+      userTextBlocks = userTextBlocks.concat(extractTextFromBlocks(article.content.text))
       break;
   }
   return userTextBlocks.join(' ')

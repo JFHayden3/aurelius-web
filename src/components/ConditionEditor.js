@@ -4,120 +4,17 @@ import { selectAllVirtues } from '../model/tagEntitySlice'
 
 import { useSelector } from 'react-redux'
 import { Typography, Space, Cascader, Modal, Input } from 'antd';
+import { RestrictionConversion } from '../kitchenSink'
 
 const { Text } = Typography;
 
-function convertModelToPresentation(modelValue) {
-  if (!modelValue || !modelValue.details) {
-    return []
+function createOption({ value, children = null, label = null, openModal = false }) {
+  return {
+    value,
+    children,
+    label: label ? label : RestrictionConversion.getLabel(value),
+    openModal
   }
-  var presValue = modelValue.isNegation ? ['FORBIDDEN'] : ['ALLOWED']
-  const interval = modelValue.details.interval
-  if (modelValue.details.condition) {
-    presValue.push(modelValue.details.condition)
-  } else if (interval.begin.kind === interval.end.kind) {
-    switch (interval.begin.kind) {
-      case 'TIME':
-        presValue.push('BETWEEN')
-        presValue.push(interval.begin.spec)
-        presValue.push(interval.end.spec)
-        break;
-      case 'ACTIVITY':
-        presValue.push('DURING')
-        // TODO: disambiguate custom vs standard here
-        presValue.push(interval.begin.spec)
-        break;
-      case 'OPEN':
-        presValue.push('ENTIRELY')
-        break;
-    }
-  }
-  else { // begin kind != end kind
-    // We know that one end has to be open
-    const closedIntervalSide = interval.begin.kind === 'OPEN' ? interval.end : interval.begin
-    presValue.push(closedIntervalSide === interval.end ? 'BEFORE' : 'AFTER')
-    presValue.push(closedIntervalSide.kind === 'TIME' ? 'SPECIFIC_TIME' : 'ACTIVITY')
-    // TODO: maybe: disambiguate custom activity here
-    presValue.push(closedIntervalSide.spec)
-  }
-
-  return presValue
-}
-
-function convertPresentationToModel(presValue) {
-  if (presValue.length === 0) {
-    return null
-  }
-  const modelValue = {
-    isNegation: presValue[0] === 'FORBIDDEN'
-    , details: {}
-  }
-
-  var intervalBegin = null
-  var intervalEnd = null
-  function extractIntervalPointFromPres(presValue) {
-    const kind = presValue[2] === 'SPECIFIC_TIME' ? 'TIME' : 'ACTIVITY'
-    const spec = presValue[3] === 'CUSTOM_ACTIVITY' ? presValue[4] : presValue[3]
-    return { kind, spec }
-  }
-  switch (presValue[1]) {
-    case 'BEFORE':
-      intervalBegin = { kind: 'OPEN', spec: null }
-      intervalEnd = extractIntervalPointFromPres(presValue)
-      break;
-    case 'AFTER':
-      intervalBegin = extractIntervalPointFromPres(presValue)
-      intervalEnd = { kind: 'OPEN', spec: null }
-      break;
-    case 'BETWEEN':
-      intervalBegin = { kind: 'TIME', spec: presValue[2] }
-      intervalEnd = { kind: 'TIME', spec: presValue[3] }
-      break;
-    case 'DURING':
-      intervalBegin = intervalEnd = {
-        kind: 'ACTIVITY',
-        spec: presValue[2] === 'CUSTOM_ACTIVITY' ? presValue[3] : presValue[2]
-      }
-      break;
-    case 'ENTIRELY':
-      intervalBegin = intervalEnd = { kind: 'OPEN', spec: null }
-      break;
-    case 'CUSTOM_CONDITION':
-      modelValue.details.condition = presValue[2]
-      break;
-  }
-  modelValue.details.interval = { begin: intervalBegin, end: intervalEnd }
-  return modelValue
-}
-
-function conditionAsHumanReadable(selectedPresOptions) {
-  function optionToHuman(optVal) {
-    switch (optVal.value) {
-      case 'ALLOWED':
-      case 'FORBIDDEN':
-        return optVal.label
-      case 'SPECIFIC_TIME':
-      case 'ACTIVITY':
-      case 'ENTIRELY':
-        return null
-      case 'BEFORE':
-      case 'AFTER':
-      case 'BETWEEN':
-      case 'DURING':
-        return optVal.label.toLowerCase()
-      case 'CUSTOM_CONDITION':
-      case 'CUSTOM_ACTIVITY':
-        return '...'
-      default:
-        return optVal.label
-    }
-  }
-  const readableStrs = selectedPresOptions.map(opt => optionToHuman(opt))
-  const betweenIndex = readableStrs.findIndex(s => s === 'between')
-  if (betweenIndex > 0) {
-    readableStrs.splice(betweenIndex + 2, 0, 'and')
-  }
-  return readableStrs.join(' ')
 }
 
 export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
@@ -127,98 +24,61 @@ export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
   const onCustomActivityModalOk = e => {
     setShowCustomActivityModal(false)
     if (customActivityText !== "") {
-      onChange(convertPresentationToModel(
+      onChange(RestrictionConversion.convertPresentationToModel(
         customActivityPreamble.map(opt => opt.value).concat([customActivityText])))
     }
   }
   const onCustomActivityModalCancel = e => {
     setShowCustomActivityModal(false)
   }
-
   const allVirtues = useSelector(state => selectAllVirtues(state))
   const activityOptions = allVirtues.map(virtue => {
-    return { value: virtue.refTag, label: virtue.name }
+    return createOption({ value: virtue.refTag, label: virtue.name })
   })
-  activityOptions.push({ value: 'CUSTOM_ACTIVITY', label: 'Other...', openModal: true })
+  activityOptions.push(createOption({ value: 'CUSTOM_ACTIVITY', openModal: true }))
   const hours = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
   const hourOptions =
-    hours.map(h => { return { value: (h % 12), label: (h + ":00am") } })
+    hours.map(h => createOption({ value: (h % 12) }))
       .concat(
-        hours.map(h => { return { value: (h % 12) + 12, label: (h + ":00pm") } })
+        hours.map(h => createOption({ value: (h % 12) + 12 }))
       )
 
   const temporalPredicates = [
-    {
-      value: 'SPECIFIC_TIME',
-      label: 'Specific time',
-      children: hourOptions
-    },
-    {
-      value: 'ACTIVITY',
-      label: 'Activity',
-      children: activityOptions
-    }
+    createOption({ value: 'SPECIFIC_TIME', children: hourOptions }),
+    createOption({ value: 'ACTIVITY', children: activityOptions })
     // TODO: informal time maybe?
   ]
   const topLevelPredicates = [
-    {
-      value: 'BEFORE',
-      label: 'Before',
-      children: temporalPredicates
-    },
-    {
-      value: 'AFTER',
-      label: 'After',
-      children: temporalPredicates
-    },
-    {
+    createOption({ value: 'BEFORE', children: temporalPredicates }),
+    createOption({ value: 'AFTER', children: temporalPredicates }),
+    createOption({
       value: 'BETWEEN',
-      label: "Between",
       children: hourOptions.map(opt => {
         const copy = { ...opt }
         copy.children = hourOptions.filter(ho => ho.value > opt.value)
         return copy
       })
-    },
-    {
-      value: 'DURING',
-      label: 'During',
-      children: activityOptions
-    },
-    {
-      value: 'ENTIRELY',
-      label: 'Entirely'
-    },
-    {
-      value: 'CUSTOM_CONDITION',
-      label: 'Other...',
-      openModal: true,
-    }
+    }),
+    createOption({ value: 'DURING', children: activityOptions }),
+    createOption({ value: 'ENTIRELY' }),
+    createOption({ value: 'CUSTOM_CONDITION', openModal: true })
   ]
   const options = [
-    {
-      value: 'ALLOWED',
-      label: 'Allowed',
-      children: topLevelPredicates,
-    },
-    {
-      value: 'FORBIDDEN',
-      label: "Forbidden",
-      children: topLevelPredicates
-    }
+    createOption({ value: 'ALLOWED', children: topLevelPredicates, }),
+    createOption({ value: 'FORBIDDEN', children: topLevelPredicates })
   ]
   const onCascaderSelectionChange = (val, selectedOptions) => {
     if ((selectedOptions[selectedOptions.length - 1] ?? {}).openModal) {
       setCustomActivityPreamble(selectedOptions)
       setShowCustomActivityModal(true)
     } else {
-      const modelValue = convertPresentationToModel(val)
+      const modelValue = RestrictionConversion.convertPresentationToModel(val)
       onChange(modelValue)
     }
   }
   const displayRender = (label, selectedOptions) => {
     return (
-      conditionAsHumanReadable(selectedOptions)
+      RestrictionConversion.prettyPrintRestriction(selectedOptions)
     )
   }
   // This algorithm does two things:
@@ -227,7 +87,7 @@ export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
   // and second, it builds the array of our currently selected options so we can convert
   // that to human readable (the human-readable algorithm operates on options rather than labels
   // or model value) for the readonly display
-  const presVal = convertModelToPresentation(value)
+  const presVal = RestrictionConversion.convertModelToPresentation(value)
   var i = 0
   var presValOptionsLevel = options
   const selectedOptions = []
@@ -236,14 +96,14 @@ export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
     // This allows us to nicely handle custom conditions/activities
     var opt = presValOptionsLevel.find(opt => opt.value === presVal[i])
     if (!opt) {
-      opt = { value: presVal[i], label: presVal[i], children: [] }
+      opt = createOption({ value: presVal[i] })
       presValOptionsLevel.push(opt)
     }
     selectedOptions.push(opt)
     ++i
     presValOptionsLevel = opt.children ?? []
   }
-  const selectionAsHumanReadable = conditionAsHumanReadable(selectedOptions)
+  const selectionAsHumanReadable = RestrictionConversion.prettyPrintRestriction(selectedOptions)
   return (
     <div>
       {!isReadOnly &&
@@ -259,7 +119,7 @@ export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
         onCancel={onCustomActivityModalCancel}
         visible={showCustomActivityModal}>
         <Space direction='horizontal'>
-          <Text strong={true}>{conditionAsHumanReadable(customActivityPreamble)}</Text>
+          <Text strong={true}>{RestrictionConversion.prettyPrintRestriction(customActivityPreamble)}</Text>
           <Input value={customActivityText} maxLength={40} onChange={e => setCustomActivityText(e.target.value)}></Input>
         </Space>
       </Modal>

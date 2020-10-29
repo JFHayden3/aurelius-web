@@ -15,14 +15,36 @@ const systemSettings = {
     0: {
       displayName: "Unrestricted",
       isUserCreated: false,
-      spec: []
+      spec: [
+        {
+          condition: {
+            isNegation: false,
+            details: {
+              interval: {
+                begin: { kind: 'OPEN', spec: null },
+                end: { kind: 'OPEN', spec: null }
+              }
+            }
+          },
+          appliesOn: [0, 1, 2, 3, 4, 5, 6],
+          notes: ""
+        }
+      ]
     },
     1: {
       displayName: "Forbidden",
       isUserCreated: false,
       spec: [
         {
-          restriction: "Total abstinence",
+          condition: {
+            isNegation: true,
+            details: {
+              interval: {
+                begin: { kind: 'OPEN', spec: null },
+                end: { kind: 'OPEN', spec: null }
+              }
+            }
+          },
           appliesOn: [0, 1, 2, 3, 4, 5, 6],
           notes: ""
         }

@@ -11,6 +11,8 @@ import { Timeline, Button, Space, Typography, Tooltip } from 'antd';
 import { AgendaTaskModal } from './AgendaTaskModal'
 import { MenuOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { useDrop, useDrag } from 'react-dnd'
+import { times } from 'lodash';
+import { prettyPrintDuration, prettyPrintTime } from '../kitchenSink';
 
 const { Text } = Typography
 
@@ -28,26 +30,15 @@ const ReadonlyTaskListItem = ({ articleId, taskId, onEditClick }) => {
     dispatch(removeAgendaTask({ articleId, removeId: taskId }))
   }
   const { activity, optDuration, optTime, optNotes } = task
-  var durationStr = null
-  if (optDuration) {
-    durationStr = "for "
-    if (optDuration.hour !== 0) {
-      durationStr += optDuration.hour
-      durationStr += optDuration.hour > 1 ? " hours" : " hour"
-      durationStr += optDuration.minute ? " and " : ""
-    }
-    if (optDuration.minute !== 0) {
-      durationStr += optDuration.minute
-      durationStr += optDuration.minute > 1 ? " minutes" : "minute"
-    }
-  }
+  var durationStr = prettyPrintDuration(optDuration)
+  const timeStr = prettyPrintTime(optTime)
   return (
     <div ref={drag}
       style={{
         opacity: isDragging ? 0.5 : 1,
       }}>
       <Space direction='horizontal' size='small' align='start'>
-        <MenuOutlined style={{ cursor: 'grab', paddingTop:'6px' }} />
+        <MenuOutlined style={{ cursor: 'grab', paddingTop: '6px' }} />
         <div
           onMouseEnter={e => setHovered(true)}
           onMouseLeave={e => setHovered(false)}>
@@ -61,15 +52,11 @@ const ReadonlyTaskListItem = ({ articleId, taskId, onEditClick }) => {
                 boxShadow: hovered ? '2px 2px 3px gray' : 'unset'
               }}>
               <Space direction='horizontal' size='middle' align='start'>
-                {optTime &&
-                  <Text>{moment(optTime.hour + ':' + optTime.minute, "h:mm").format("h:mm a")}</Text>
-                }
+                {timeStr && <Text>{timeStr}</Text>}
                 <Space direction='vertical' size='small' style={{ width: "100%" }}>
                   <Space direction='horizontal' style={{ width: "100%" }}>
                     <Text>{activity.content}</Text>
-                    {durationStr &&
-                      <Text>{durationStr}</Text>
-                    }
+                    {durationStr && <Text>{durationStr}</Text>}
                   </Space>
                   {optNotes &&
                     <Text ellipsis={{ rows: 2, expandable: true, symbol: 'more' }} type='secondary' style={{ fontStyle: 'italic' }}>
