@@ -19,7 +19,6 @@ import { WrittenResponse, gutter, colSpan, TextItemList } from './ViceVirtueShar
 import { ViceLogEntry } from './ViceLogEntry'
 import { dateAsYyyyMmDd, apiDateToFe, dateAsMoment } from '../kitchenSink'
 import { zip } from 'lodash'
-import { wait } from '@testing-library/react'
 const { Title, Text } = Typography;
 
 export const ViceEditor = ({ match }) => {
@@ -79,19 +78,16 @@ export const ViceEditor = ({ match }) => {
           <Text code={true}>#{vice.refTag}</Text>
         </Col>
       </Row>
-      <Row gutter={gutter}>
-        <Col span={4}>
-          <Text strong={true}>Default restrictions</Text>
-        </Col>
-        <Col span={12}>
-          <RestrictionEditor
-            customKeyId={"V" + vice.id}
-            currentRestrictionId={vice.defaultEngagementRestriction.kind}
-            onRestrictionIdChange={onRestrictionIdSelectionChange}
-            allowSaving={true}
-          />
-        </Col>
-      </Row>
+      <Space style={{ width: '70%' }} direction='vertical'>
+        <Text strong={true}>Default restrictions</Text>
+        <RestrictionEditor
+          style={{backgroundColor:'white'}}
+          customKeyId={"V" + vice.id}
+          currentRestrictionId={vice.defaultEngagementRestriction.kind}
+          onRestrictionIdChange={onRestrictionIdSelectionChange}
+          allowSaving={true}
+        />
+      </Space>
       <WrittenResponse
         text="Description"
         entity={vice}
