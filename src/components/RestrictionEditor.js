@@ -6,17 +6,16 @@ import {
   , makeCustomViceRestrictionSaved
   , computeNewSavedViceRestrictionId
 } from '../model/settingsSlice'
-
 import { ConditionEditor } from './ConditionEditor'
 import { DowPicker } from './DowPicker'
 import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined } from '@ant-design/icons'
-import { Typography, List, Button, Tooltip, Space, Select } from 'antd';
+import { Typography, List, Button, Tooltip, Space, Select, Row, Col } from 'antd';
 
 const { Text } = Typography;
 const { Option } = Select
 
-export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentRestrictionId, allowSaving = false }) => {
+export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentRestrictionId, allowSaving = false, isReadOnly = false }) => {
   const dispatch = useDispatch()
   const nextSavedViceRestrictionId = useSelector(state => computeNewSavedViceRestrictionId(state))
   const customKey = 'CUSTOM-FOR-' + customKeyId
@@ -93,41 +92,61 @@ export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentR
     })
     dispatchAppropriateSpecChangeAction(newSpec)
   }
+  const onRemoveRestrictionComponent = toRemove => e => {
+    const newSpec = currentRestriction.spec.filter(s => s !== toRemove)
+    dispatchAppropriateSpecChangeAction(newSpec)
+  }
   return (
     <Space direction='vertical' style={{ width: '100%' }}>
-      <Space direction='horizontal'>
-        <Select value={currentRestriction.displayName}
-          optionLabelProp="title"
-          onChange={onRestrictionKindSelectionChange}>
-          {Object.entries(savedViceRestrictions)
-            .filter(filterOtherCustomRestrictions)
-            .map(([key, restriction]) =>
-              <Option
-                key={key}
-                title={restriction.displayName}
-                label={restriction.displayName}>{restriction.displayName}</Option>)}
-        </Select>
-        {currentRestrictionId === customKey && allowSaving &&
-          <div>
-            <Tooltip title="Create as new restriction option. Allows sharing with other vices">
-              <Text editable={{ onChange: setRestrictionSettingName }} />
-            </Tooltip>
-          </div>
-        }
-      </Space>
-      <List itemLayout='vertical' dataSource={currentRestriction.spec} style={{ width: '100%' }}
+      {!isReadOnly &&
+        <Space direction='horizontal'>
+          <Select value={currentRestriction.displayName}
+            optionLabelProp="title"
+            onChange={onRestrictionKindSelectionChange}>
+            {Object.entries(savedViceRestrictions)
+              .filter(filterOtherCustomRestrictions)
+              .map(([key, restriction]) =>
+                <Option
+                  key={key}
+                  title={restriction.displayName}
+                  label={restriction.displayName}>{restriction.displayName}</Option>)}
+          </Select>
+          {currentRestrictionId === customKey && allowSaving &&
+            <div>
+              <Tooltip title="Create as new restriction option. Allows sharing with other vices">
+                <Text editable={{ onChange: setRestrictionSettingName }} />
+              </Tooltip>
+            </div>
+          }
+        </Space>}
+      <List itemLayout='vertical'
+        dataSource={currentRestriction.spec}
+        style={{ width: '100%' }}
         renderItem={specComponent =>
           <List.Item>
-            <Space direction='horizontal' style={{ width: '100%' }}>
-              <DowPicker
-                value={specComponent.appliesOn}
-                onChange={onAppliesOnChange(specComponent)} />
-              <ConditionEditor style={{ width: '100%' }} onChange={onRestrictionConditionChange(specComponent)} value={specComponent.condition} />
-            </Space>
+            <Row>
+              <Col flex={2}>
+                <DowPicker
+                  value={specComponent.appliesOn}
+                  isReadOnly={isReadOnly}
+                  onChange={onAppliesOnChange(specComponent)} />
+              </Col>
+              <Col flex={2}>
+                <div style={{ width: '100%', float: 'right' }}>
+                  <ConditionEditor
+                    style={{ width: '100%' }}
+                    isReadOnly={isReadOnly}
+                    onChange={onRestrictionConditionChange(specComponent)}
+                    onDelete={onRemoveRestrictionComponent(specComponent)}
+                    value={specComponent.condition} />
+                </div>
+              </Col>
+            </Row>
           </List.Item>}>
-        <List.Item>
-          <Button block type="dashed" onClick={onAddRestrictionComponentClick}><PlusOutlined />Additional restrictions</Button>
-        </List.Item>
+        {!isReadOnly &&
+          <List.Item>
+            <Button block type="dashed" onClick={onAddRestrictionComponentClick}><PlusOutlined />Additional restrictions</Button>
+          </List.Item>}
       </List>
     </Space>
   )

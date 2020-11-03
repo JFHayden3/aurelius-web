@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
 import { selectChallengeById, updateEntity, selectAllVirtues, selectAllVices } from '../model/tagEntitySlice'
 import { useSelector, useDispatch, useStore } from 'react-redux'
-import { PlusOutlined } from '@ant-design/icons'
-import { Typography, List, Divider, Button, Collapse, Space, DatePicker, Input, Radio, Select, Tooltip, Menu, Dropdown } from 'antd';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons'
+import {
+  Typography, List, Divider, Button,
+  Space, DatePicker, Input,
+  Select, Tooltip, Menu,
+  Card,
+  Dropdown
+} from 'antd';
 import { RestrictionEditor } from './RestrictionEditor'
 import { EngagementScheduleEditor } from './EngagementScheduleEditor'
 import { dateAsMoment, momentAsDate } from '../kitchenSink'
-import moment from 'moment';
+import { isMatch } from 'lodash';
 const { Title, Text } = Typography;
-const { Panel } = Collapse
 const { TextArea } = Input
 const { RangePicker } = DatePicker;
 const { Option } = Select
@@ -41,8 +46,9 @@ const { Option } = Select
  */
 
 
+
 /** Editor for an effect dealing with vices -- for a fast */
-const FastEffectEditor = ({ challengeId, effect, onEffectChange }) => {
+const FastEffectEditor = ({ challengeId, effect, onEffectChange, isReadOnly }) => {
   const allVices = useSelector(state => selectAllVices(state))
   const onViceRefTagsChange = val => {
     onEffectChange({ viceRefTags: val })
@@ -50,34 +56,45 @@ const FastEffectEditor = ({ challengeId, effect, onEffectChange }) => {
   const onRestrictionIdChange = val => {
     onEffectChange({ restrictionId: val })
   }
+  const vicesText = effect.viceRefTags.map(refTag => {
+    const vice = allVices.find(v => v.refTag === refTag)
+    return vice ? vice.name : refTag
+  }).join(', ')
   return (
-    <Space direction='vertical' style={{ width: '100%' }}>
-      <Space direction='horizontal'>
-        <Text strong={true}>Vices</Text>
-        <Select
-          mode="tags"
-          style={{ minWidth: "250px" }}
-          onChange={onViceRefTagsChange} defaultValue={effect.viceRefTags} >
-          {allVices.map(vice =>
-            <Option key={vice.refTag}>{vice.name}</Option>
-          )}
-        </Select>
-      </Space>
-      <Space direction='vertical' style={{ width: '100%' }}>
-        <Text strong={true}>Restriction</Text>
-        <RestrictionEditor
-          customKeyId={"C" + challengeId + "E" + effect.id}
-          currentRestrictionId={effect.restrictionId}
-          onRestrictionIdChange={onRestrictionIdChange}
-        />
-      </Space>
-    </Space>
+    <div style={{ width: '100%' }}>
+      <div style={{ width: '30%', display: 'inline-block' }}>
+        {isReadOnly && <Text>{vicesText}</Text>}
+        {!isReadOnly &&
+          <Space direction='vertical'>
+            <Text strong={true}>Vices</Text>
+            <Select
+              maxTagCount={3}
+              maxTagTextLength={30}
+              mode="tags"
+              style={{ minWidth: "120px", maxWidth:'200px' }}
+              onChange={onViceRefTagsChange} defaultValue={effect.viceRefTags} >
+              {allVices.map(vice =>
+                <Option key={vice.refTag}>{vice.name}</Option>
+              )}
+            </Select>
+          </Space>}
+      </div>
+      <div style={{ width: '70%', display: 'inline-block' }}>
+        <Space direction='vertical' style={{ width: '100%' }}>
+          {!isReadOnly && <Text strong={true}>Restriction</Text>}
+          <RestrictionEditor
+            customKeyId={"C" + challengeId + "E" + effect.id}
+            currentRestrictionId={effect.restrictionId}
+            isReadOnly={isReadOnly}
+            onRestrictionIdChange={onRestrictionIdChange}
+          />
+        </Space>
+      </div>
+    </div>
   )
 }
 
-
-/** Editor for an effect dealing with virtues -- for a sprint */
-const SprintEffectEditor = ({ effect, onEffectChange }) => {
+const SprintPresenter = ({ sprint, onEffectChange, isReadOnly = false }) => {
   const allVirtues = useSelector(state => selectAllVirtues(state))
   const onVirtueRefTagChange = val => {
     onEffectChange({ virtueRefTag: val })
@@ -86,45 +103,38 @@ const SprintEffectEditor = ({ effect, onEffectChange }) => {
     onEffectChange({ engagementSchedule: val })
   }
   return (
-    <Space direction='vertical' style={{ width: '100%' }}>
-      <Space direction='horizontal'>
-        <Text strong={true}>Activity</Text>
-        <Select
-          style={{ minWidth: "250px" }}
-          onChange={onVirtueRefTagChange} defaultValue={effect.virtueRefTag} >
-          {allVirtues.map(virt =>
-            <Option key={virt.refTag}>{virt.name}</Option>
-          )}
-        </Select>
-      </Space>
-      <Space direction='vertical' style={{ width: '100%' }}>
-        <Text strong={true}>Schedule</Text>
-        <EngagementScheduleEditor
-          engagementSchedule={effect.engagementSchedule}
-          onScheduleChange={onScheduleChange}
-        />
-      </Space>
-    </Space>
-  )
-}
-
-/** 
- * Top level editor for dealing with a single effect of a challenge. Toggles between
- * sprints/fasts and contains the appropriate sub-editor.
- */
-const EffectEditor = ({ challengeId, effect, onEffectChange }) => {
-  return (
-    <Space direction='vertical' style={{ width: '100%' }}>
-      <Text>{effect.kind}</Text>
-      {effect.kind === 'SPRINT' && <SprintEffectEditor effect={effect} onEffectChange={onEffectChange} />}
-      {effect.kind === 'FAST' && <FastEffectEditor challengeId={challengeId} effect={effect} onEffectChange={onEffectChange} />}
-    </Space>
+    <div style={{ width: '100%' }}>
+      <div style={{ width: '30%', display: 'inline-block' }}>
+        {isReadOnly && <Text>{sprint.virtueRefTag}</Text>} {/* TODO: proper name if available, maybe some somre styling */}
+        {!isReadOnly && <Space direction='vertical'>
+          <Text strong={true}>Activity</Text>
+          <Select
+            style={{ minWidth: "120px" }}
+            onChange={onVirtueRefTagChange} defaultValue={sprint.virtueRefTag} >
+            {allVirtues.map(virt =>
+              <Option key={virt.refTag}>{virt.name}</Option>
+            )}
+          </Select>
+        </Space>}
+      </div>
+      <div style={{ width: '70%', display: 'inline-block' }}>
+        <Space direction='vertical' style={{ width: '100%' }}>
+          {!isReadOnly && <Text strong={true}>Schedule</Text>}
+          <EngagementScheduleEditor
+            engagementSchedule={sprint.engagementSchedule}
+            onScheduleChange={onScheduleChange}
+            isReadOnly={isReadOnly}
+          />
+        </Space>
+      </div>
+    </div>
   )
 }
 
 export const ChallengeEditor = ({ match }) => {
   const { challengeId } = match.params
   const dispatch = useDispatch()
+  const [editingEffectId, setEditingEffectId] = useState(null)
   const challenge = useSelector(state => selectChallengeById(state, challengeId))
   const nextEffectId = challenge.effects.length > 0
     ? Math.max.apply(null, challenge.effects.map(e => e.id)) + 1
@@ -175,6 +185,8 @@ export const ChallengeEditor = ({ match }) => {
   if (!challenge) {
     return (<div>Unknown</div>)
   }
+  const sprints = challenge.effects.filter(effect => effect.kind === 'SPRINT')
+  const fasts = challenge.effects.filter(effect => effect.kind === 'FAST')
   return (
     <Space direction='vertical' style={{ padding: '16px', width: width }}>
       <Title level={2}>{challenge.name}</Title>
@@ -194,17 +206,47 @@ export const ChallengeEditor = ({ match }) => {
         <TextArea autoSize={{ minRows: 3 }} value={challenge.description} onChange={onDescriptionChange} />
       </Space>
       <Divider />
+
       <Space direction='vertical' style={{ width: '100%' }}>
-        <Text strong={true}>Effects</Text>
-        <List
-          style={{ width: '100%' }}
-          dataSource={challenge.effects}
-          itemLayout="vertical"
-          renderItem={effect =>
-            <List.Item key={effect.id}>
-              <EffectEditor challengeId={challengeId} effect={effect} onEffectChange={onEffectChange(effect.id)} />
-            </List.Item>
-          } />
+        <Text strong={true}>Sprints</Text>
+        <Card>
+          {sprints.map(effect =>
+            <Card.Grid
+              key={effect.id}
+              style={{
+                width: '100%',
+                padding:'8px',
+                cursor: editingEffectId != effect.id ? 'pointer' : 'inherit'
+              }}
+              onClick={e => { if (editingEffectId != effect.id) setEditingEffectId(effect.id) }}>
+              <div style={{ width: '100%' }}>
+                <SprintPresenter sprint={effect} onEffectChange={onEffectChange(effect.id)} isReadOnly={editingEffectId != effect.id} />
+              </div>
+            </Card.Grid>
+          )}
+        </Card>
+      </Space>
+      <Space direction='vertical' style={{ width: '100%' }}>
+        <Text strong={true}>Fasts</Text>
+        <Card>
+          {fasts.map(effect =>
+            <Card.Grid
+              key={effect.id}
+              style={{
+                width: '100%',
+                padding:'8px',
+                cursor: editingEffectId != effect.id ? 'pointer' : 'inherit'
+              }}
+              onClick={e => { if (editingEffectId != effect.id) setEditingEffectId(effect.id) }}>
+              <div style={{ width: '100%' }}>
+                <FastEffectEditor challengeId={challengeId}
+                  effect={effect}
+                  onEffectChange={onEffectChange(effect.id)}
+                  isReadOnly={editingEffectId != effect.id} />
+              </div>
+            </Card.Grid>
+          )}
+        </Card>
       </Space>
       <Dropdown overlay={addEffectMenu} trigger={['click']}>
         <Button block size="large" type="dashed"><PlusOutlined />Add Effect</Button>

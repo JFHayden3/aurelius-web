@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { Select, Dropdown, Menu, Button } from 'antd';
+import { Dropdown, Menu, Button, Typography } from 'antd';
 import { DownOutlined, CheckOutlined } from '@ant-design/icons';
 
-const { Option } = Select
+const { Text } = Typography
 
-export const DowPicker = ({ value, onChange }) => {
+export const DowPicker = ({ value, onChange, isReadOnly = false }) => {
   const [menuVisible, setMenuVisible] = useState(false)
   const sortedVal = [...value].map(v => "" + v)
   sortedVal.sort()
@@ -39,10 +39,10 @@ export const DowPicker = ({ value, onChange }) => {
           && sortedVal.includes('3')
           && sortedVal.includes('4')
           && sortedVal.includes('5')) {
-            return 'Weekdays'
-          } else {
-            return sortedVal.map(v => options[v].abrev).join('')
-          }
+          return 'Weekdays'
+        } else {
+          return sortedVal.map(v => options[v].abrev).join('')
+        }
       case 6:
         return sortedVal.map(v => options[v].abrev).join('')
       case 7:
@@ -79,9 +79,13 @@ export const DowPicker = ({ value, onChange }) => {
     onChange(v)
   }
   return (
-    <Dropdown onVisibleChange={handleVisibleChange} visible={menuVisible}
-      overlay={menu} trigger={['click']}>
-      <Button>{selectedText} <DownOutlined /></Button>
-    </Dropdown>
+    <div>
+      {!isReadOnly && <Dropdown onVisibleChange={handleVisibleChange} visible={menuVisible}
+        overlay={menu} trigger={['click']}>
+        <Button>{selectedText} <DownOutlined /></Button>
+      </Dropdown>
+      }
+      {isReadOnly && <Text>{selectedText}</Text>}
+    </div>
   )
 }

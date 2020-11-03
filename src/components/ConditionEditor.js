@@ -3,7 +3,8 @@ import React, { useState } from 'react'
 import { selectAllVirtues } from '../model/tagEntitySlice'
 
 import { useSelector } from 'react-redux'
-import { Typography, Space, Cascader, Modal, Input } from 'antd';
+import { Typography, Space, Cascader, Modal, Input, Button } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons'
 import { RestrictionConversion } from '../kitchenSink'
 
 const { Text } = Typography;
@@ -17,7 +18,7 @@ function createOption({ value, children = null, label = null, openModal = false 
   }
 }
 
-export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
+export const ConditionEditor = ({ value, onChange, isReadOnly, onDelete }) => {
   const [showCustomActivityModal, setShowCustomActivityModal] = useState(false)
   const [customActivityText, setCustomActivityText] = useState("")
   const [customActivityPreamble, setCustomActivityPreamble] = useState([])
@@ -105,7 +106,7 @@ export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
   }
   const selectionAsHumanReadable = RestrictionConversion.prettyPrintRestriction(selectedOptions)
   return (
-    <div>
+    <div style={{ float: 'right' }}>
       {!isReadOnly &&
         <Cascader style={{ width: '285px' }}
           displayRender={displayRender}
@@ -114,6 +115,9 @@ export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
           options={options}
           onChange={onCascaderSelectionChange} />}
       {isReadOnly && <Text>{selectionAsHumanReadable}</Text>}
+      {!isReadOnly && <Button type='text' style={{ float: 'right' }} onClick={onDelete}>
+        <DeleteOutlined />
+      </Button>}
       <Modal
         onOk={onCustomActivityModalOk}
         onCancel={onCustomActivityModalCancel}
@@ -123,7 +127,6 @@ export const ConditionEditor = ({ value, onChange, isReadOnly }) => {
           <Input value={customActivityText} maxLength={40} onChange={e => setCustomActivityText(e.target.value)}></Input>
         </Space>
       </Modal>
-
     </div>
   )
 }
