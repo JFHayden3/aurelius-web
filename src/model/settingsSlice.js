@@ -242,6 +242,10 @@ export const settingsSlice = createSlice({
         spec
       }
     },
+    deleteViceRestriction(state, action) {
+      const { key } = action.payload
+      delete state.savedViceRestrictions[key]
+    },
     updateTargetDailyWordCount(state, action) {
       const { newWordCount } = action.payload
       state.targetDailyWordCount = newWordCount
@@ -260,6 +264,7 @@ export const {
   addUserCreatedArticleSettings,
   updateViceRestriction,
   makeCustomViceRestrictionSaved,
+  deleteViceRestriction,
   updateTargetDailyWordCount,
   updateArticleSetting,
   removeUserCreatedArticleSettings } = settingsSlice.actions

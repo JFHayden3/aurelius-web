@@ -4,18 +4,26 @@ import {
   , updateViceRestriction
   , saveSettings
   , makeCustomViceRestrictionSaved
+  , deleteViceRestriction
   , computeNewSavedViceRestrictionId
 } from '../model/settingsSlice'
 import { ConditionEditor } from './ConditionEditor'
 import { DowPicker } from './DowPicker'
 import { useSelector, useDispatch } from 'react-redux'
-import { PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Typography, List, Button, Tooltip, Space, Select, Row, Col } from 'antd';
 
 const { Text } = Typography;
 const { Option } = Select
 
-export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentRestrictionId, allowSaving = false, isReadOnly = false }) => {
+export const RestrictionEditor = (
+  { customKeyId,
+    onRestrictionIdChange,
+    onAllRestrictionsRemoved = () => { },
+    currentRestrictionId,
+    allowSaving = false,
+    isReadOnly = false
+  }) => {
   const dispatch = useDispatch()
   const nextSavedViceRestrictionId = useSelector(state => computeNewSavedViceRestrictionId(state))
   const customKey = 'CUSTOM-FOR-' + customKeyId
@@ -84,6 +92,16 @@ export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentR
     let newAppliesOn = val.sort()
     changeSpecComponent(specComponent, "appliesOn", newAppliesOn)
   }
+  const onDeleteRestriction = e => {
+    if (!currentRestriction.isUserCreated) {
+      console.error("Cannot delete system settings")
+      return;
+    }
+    const payload = { key: currentRestrictionId }
+    onRestrictionIdChange(0)
+    dispatch(deleteViceRestriction(payload))
+    dispatch(saveSettings())
+  }
   function onAddRestrictionComponentClick(e) {
     const newSpec = currentRestriction.spec.concat({
       appliesOn: [],
@@ -95,6 +113,9 @@ export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentR
   const onRemoveRestrictionComponent = toRemove => e => {
     const newSpec = currentRestriction.spec.filter(s => s !== toRemove)
     dispatchAppropriateSpecChangeAction(newSpec)
+    if (newSpec.length === 0) {
+      onAllRestrictionsRemoved()
+    }
   }
   return (
     <Space direction='vertical' style={{ width: '100%' }}>
@@ -118,6 +139,8 @@ export const RestrictionEditor = ({ customKeyId, onRestrictionIdChange, currentR
               </Tooltip>
             </div>
           }
+          {allowSaving && currentRestriction.isUserCreated &&
+            <Button type='link' onClick={onDeleteRestriction}><DeleteOutlined /></Button>}
         </Space>}
       <List itemLayout='vertical'
         dataSource={currentRestriction.spec}

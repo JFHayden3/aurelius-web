@@ -48,7 +48,7 @@ const { Option } = Select
 
 
 /** Editor for an effect dealing with vices -- for a fast */
-const FastEffectEditor = ({ challengeId, effect, onEffectChange, isReadOnly }) => {
+const FastEffectEditor = ({ challengeId, effect, onEffectChange, onRemoveEffect, isReadOnly }) => {
   const allVices = useSelector(state => selectAllVices(state))
   const onViceRefTagsChange = val => {
     onEffectChange({ viceRefTags: val })
@@ -56,22 +56,27 @@ const FastEffectEditor = ({ challengeId, effect, onEffectChange, isReadOnly }) =
   const onRestrictionIdChange = val => {
     onEffectChange({ restrictionId: val })
   }
+  const onAllRestrictionsRemoved = () => {
+    onRemoveEffect()
+  }
   const vicesText = effect.viceRefTags.map(refTag => {
     const vice = allVices.find(v => v.refTag === refTag)
     return vice ? vice.name : refTag
   }).join(', ')
+  const placeholderText = "Select behavior(s)..."
   return (
     <div style={{ width: '100%' }}>
       <div style={{ width: '30%', display: 'inline-block' }}>
-        {isReadOnly && <Text>{vicesText}</Text>}
+        {isReadOnly && <Text>{vicesText.length > 0 ? vicesText : placeholderText}</Text>}
         {!isReadOnly &&
           <Space direction='vertical'>
             <Text strong={true}>Vices</Text>
             <Select
+              placeholder={<Text>{placeholderText}</Text>}
               maxTagCount={3}
               maxTagTextLength={30}
               mode="tags"
-              style={{ minWidth: "120px", maxWidth:'200px' }}
+              style={{ minWidth: "140px", maxWidth: '200px' }}
               onChange={onViceRefTagsChange} defaultValue={effect.viceRefTags} >
               {allVices.map(vice =>
                 <Option key={vice.refTag}>{vice.name}</Option>
@@ -86,6 +91,7 @@ const FastEffectEditor = ({ challengeId, effect, onEffectChange, isReadOnly }) =
             customKeyId={"C" + challengeId + "E" + effect.id}
             currentRestrictionId={effect.restrictionId}
             isReadOnly={isReadOnly}
+            onAllRestrictionsRemoved={onAllRestrictionsRemoved}
             onRestrictionIdChange={onRestrictionIdChange}
           />
         </Space>
@@ -94,23 +100,36 @@ const FastEffectEditor = ({ challengeId, effect, onEffectChange, isReadOnly }) =
   )
 }
 
-const SprintPresenter = ({ sprint, onEffectChange, isReadOnly = false }) => {
+const SprintPresenter = ({ sprint, onEffectChange, onRemoveEffect, isReadOnly = false }) => {
   const allVirtues = useSelector(state => selectAllVirtues(state))
   const onVirtueRefTagChange = val => {
     onEffectChange({ virtueRefTag: val })
   }
   const onScheduleChange = val => {
-    onEffectChange({ engagementSchedule: val })
+    if (val.length === 0) {
+      onRemoveEffect()
+    } else {
+      onEffectChange({ engagementSchedule: val })
+    }
+  }
+
+  const placeholderText = "Select activity..."
+  var virtueText = placeholderText
+  if (sprint.virtueRefTag && sprint.virtueRefTag.length > 0) {
+    const virtue = allVirtues.find(virt => virt.refTag === sprint.virtueRefTag)
+    virtueText = virtue ? virtue.name : sprint.virtueRefTag
   }
   return (
     <div style={{ width: '100%' }}>
       <div style={{ width: '30%', display: 'inline-block' }}>
-        {isReadOnly && <Text>{sprint.virtueRefTag}</Text>} {/* TODO: proper name if available, maybe some somre styling */}
+        {isReadOnly && <Text>{virtueText}</Text>} {/* TODO: proper name if available, maybe some somre styling */}
         {!isReadOnly && <Space direction='vertical'>
           <Text strong={true}>Activity</Text>
           <Select
-            style={{ minWidth: "120px" }}
-            onChange={onVirtueRefTagChange} defaultValue={sprint.virtueRefTag} >
+            placeholder={<Text>{placeholderText}</Text>}
+            style={{ minWidth: "120px", marginTop: '12px' }}
+            onChange={onVirtueRefTagChange}
+            defaultValue={sprint.virtueRefTag}>
             {allVirtues.map(virt =>
               <Option key={virt.refTag}>{virt.name}</Option>
             )}
@@ -161,27 +180,30 @@ export const ChallengeEditor = ({ match }) => {
       dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { effects: newEffects } }))
     }
   }
+  const onRemoveEffect = effectId => {
+    return () => {
+      const newEffects = challenge.effects.filter(eff => eff.id !== effectId)
+      dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { effects: newEffects } }))
+    }
+  }
   const onAddFast = e => {
     const viceRefTags = []
     const kind = 'FAST'
     const restrictionId = 1
     const newEffects = challenge.effects.concat({ id: nextEffectId, kind, viceRefTags, restrictionId })
     dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { effects: newEffects } }))
+    setEditingEffectId(nextEffectId)
   }
   const onAddSprint = e => {
     const kind = 'SPRINT'
-    const virtueRefTag = "" // Should I look up a valid value?
-    const engagementSchedule = []
+    const virtueRefTag = null // Should I look up a valid value?
+    const newEngagementInstance = { optTime: null, optDuration: null, key: 0 }
+    const engagementSchedule = [{ days: [], instances: [newEngagementInstance] }]
     const newEffects = challenge.effects.concat({ id: nextEffectId, kind, virtueRefTag, engagementSchedule })
     dispatch(updateEntity({ tagEntityId: challengeId, changedFields: { effects: newEffects } }))
+    setEditingEffectId(nextEffectId)
   }
   const width = '85%'
-  const addEffectMenu = (
-    <Menu>
-      <Menu.Item key='fast' onClick={onAddFast}>Add Fast</Menu.Item>
-      <Menu.Item key='sprint' onClick={onAddSprint}>Add Sprint</Menu.Item>
-    </Menu>
-  )
   if (!challenge) {
     return (<div>Unknown</div>)
   }
@@ -209,48 +231,51 @@ export const ChallengeEditor = ({ match }) => {
 
       <Space direction='vertical' style={{ width: '100%' }}>
         <Text strong={true}>Sprints</Text>
-        <Card>
+        {sprints.length > 0 && <Card>
           {sprints.map(effect =>
             <Card.Grid
               key={effect.id}
               style={{
                 width: '100%',
-                padding:'8px',
+                padding: '8px',
                 cursor: editingEffectId != effect.id ? 'pointer' : 'inherit'
               }}
               onClick={e => { if (editingEffectId != effect.id) setEditingEffectId(effect.id) }}>
               <div style={{ width: '100%' }}>
-                <SprintPresenter sprint={effect} onEffectChange={onEffectChange(effect.id)} isReadOnly={editingEffectId != effect.id} />
+                <SprintPresenter sprint={effect}
+                  onRemoveEffect={onRemoveEffect(effect.id)}
+                  onEffectChange={onEffectChange(effect.id)}
+                  isReadOnly={editingEffectId != effect.id} />
               </div>
             </Card.Grid>
           )}
-        </Card>
+        </Card>}
+        <Button onClick={onAddSprint} block size="large" type="dashed"><PlusOutlined />Add Sprint</Button>
       </Space>
       <Space direction='vertical' style={{ width: '100%' }}>
         <Text strong={true}>Fasts</Text>
-        <Card>
+        {fasts.length > 0 && <Card>
           {fasts.map(effect =>
             <Card.Grid
               key={effect.id}
               style={{
                 width: '100%',
-                padding:'8px',
+                padding: '8px',
                 cursor: editingEffectId != effect.id ? 'pointer' : 'inherit'
               }}
               onClick={e => { if (editingEffectId != effect.id) setEditingEffectId(effect.id) }}>
               <div style={{ width: '100%' }}>
                 <FastEffectEditor challengeId={challengeId}
                   effect={effect}
+                  onRemoveEffect={onRemoveEffect(effect.id)}
                   onEffectChange={onEffectChange(effect.id)}
                   isReadOnly={editingEffectId != effect.id} />
               </div>
             </Card.Grid>
           )}
-        </Card>
+        </Card>}
+        <Button onClick={onAddFast} block size="large" type="dashed"><PlusOutlined />Add Fast</Button>
       </Space>
-      <Dropdown overlay={addEffectMenu} trigger={['click']}>
-        <Button block size="large" type="dashed"><PlusOutlined />Add Effect</Button>
-      </Dropdown>
     </Space>
   )
 }
