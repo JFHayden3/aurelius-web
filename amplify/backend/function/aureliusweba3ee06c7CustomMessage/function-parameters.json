@@ -1,0 +1,24 @@
+{
+  "trigger": true,
+  "modules": [
+    "verification-link"
+  ],
+  "parentResource": "aureliusweba3ee06c7",
+  "functionName": "aureliusweba3ee06c7CustomMessage",
+  "resourceName": "aureliusweba3ee06c7CustomMessage",
+  "parentStack": "auth",
+  "triggerEnvs": [
+    {
+      "key": "RESOURCENAME",
+      "value": "resourceName"
+    }
+  ],
+  "triggerDir": "C:\\Users\\JFHay\\AppData\\Roaming\\npm\\node_modules\\@aws-amplify\\cli\\node_modules\\amplify-category-auth\\provider-utils\\awscloudformation\\triggers\\CustomMessage",
+  "triggerTemplate": "CustomMessage.json.ejs",
+  "roleName": "aureliusweba3ee06c7CustomMessage",
+  "skipEdit": true,
+  "REDIRECTURL": "http://localhost:3000",
+  "EMAILSUBJECT": "Your account has been created",
+  "EMAILMESSAGE": "Congratulations and welcome. You can now start your journey.",
+  "RESOURCENAME": "resourceName"
+}

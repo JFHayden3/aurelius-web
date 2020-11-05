@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import {
   Switch,
@@ -32,13 +32,18 @@ import { ChallengeBank } from '../components/ChallengeBank'
 import { ChallengeEditor } from '../components/ChallengeEditor'
 import { SettingsSetter } from '../components/SettingsSetter'
 import { selectIsInitializationComplete, setInitialized, setAuthUser } from '../model/metaSlice'
-import { withAuthenticator } from 'aws-amplify-react';
-import { Auth } from 'aws-amplify'
+import { Hub, Auth } from 'aws-amplify'
 
 const { Header, Content, Footer, Sider } = Layout;
 
 function todayAsYyyyMmDd() {
   return dateAsYyyyMmDd(new Date(Date.now()))
+}
+
+const LandingPage = () => {
+  return (
+    <button onClick={() => Auth.federatedSignIn()}>sign in</button>
+  )
 }
 
 const App = () => {
@@ -156,4 +161,29 @@ class Root extends Component {
   }
 }
 
-export const AuthRoot = withAuthenticator(Root)
+export const AuthRoot = () => {
+  const [signedIn, setSignedIn] = useState(false)
+  Auth.currentAuthenticatedUser().then(authUser => {
+    // Moves things along automatically if we're already logged in
+    setSignedIn(true)
+  })
+  useEffect(() => {
+    // set listener for auth events
+    Hub.listen('auth', (data) => {
+      const { payload } = data
+      if (payload.event === 'signIn') {
+        setSignedIn(true)
+      }
+      // this listener is needed for form sign ups since the OAuth will redirect & reload
+      if (payload.event === 'signOut') {
+        setSignedIn(false)
+      }
+    })
+  }, [])
+  return (
+    <div>
+      {!signedIn && <LandingPage />}
+      {signedIn && <Root />}
+    </div>
+  )
+}

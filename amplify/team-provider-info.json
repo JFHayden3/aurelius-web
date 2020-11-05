@@ -13,7 +13,16 @@
     },
     "categories": {
       "auth": {
-        "aureliusweba3ee06c7": {}
+        "aureliusweba3ee06c7": {
+          "hostedUIProviderCreds": "[{\"ProviderName\":\"Google\",\"client_id\":\"asdf\",\"client_secret\":\"asdf\"},{\"ProviderName\":\"LoginWithAmazon\",\"client_id\":\"56g8l2jn6lam32o9abuhj0vf5k\",\"client_secret\":\"1vbo48hbt68cq64p1681587reovtded56lc0ptmoet7amjp6eh1\"}]"
+        }
+      },
+      "function": {
+        "aureliusweba3ee06c7CustomMessage": {
+          "REDIRECTURL": "http://localhost:3000",
+          "EMAILSUBJECT": "Your account has been created",
+          "EMAILMESSAGE": "Congratulations and welcome. You can now start your journey."
+        }
       }
     }
   }
