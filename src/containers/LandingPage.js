@@ -1,8 +1,8 @@
-import React, { useState, Component } from 'react'
-import { Space, Row, Col, Typography, Divider, Button } from 'antd'
-import { Auth } from 'aws-amplify'
-import { random } from 'lodash'
-const { Title, Text, Paragraph } = Typography
+import React, { useState, Component } from "react";
+import { Space, Row, Col, Typography, Divider, Button } from "antd";
+import { Auth } from "aws-amplify";
+import { random } from "lodash";
+const { Title, Text, Paragraph } = Typography;
 
 const quoteCycleOptions = [
   // Jung
@@ -22,7 +22,7 @@ const quoteCycleOptions = [
   "For the world is in a bad state, but everything will become still worse unless each of us does his best.",
   "Man is not fully conditioned and determined but rather determines himself whether he gives in to conditions or stands up to them.",
   "Human potential at its best is to transform a tragedy into a personal triumph, to turn one's predicament into a human achievement",
-]
+];
 
 class CyclingQuote extends Component {
   constructor(props) {
@@ -31,81 +31,147 @@ class CyclingQuote extends Component {
 
   async componentDidMount() {
     this.handle = setInterval(() => {
-      this.setState({currentQuoteIndex: random(0, quoteCycleOptions.length - 1)})
-    }, 5000)
+      const lastQuoteIndex = this.state.currentQuoteIndex;
+      const currentQuoteIndex = random(0, quoteCycleOptions.length - 1);
+      const counter = this.state.counter + 1;
+      this.setState({ lastQuoteIndex, currentQuoteIndex, counter });
+    }, 5000);
   }
 
   async componentWillUnmount() {
-    clearInterval(this.handle)
+    clearInterval(this.handle);
   }
 
   state = {
     currentQuoteIndex: random(0, quoteCycleOptions.length - 1),
-  }
+    lastQuoteIndex: random(0, quoteCycleOptions.length - 1),
+    counter: 0,
+  };
 
   render() {
+
+    const firstQuoteInd = this.state.counter % 2 === 0 ? this.state.currentQuoteIndex : this.state.lastQuoteIndex
+    const secondQuoteInd = this.state.counter % 2 !== 0 ? this.state.currentQuoteIndex : this.state.lastQuoteIndex
+    const firstOpacity = this.state.counter % 2 === 0 ? '100%' : '0%'
+    const secondOpacity = this.state.counter % 2 !== 0 ? '100%' : '0%'
     return (
-      <Paragraph 
-      style={{ fontStyle: 'italic', fontSize: "12px", transition:'500ms linear' }}>
-        "{quoteCycleOptions[this.state.currentQuoteIndex]}"
-      </Paragraph>
-    )
+      <div>
+        <Paragraph
+          style={{
+            fontStyle: "italic",
+            fontSize: "12px",
+            color: "gray",
+            height: '20px',
+            marginBottom: '-20px',
+            transition: "500ms linear",
+            opacity: firstOpacity
+          }}
+        >
+          "{quoteCycleOptions[firstQuoteInd]}"
+        </Paragraph>
+        <Paragraph
+          style={{
+            fontStyle: "italic",
+            fontSize: "12px",
+            color: "gray",
+            height: '20px',
+            transition: "500ms linear",
+            opacity: secondOpacity
+          }}
+        >
+          "{quoteCycleOptions[secondQuoteInd]}"
+        </Paragraph>
+      </div>
+    );
   }
 }
 
 export const LandingPage = () => {
-  const [currentQuoteIndex, setCurrentQuoteIndex] = useState()
-  const colStyle = { textAlign: 'center', width: '33.3333%' }
-  const boxHeaderStyle = { fontSize: '18px' }
-  const boxContentStyle = { fontSize: '12px' }
-  const tempFillerText = "alsdkfj aosfj awieofj asefj aiofj slkdkfj osiadhf aiosfh aoshfoasjf oiwaefjcowejfcoia wjefcoiawjefcoawjfjf  fjaowejfcawiefjcawfc asdf asofj aiwofej alskfj owiaefj wlaejf ioawef oiawjf ioawjfio jweofijawoiefjoiawjcfoiaj oaijf oiawjf ioawejf oiawjf oiawjf ioawjef iojawfoi jwaofi jwoifj awoijf awoijf lsakjf oiasjf oiahfoiajf oiaejofi jwaioefj awoijf oiawjf aw."
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState();
+  const colStyle = { textAlign: "center", width: "33.3333%" };
+  const boxHeaderStyle = { fontSize: "18px" };
+  const boxContentStyle = { fontSize: "12px" };
+  const tempFillerText =
+    "alsdkfj aosfj awieofj asefj aiofj slkdkfj osiadhf aiosfh aoshfoasjf oiwaefjcowejfcoia wjefcoiawjefcoawjfjf  fjaowejfcawiefjcawfc asdf asofj aiwofej alskfj owiaefj wlaejf ioawef oiawjf ioawjfio jweofijawoiefjoiawjcfoiaj oaijf oiawjf ioawejf oiawjf oiawjf ioawjef iojawfoi jwaofi jwoifj awoijf awoijf lsakjf oiasjf oiahfoiajf oiaejofi jwaioefj awoijf oiawjf aw.";
   return (
-    <div style={{ fontFamily: 'sans-serif' }}>
-      <div style={{
-        width: '100%',
-        paddingBottom: '5px',
-        paddingLeft: '12px',
-        boxShadow: '0px 0px 10px 0px grey',
-      }}>
-        <Text style={{ fontSize: '24px' }}>Kaizen Daily</Text>
-        <div style={{ float: 'right', marginTop: '5px' }}>
-          <Text style={{ fontSize: '10px' }}>Already have an account?</Text>
-          <Button style={{ fontSize: '10px' }} type='link' onClick={() => Auth.federatedSignIn()}>login</Button>
+    <div style={{ fontFamily: "sans-serif" }}>
+      <div
+        style={{
+          width: "100%",
+          paddingBottom: "5px",
+          paddingLeft: "12px",
+          boxShadow: "0px 0px 10px 0px grey",
+        }}
+      >
+        <Text style={{ fontSize: "24px" }}>Kaizen Daily</Text>
+        <div style={{ float: "right", marginTop: "5px" }}>
+          <Text style={{ fontSize: "10px" }}>Already have an account?</Text>
+          <Button
+            style={{ fontSize: "10px" }}
+            type="link"
+            onClick={() => Auth.federatedSignIn()}
+          >
+            login
+          </Button>
         </div>
       </div>
-      <div style={{
-        textAlign: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-        height: '30vh',
-        resize: 'vertical',
-        overflow: 'auto',
-      }}>
+      <div
+        style={{
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+          height: "30vh",
+          resize: "vertical",
+          overflow: "auto",
+        }}
+      >
         <div>
-          <Text style={{ fontSize: '22px' }}>Start writing your way to a better life today</Text>
-          <Button style={{ fontSize: '22px' }} type='link' onClick={() => Auth.federatedSignIn()}>sign up now!</Button>
+          <Text style={{ fontSize: "22px" }}>
+            Start writing your way to a better life today
+          </Text>
+          <Button
+            style={{ fontSize: "22px" }}
+            type="link"
+            onClick={() => Auth.federatedSignIn()}
+          >
+            sign up now!
+          </Button>
         </div>
-
       </div>
-      <div style={{ paddingLeft: '25vw', paddingRight: '25vw', textAlign: 'center', marginTop: '10vh', marginBottom: '17vh' }}>
-        <CyclingQuote/>
+      <div
+        style={{
+          paddingLeft: "25vw",
+          paddingRight: "25vw",
+          textAlign: "center",
+          marginTop: "10vh",
+          marginBottom: "17vh",
+        }}
+      >
+        <CyclingQuote />
       </div>
-      <Row wrap={false} gutter={{ xs: 8, sm: 16, md: 24 }} style={{ width: '98%' }}>
+      <Row
+        wrap={false}
+        gutter={{ xs: 8, sm: 16, md: 24 }}
+        style={{ width: "98%" }}
+      >
         <Col flex={1} style={colStyle}>
           <Text style={boxHeaderStyle}>Grow towards your best self</Text>
           <Paragraph style={boxContentStyle}>{tempFillerText}</Paragraph>
         </Col>
         <Col flex={1} style={colStyle}>
           <Text style={boxHeaderStyle}>One day at a time</Text>
-          <Paragraph style={
-            {
+          <Paragraph
+            style={{
               ...boxContentStyle,
-              borderRightStyle: 'inset',
-              paddingRight: '6px',
-              borderLeftStyle: 'outset',
-              paddingLeft: '6px'
-            }}>{tempFillerText}</Paragraph>
+              borderRightStyle: "inset",
+              paddingRight: "6px",
+              borderLeftStyle: "outset",
+              paddingLeft: "6px",
+            }}
+          >
+            {tempFillerText}
+          </Paragraph>
         </Col>
         <Col flex={1} style={colStyle}>
           <Text style={boxHeaderStyle}>With help from technology</Text>
@@ -113,5 +179,5 @@ export const LandingPage = () => {
         </Col>
       </Row>
     </div>
-  )
-}
+  );
+};
