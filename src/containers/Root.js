@@ -33,17 +33,12 @@ import { ChallengeEditor } from '../components/ChallengeEditor'
 import { SettingsSetter } from '../components/SettingsSetter'
 import { selectIsInitializationComplete, setInitialized, setAuthUser } from '../model/metaSlice'
 import { Hub, Auth } from 'aws-amplify'
+import { LandingPage } from './LandingPage'
 
 const { Header, Content, Footer, Sider } = Layout;
 
 function todayAsYyyyMmDd() {
   return dateAsYyyyMmDd(new Date(Date.now()))
-}
-
-const LandingPage = () => {
-  return (
-    <button onClick={() => Auth.federatedSignIn()}>sign in</button>
-  )
 }
 
 const App = () => {
