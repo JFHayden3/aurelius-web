@@ -31,7 +31,6 @@ const quoteCycleOptions = [
   "Seek out that particular mental attribute which makes you feel most deeply and vitally alive, along with which comes the inner voice which says, 'This is the real me,' and when you have found that attitude, follow it.",
   "Be not afraid of life. Believe that life is worth living, and your belief will help create the fact.",
   "If you can change your mind, you can change your life.",
-
 ];
 
 class CyclingQuote extends Component {
@@ -42,9 +41,12 @@ class CyclingQuote extends Component {
   async componentDidMount() {
     this.handle = setInterval(() => {
       const lastQuoteIndex = this.state.currentQuoteIndex;
-      const currentQuoteIndex = random(0, quoteCycleOptions.length - 1);
+      const currentQuoteIndex = this.state.unpickedQuotes[random(0, this.state.unpickedQuotes.length - 1)];
       const counter = this.state.counter + 1;
-      this.setState({ lastQuoteIndex, currentQuoteIndex, counter });
+      const unpickedQuotes = this.state.unpickedQuotes.length > 1 
+      ? this.state.unpickedQuotes.filter(v => v !== currentQuoteIndex)
+      : quoteCycleOptions.map((v, i) => i)
+      this.setState({ lastQuoteIndex, currentQuoteIndex, unpickedQuotes, counter });
     }, 7000);
   }
 
@@ -55,6 +57,7 @@ class CyclingQuote extends Component {
   state = {
     currentQuoteIndex: random(0, quoteCycleOptions.length - 1),
     lastQuoteIndex: random(0, quoteCycleOptions.length - 1),
+    unpickedQuotes:quoteCycleOptions.map((v, i) => i),
     counter: 0,
   };
 
