@@ -4,6 +4,10 @@ import { Auth } from "aws-amplify";
 import { random } from "lodash";
 const { Title, Text, Paragraph } = Typography;
 
+const growText = "Define your goals, set your routines, draw your boundaries, and examine your short-comings. No matter where you are in life or what kind of changes you want to make, Kaizen Daily will give you the tools you need to delve inwards, uncover your true self, to get out of your own way, and manifest more of your potential. It all comes down to self-directed growth and personal accountability: deep down, YOU know when you are not living up to everything you could be. Learn to unify your intentions and actions and start living your best life today!"
+const oneDayText = "Kaizen is the process of gradually making small changes which add up over time to make a process or organization significantly more efficient. With Kaizen Daily, this philosophy is imbued into a daily journaling tool -- helping you to not just start writing everyday, but to use this writing to break away from bad behaviors, to form new habits, and ultimately to perfect your day."
+const technologyText = "Storage, organization, search, filtering, export, customization, and analysis: with Kaizen Daily you won't just be writing in an ordinary journal, you will be building a personal encyclopedia -- a map of your inner self. Built by journalers for journalers (or would-be journalers): say 'goodbye' to disorganized pages and scattered notebooks and 'hello' to the future."
+
 const quoteCycleOptions = [
   // Jung
   "The shoe that fits one person pinches another; there is no recipe for living that suits all cases.",
@@ -22,6 +26,12 @@ const quoteCycleOptions = [
   "For the world is in a bad state, but everything will become still worse unless each of us does his best.",
   "Man is not fully conditioned and determined but rather determines himself whether he gives in to conditions or stands up to them.",
   "Human potential at its best is to transform a tragedy into a personal triumph, to turn one's predicament into a human achievement",
+  // William James
+  "The greatest discovery of any generation is that a human can alter his life by altering his attitude.",
+  "Seek out that particular mental attribute which makes you feel most deeply and vitally alive, along with which comes the inner voice which says, 'This is the real me,' and when you have found that attitude, follow it.",
+  "Be not afraid of life. Believe that life is worth living, and your belief will help create the fact.",
+  "If you can change your mind, you can change your life.",
+
 ];
 
 class CyclingQuote extends Component {
@@ -35,7 +45,7 @@ class CyclingQuote extends Component {
       const currentQuoteIndex = random(0, quoteCycleOptions.length - 1);
       const counter = this.state.counter + 1;
       this.setState({ lastQuoteIndex, currentQuoteIndex, counter });
-    }, 5000);
+    }, 7000);
   }
 
   async componentWillUnmount() {
@@ -63,7 +73,7 @@ class CyclingQuote extends Component {
             color: "gray",
             height: '20px',
             marginBottom: '-20px',
-            transition: "500ms linear",
+            transition: "700ms linear",
             opacity: firstOpacity
           }}
         >
@@ -75,7 +85,7 @@ class CyclingQuote extends Component {
             fontSize: "12px",
             color: "gray",
             height: '20px',
-            transition: "500ms linear",
+            transition: "700ms linear",
             opacity: secondOpacity
           }}
         >
@@ -87,12 +97,9 @@ class CyclingQuote extends Component {
 }
 
 export const LandingPage = () => {
-  const [currentQuoteIndex, setCurrentQuoteIndex] = useState();
   const colStyle = { textAlign: "center", width: "33.3333%" };
   const boxHeaderStyle = { fontSize: "18px" };
   const boxContentStyle = { fontSize: "12px" };
-  const tempFillerText =
-    "alsdkfj aosfj awieofj asefj aiofj slkdkfj osiadhf aiosfh aoshfoasjf oiwaefjcowejfcoia wjefcoiawjefcoawjfjf  fjaowejfcawiefjcawfc asdf asofj aiwofej alskfj owiaefj wlaejf ioawef oiawjf ioawjfio jweofijawoiefjoiawjcfoiaj oaijf oiawjf ioawejf oiawjf oiawjf ioawjef iojawfoi jwaofi jwoifj awoijf awoijf lsakjf oiasjf oiahfoiajf oiaejofi jwaioefj awoijf oiawjf aw.";
   return (
     <div style={{ fontFamily: "sans-serif" }}>
       <div
@@ -157,7 +164,7 @@ export const LandingPage = () => {
       >
         <Col flex={1} style={colStyle}>
           <Text style={boxHeaderStyle}>Grow towards your best self</Text>
-          <Paragraph style={boxContentStyle}>{tempFillerText}</Paragraph>
+          <Paragraph style={boxContentStyle}>{growText}</Paragraph>
         </Col>
         <Col flex={1} style={colStyle}>
           <Text style={boxHeaderStyle}>One day at a time</Text>
@@ -170,12 +177,12 @@ export const LandingPage = () => {
               paddingLeft: "6px",
             }}
           >
-            {tempFillerText}
+            {oneDayText}
           </Paragraph>
         </Col>
         <Col flex={1} style={colStyle}>
           <Text style={boxHeaderStyle}>With help from technology</Text>
-          <Paragraph style={boxContentStyle}>{tempFillerText}</Paragraph>
+          <Paragraph style={boxContentStyle}>{technologyText}</Paragraph>
         </Col>
       </Row>
     </div>
