@@ -62,7 +62,6 @@ class CyclingQuote extends Component {
   };
 
   render() {
-
     const firstQuoteInd = this.state.counter % 2 === 0 ? this.state.currentQuoteIndex : this.state.lastQuoteIndex
     const secondQuoteInd = this.state.counter % 2 !== 0 ? this.state.currentQuoteIndex : this.state.lastQuoteIndex
     const firstOpacity = this.state.counter % 2 === 0 ? '100%' : '0%'
@@ -161,7 +160,7 @@ export const LandingPage = () => {
         <CyclingQuote />
       </div>
       <Row
-        wrap={false}
+        wrap="false"
         gutter={{ xs: 8, sm: 16, md: 24 }}
         style={{ width: "98%" }}
       >
