@@ -7,8 +7,8 @@ import { List, Typography, Dropdown, Button, Menu, Row, Col, Affix } from 'antd'
 import {
   addArticle,
   makeSelectFilteredArticleIdsByEntryId,
-  makeSelectArticleIdsByEntryId, 
-  computeNextArticleId, 
+  makeSelectArticleIdsByEntryId,
+  computeNextArticleId,
   makeSelectArticleKindsByIds
 } from '../model/journalArticlesSlice'
 import { getStartingContent } from '../model/newArticleStartingContentArbiter'
@@ -26,7 +26,7 @@ export const JournalEntry = ({ entryId }) => {
   // TODO: when there are articles filtered for a given entry, provide the user a way to manually
   // show those articles even if they don't match the filter or at least communicate to the user that
   // they exist
-  
+
   const selectArticleIdsByEntryId = useMemo(makeSelectArticleIdsByEntryId, [])
   const unfilteredArticleIds = useSelector(state => selectArticleIdsByEntryId(state, entryId))
 
@@ -79,22 +79,19 @@ export const JournalEntry = ({ entryId }) => {
       </Menu.Item>
     </Menu>
   )
-  const [container, setContainer] = useState(null);
 
   return (
-    <div ref={setContainer}>
-      <Affix>
-        <Row style={{ backgroundColor: 'white', borderBottomStyle: 'solid', borderBottomWidth: '1px' }}>
-          <Col span={12}>
-            <Title level={3}>{apiDateToFe(entryId)}</Title>
-          </Col>
-          <Col span={12}>
-            <div style={{ float: 'right' }}>
-              <EntryWordCountDisplay entryId={entryId} />
-            </div>
-          </Col>
-        </Row>
-      </Affix>
+    <div >
+      <Row style={{ backgroundColor: 'white', borderBottomStyle: 'solid', borderBottomWidth: '1px' }}>
+        <Col span={12}>
+          <Title level={3}>{apiDateToFe(entryId)}</Title>
+        </Col>
+        <Col span={12}>
+          <div style={{ float: 'right' }}>
+            <EntryWordCountDisplay entryId={entryId} />
+          </div>
+        </Col>
+      </Row>
       <List
         dataSource={articleIds}
         itemLayout="vertical"

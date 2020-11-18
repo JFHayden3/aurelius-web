@@ -86,12 +86,12 @@ export const LifeJournal = () => {
         hasMore={hasMoreUnfetchedEntries}
         useWindow={true}>
         <List
-          style={{ paddingTop: 16, paddingLeft: 16, paddingRight: 16 }}
+          style={{ paddingTop: 16 }}
           itemLayout="vertical"
           dataSource={entryIds}
           renderItem={id =>
             <List.Item key={id}>
-              <Card>
+              <Card style={{borderRadius:'12px'}}>
                 <JournalEntry entryId={id} />
               </Card>
               <Divider />
