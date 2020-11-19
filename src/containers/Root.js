@@ -32,7 +32,7 @@ import { VirtueEditor } from '../components/VirtueEditor'
 import { ChallengeBank } from '../components/ChallengeBank'
 import { ChallengeEditor } from '../components/ChallengeEditor'
 import { SettingsSetter } from '../components/SettingsSetter'
-import { SexyButton } from '../components/SexyButton'
+import { JournalButton, VicesButton, VirtuesButton, ChallengesButton, SettingsButton } from '../components/NavButtons'
 import { selectIsInitializationComplete, setInitialized, setAuthUser } from '../model/metaSlice'
 import { Hub, Auth } from 'aws-amplify'
 import { LandingPage } from './LandingPage'
@@ -57,44 +57,21 @@ const App = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Affix offsetTop={30} style={{ position: 'absolute', left: '3%' }}>
-        <Space direction='vertical'>
-          <SexyButton
-            icon={<FileTextOutlined />}
-            text='Journal'
-            color='#bae7ff'
-            isSelected={location.pathname.includes('journal')} 
-            onClick={e=>history.push(`/journal`)}
-            />
-          <SexyButton
-            icon={<FallOutlined />}
-            text='Vices'
-            color='#ffccc7'
-            popupMenu={<div>'poop'</div>}
-            isSelected={location.pathname.includes('vice')}
-            onClick={e=>history.push(`/vices`)}
-          />
-          <SexyButton
-            icon={<RiseOutlined />}
-            text='Virtues'
-            color='#d9f7be'
-            isSelected={location.pathname.includes('virtue')} 
-            onClick={e=>history.push(`/virtues`)}
-            />
-          <SexyButton
-            icon={<TrophyOutlined />}
-            text='Challenges'
-            color='#ffffb8'
-            isSelected={location.pathname.includes('challenge')} 
-            onClick={e=>history.push(`/challenges`)}
-            />
-          <SexyButton
-            icon={<SettingOutlined />}
-            text='Settings'
-            color='#f5f5f5'
-            isSelected={location.pathname.includes('settings')}
-            onClick={e=>history.push(`/settings`)}/>
-        </Space>
+        <JournalButton />
       </Affix>
+      <Affix offsetTop={80} style={{ position: 'absolute', left: '3%' }}>
+        <VicesButton />
+      </Affix>
+      <Affix offsetTop={130} style={{ position: 'absolute', left: '3%' }}>
+        <VirtuesButton />
+      </Affix>
+      <Affix offsetTop={180} style={{ position: 'absolute', left: '3%' }}>
+        <ChallengesButton />
+      </Affix>
+      <Affix offsetTop={230} style={{ position: 'absolute', left: '3%' }}>
+        <SettingsButton />
+      </Affix>
+
       <Layout theme="light" className="site-layout" style={{ marginLeft: '17vw', marginRight: '17vw' }}>
         <Content>
           <div className="site-layout-background" style={{ minHeight: 360 }}>
@@ -112,7 +89,7 @@ const App = () => {
         </Content>
         <Footer style={{ textAlign: 'center' }}>Aurelius ©2020 Created by Two Carls LLC</Footer>
       </Layout>
-    </Layout>
+    </Layout >
   )
 }
 

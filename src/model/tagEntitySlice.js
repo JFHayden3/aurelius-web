@@ -151,6 +151,11 @@ export const selectByRefTag = createSelector(
   (allTagEntitys, refTag) => allTagEntitys.find(v => v.refTag === refTag)
 )
 
+export const selectByTagEntityKind = createSelector(
+  [selectAllTagEntitys, (state, kind) => kind],
+  (allTagEntitys, kind) => allTagEntitys.filter(te => te.kind === kind)
+)
+
 export const selectAllChallenges = createSelector(
   [selectAllTagEntitys],
   (allTagEntitys) => allTagEntitys.filter(te => te.kind === 'CHALLENGE')

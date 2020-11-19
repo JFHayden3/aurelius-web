@@ -10,14 +10,15 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
   const cursor = 'pointer'
   const height = '40px'
   const boxShadow = '1px 1px 2px gray'
-  const borderWidth = '1px'
+  const borderWidth = '2px'
   const backgroundColor = color
 
   const borderStyle = isSelected ? 'solid' : 'hidden'
   const contentMargin = isSelected ? '12px' : '13px'
 
-  const width = isHovered ? '135px' : height
+  const width = isHovered ? '140px' : height
   const borderRadius = isHovered ? '2px' : '50%'
+  const dropdownArrowOpacity = isHovered ? 1.0 : 0.0
 
   const style = {
     cursor,
@@ -34,15 +35,19 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
   return (
     <div style={style} onClick={onClick}
       onMouseEnter={e => setHovered(true)} onMouseLeave={e => setHovered(false)}>
-      <Space  direction='horizontal' align='center' style={{ height: '100%', paddingLeft: contentMargin }}>
+      <Space direction='horizontal' align='center' style={{ height: '100%', paddingLeft: contentMargin }}>
         {icon}
         {isHovered && text}
       </Space>
       {isHovered && popupMenu &&
         <Dropdown onClick={e => e.stopPropagation()} overlay={popupMenu} trigger={['click']} placement='bottomCenter'>
           <div style={{
-            right: '-28%',
-            position: 'relative',
+            float: 'right',
+            transitionProperty: 'opacity',
+            transitionDelay: '300ms',
+            transitionDuration: '1ms',
+            transitionTimingFunction: 'linear',
+            opacity: dropdownArrowOpacity,
             display: 'inline-block',
             marginTop: '10px',
             borderLeftStyle: 'solid',
