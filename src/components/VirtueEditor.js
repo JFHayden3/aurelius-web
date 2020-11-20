@@ -1,8 +1,7 @@
 import React from 'react'
 import { selectVirtueById, updateEntity } from '../model/tagEntitySlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { PlusOutlined } from '@ant-design/icons'
-import { Typography, List, Row, Col, Button } from 'antd';
+import { Typography, List, Row, Col, Space } from 'antd';
 import { EngagementScheduleEditor } from './EngagementScheduleEditor'
 import { WrittenResponse, gutter, colSpan, TextItemList } from './ViceVirtueSharedStuff'
 const { Title, Text } = Typography;
@@ -57,16 +56,14 @@ export const VirtueEditor = ({ match }) => {
           <Text code={true}>#{virtue.refTag}</Text>
         </Col>
       </Row>
-      <Row gutter={gutter}>
-        <Col span={4}>
-          <Text strong={true}>Scheduled engagement</Text>
-        </Col>
-        <Col span={12}>
-          <EngagementScheduleEditor
-            engagementSchedule={virtue.engagementSchedule}
-            onScheduleChange={onEngagementScheduleChange} />
-        </Col>
-      </Row>
+      <Space style={{ width: '70%' }} direction='vertical'>
+        <Text strong={true}>Scheduled engagement</Text>
+        <EngagementScheduleEditor
+          engagementSchedule={virtue.engagementSchedule}
+          onScheduleChange={onEngagementScheduleChange} 
+          maxSchedTextLength={50}
+          />
+      </Space>
       <WrittenResponse
         text="Description"
         entity={virtue}

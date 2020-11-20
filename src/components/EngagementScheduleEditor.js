@@ -7,7 +7,7 @@ import { makeNumTwoDigit } from '../kitchenSink'
 import { groupBy, sortBy, isNumber, capitalize } from 'lodash'
 const { Text } = Typography
 
-function humanReadableEngagementInstances(instances) {
+function humanReadableEngagementInstances(instances, maxLength = 500) {
   if (!instances || instances.length === 0) {
     return "Set times"
   }
@@ -62,7 +62,8 @@ function humanReadableEngagementInstances(instances) {
   if (allInstanceStrs.length > 1) {
     allInstanceStrs[allInstanceStrs.length - 1] = 'and ' + allInstanceStrs[allInstanceStrs.length - 1]
   }
-  return allInstanceStrs.join(', ')
+  const joinedStrs = allInstanceStrs.join(', ')
+  return joinedStrs.substr(0, maxLength) + (joinedStrs.length > maxLength ? '...' : '')
 }
 
 const getInstanceSortKey = inst => {
@@ -75,26 +76,7 @@ const getInstanceSortKey = inst => {
   return th + tm + dh + dm
 }
 
-export const EngagementScheduleEditor = ({ engagementSchedule, onScheduleChange, isReadOnly = false }) => {
-  function changeScheduleComponentField(scheduleComponent, fieldName, value) {
-    const compIndex = engagementSchedule.findIndex(s => s === scheduleComponent)
-    const newComp = {
-      ...scheduleComponent
-    }
-    newComp[fieldName] = value
-    const newEngagementSchedule = [...engagementSchedule]
-    newEngagementSchedule.splice(compIndex, 1, newComp)
-    onScheduleChange(newEngagementSchedule)
-  }
-  function onScheduleComponentChange(scheduleComponent, fieldName) {
-    return (value) =>
-      changeScheduleComponentField(scheduleComponent, fieldName, value)
-  }
-
-  function onDaysChange(appt) {
-    return onScheduleComponentChange(appt, "days")
-  }
-
+const SchedComponent = ({ sched, changeScheduleComponentField, removeComponent, isReadOnly, maxTextLength }) => {
   function changeEngagementInstanceField(appt, instance, fieldName, value) {
     const instIndex = appt.instances.findIndex(i => i === instance)
     const newInstance = {
@@ -121,15 +103,10 @@ export const EngagementScheduleEditor = ({ engagementSchedule, onScheduleChange,
     changeScheduleComponentField(appt, 'instances', newInstances)
   }
 
-  function onAddRecurringAppointmentClick(e) {
-    const newRecurringAppointment = { days: [], instances: [{ optTime: null, optDuration: null, key: 0 }] }
-    const newEngagementSchedule = engagementSchedule.concat(newRecurringAppointment)
-    onScheduleChange(newEngagementSchedule)
-  }
-
-  const onRemoveRecurringAppointmentClick = toRemove => e => {
-    const newEngagementSchedule = engagementSchedule.filter(appt => appt !== toRemove)
-    onScheduleChange(newEngagementSchedule)
+  function onDaysChange(appt) {
+    return value => {
+      changeScheduleComponentField(appt, "days", value)
+    }
   }
 
   function onSetTimeClick(appt, instance) {
@@ -152,80 +129,121 @@ export const EngagementScheduleEditor = ({ engagementSchedule, onScheduleChange,
       changeEngagementInstanceField(appt, instance, "optDuration", newDuration)
     }
   }
+
+  const humanReadableTextAbbrev = capitalize(humanReadableEngagementInstances(sched.instances, maxTextLength))
+  const humanReadableTextFull = capitalize(humanReadableEngagementInstances(sched.instances))
+
+  return (
+    <Row>
+      <Col flex={2}>
+        <DowPicker value={sched.days} onChange={onDaysChange(sched)} isReadOnly={isReadOnly} />
+      </Col>
+      <Col flex={2}>
+        <div style={{ float: 'right' }}>
+          <Popover trigger={isReadOnly ? [] : 'click'} placement='bottom' content={
+            <Space direction='vertical' >
+              {sortBy(sched.instances, getInstanceSortKey).map(instance =>
+                <Space direction='horizontal' key={instance.key}>
+                  {!instance.optTime &&
+                    <Tooltip title="Set time">
+                      <Button onClick={onSetTimeClick(sched, instance)} icon={<ClockCircleOutlined />} />
+                    </Tooltip>}
+                  {instance.optTime &&
+                    <Tooltip title="Set time">
+                      <TimePicker
+                        onChange={onTimeChange(sched, instance)}
+                        defaultValue={moment(instance.optTime.hour + ':' + instance.optTime.minute, "h:mm")}
+                        use12Hours={true}
+                        minuteStep={5}
+                        placeholder="Select time"
+                        format="h:mm a"
+                        suffixIcon={<ClockCircleOutlined />}
+                        showNow={false}
+                      />
+                    </Tooltip>}
+                  {!instance.optDuration &&
+                    <Tooltip title="Set duration">
+                      <Button onClick={onSetDurationClick(sched, instance)} icon={<HourglassOutlined />} />
+                    </Tooltip>}
+                  {instance.optDuration &&
+                    <Tooltip title="Set duration">
+                      <TimePicker
+                        onChange={onDurationChange(sched, instance)}
+                        defaultValue={moment(instance.optDuration.hour + ':' + instance.optDuration.minute, "HH:mm")}
+                        format="HH\hr mm\min"
+                        minuteStep={5}
+                        placeholder="Select duration"
+                        suffixIcon={<HourglassOutlined />}
+                        showNow={false}
+                      />
+                    </Tooltip>
+                  }
+                  <Tooltip title='Remove'>
+                    <Button type='text' onClick={onRemoveInstanceClick(sched, instance)} icon={<CloseOutlined />} />
+                  </Tooltip>
+                </Space>
+              )}
+              <Button type="dashed" onClick={onAddInstanceClick(sched)}><PlusOutlined />Add Instance</Button>
+            </Space>
+          }>
+            <Tooltip title={humanReadableTextFull} placement='top' mouseEnterDelay={.2}>
+              {!isReadOnly &&
+                <Button>
+                  {humanReadableTextAbbrev}
+                </Button>}
+              {isReadOnly &&
+                <Text>
+                  {humanReadableTextAbbrev}
+                </Text>}
+            </Tooltip>
+          </Popover>
+          {!isReadOnly &&
+            <Tooltip title='Remove'>
+              <Button type='text' onClick={removeComponent(sched)} icon={<DeleteOutlined />} />
+            </Tooltip>}
+        </div>
+      </Col>
+    </Row>
+  )
+}
+
+export const EngagementScheduleEditor = ({ engagementSchedule, onScheduleChange, isReadOnly = false, maxSchedTextLength }) => {
+  function changeScheduleComponentField(scheduleComponent, fieldName, value) {
+    const compIndex = engagementSchedule.findIndex(s => s === scheduleComponent)
+    const newComp = {
+      ...scheduleComponent
+    }
+    newComp[fieldName] = value
+    const newEngagementSchedule = [...engagementSchedule]
+    newEngagementSchedule.splice(compIndex, 1, newComp)
+    onScheduleChange(newEngagementSchedule)
+  }
+
+  function onAddRecurringAppointmentClick(e) {
+    const newRecurringAppointment = { days: [], instances: [{ optTime: null, optDuration: null, key: 0 }] }
+    const newEngagementSchedule = engagementSchedule.concat(newRecurringAppointment)
+    onScheduleChange(newEngagementSchedule)
+  }
+
+  const onRemoveRecurringAppointmentClick = toRemove => e => {
+    const newEngagementSchedule = engagementSchedule.filter(appt => appt !== toRemove)
+    onScheduleChange(newEngagementSchedule)
+  }
+
+
   return (
     <List
       dataSource={engagementSchedule}
       itemLayout='vertical' style={{ width: '100%' }}
       renderItem={sched =>
         <List.Item>
-          <Row>
-            <Col flex={2}>
-              <DowPicker value={sched.days} onChange={onDaysChange(sched)} isReadOnly={isReadOnly} />
-            </Col>
-            <Col flex={2}>
-              <div style={{ float: 'right' }}>
-                <Popover trigger={isReadOnly ? [] : 'click'} content={
-                  <Space direction='vertical' >
-                    {sortBy(sched.instances, getInstanceSortKey).map(instance =>
-                      <Space direction='horizontal' key={instance.key}>
-                        {!instance.optTime &&
-                          <Tooltip title="Set time">
-                            <Button onClick={onSetTimeClick(sched, instance)} icon={<ClockCircleOutlined />} />
-                          </Tooltip>}
-                        {instance.optTime &&
-                          <Tooltip title="Set time">
-                            <TimePicker
-                              onChange={onTimeChange(sched, instance)}
-                              defaultValue={moment(instance.optTime.hour + ':' + instance.optTime.minute, "h:mm")}
-                              use12Hours={true}
-                              minuteStep={5}
-                              placeholder="Select time"
-                              format="h:mm a"
-                              suffixIcon={<ClockCircleOutlined />}
-                              showNow={false}
-                            />
-                          </Tooltip>}
-                        {!instance.optDuration &&
-                          <Tooltip title="Set duration">
-                            <Button onClick={onSetDurationClick(sched, instance)} icon={<HourglassOutlined />} />
-                          </Tooltip>}
-                        {instance.optDuration &&
-                          <Tooltip title="Set duration">
-                            <TimePicker
-                              onChange={onDurationChange(sched, instance)}
-                              defaultValue={moment(instance.optDuration.hour + ':' + instance.optDuration.minute, "HH:mm")}
-                              format="HH\hr mm\min"
-                              minuteStep={5}
-                              placeholder="Select duration"
-                              suffixIcon={<HourglassOutlined />}
-                              showNow={false}
-                            />
-                          </Tooltip>
-                        }
-                        <Tooltip title='Remove'>
-                          <Button type='text' onClick={onRemoveInstanceClick(sched, instance)} icon={<CloseOutlined />} />
-                        </Tooltip>
-                      </Space>
-                    )}
-                    <Button type="dashed" onClick={onAddInstanceClick(sched)}><PlusOutlined />Add Instance</Button>
-                  </Space>
-                }>
-                  {!isReadOnly &&
-                    <Button>
-                      {capitalize(humanReadableEngagementInstances(sched.instances))}
-                    </Button>}
-                  {isReadOnly &&
-                    <Text>
-                      {capitalize(humanReadableEngagementInstances(sched.instances))}
-                    </Text>}
-                </Popover>
-                {!isReadOnly &&
-                  <Tooltip title='Remove'>
-                    <Button type='text' onClick={onRemoveRecurringAppointmentClick(sched)} icon={<DeleteOutlined />} />
-                  </Tooltip>}
-              </div>
-            </Col>
-          </Row>
+          <SchedComponent
+            sched={sched}
+            isReadOnly={isReadOnly}
+            changeScheduleComponentField={changeScheduleComponentField}
+            removeComponent={onRemoveRecurringAppointmentClick}
+            maxTextLength={maxSchedTextLength}
+          />
         </List.Item>
       }>
       {!isReadOnly &&

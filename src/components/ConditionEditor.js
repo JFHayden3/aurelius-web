@@ -108,7 +108,7 @@ export const ConditionEditor = ({ value, onChange, isReadOnly, onDelete }) => {
   return (
     <div style={{ float: 'right' }}>
       {!isReadOnly &&
-        <Cascader style={{ width: '285px' }}
+        <Cascader style={{ width: '275px' }}
           displayRender={displayRender}
           value={presVal}
           placeholder="Choose condition"

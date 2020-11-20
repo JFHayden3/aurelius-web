@@ -143,6 +143,7 @@ const SprintPresenter = ({ sprint, onEffectChange, onRemoveEffect, isReadOnly = 
             engagementSchedule={sprint.engagementSchedule}
             onScheduleChange={onScheduleChange}
             isReadOnly={isReadOnly}
+            maxSchedTextLength={35}
           />
         </Space>
       </div>
