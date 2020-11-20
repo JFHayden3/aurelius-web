@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { ViceLogEntry } from './ViceLogEntry'
 import { selectArticleById, updateContent } from '../model/journalArticlesSlice'
 
-export const ViceLogV2ArticleContent = memo(({ articleId }) => {
+export const ViceLogV2ArticleContent = memo(({ articleId, isReadOnly }) => {
   const dispatch = useDispatch()
   const article = useSelector((state) => selectArticleById(state, articleId))
   const { content } = article
@@ -13,6 +13,6 @@ export const ViceLogV2ArticleContent = memo(({ articleId }) => {
     dispatch(updateContent(payload))
   }
   return (
-    <ViceLogEntry entry={content} onChange={onFieldChange} />
+    <ViceLogEntry entry={content} onChange={onFieldChange} isReadOnlyMode={isReadOnly} />
   )
 })

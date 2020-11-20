@@ -33,7 +33,7 @@ const MentionedTag = (mentionProps) => {
   )
 }
 
-export const TaggableTextField = ({ value, onChange, placeholder }) => {
+export const TaggableTextField = ({ value, onChange, placeholder, isReadOnly }) => {
   const convertedValue = (value ?? "") === ""
     ? ContentState.createFromText("") : convertFromRaw(value)
 
@@ -44,6 +44,7 @@ export const TaggableTextField = ({ value, onChange, placeholder }) => {
   })
   return (
     <AutocompleteEditor
+      isReadOnly={isReadOnly}
       placeholder={placeholder}
       allRefTags={allRefTags}
       value={convertedValue}
@@ -111,6 +112,7 @@ class AutocompleteEditor extends Component {
     return (
       <div /** className={editorStyles.editor} */ onClick={this.focus}>
         <Editor
+          readOnly={this.props.isReadOnly}
           editorState={this.state.editorState}
           onChange={this.onChange}
           placeholder={this.props.placeholder}

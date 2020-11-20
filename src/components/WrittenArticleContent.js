@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { TaggableTextField } from './TaggableTextField'
 const { TextArea } = Input;
 
-export const WrittenArticleContent = ({ articleId }) => {
+export const WrittenArticleContent = ({ articleId, isReadOnly }) => {
   const dispatch = useDispatch()
   const content = useSelector((state) => selectArticleContentById(state, articleId))
   const onChange = val => {
@@ -20,6 +20,7 @@ export const WrittenArticleContent = ({ articleId }) => {
       placeholder={content.hint}
       value={content.text}
       onChange={onChange}
+      isReadOnly={isReadOnly}
     />
   )
 }

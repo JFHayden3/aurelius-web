@@ -16,12 +16,13 @@ import { EntryWordCountDisplay } from "./EntryWordCountDisplay"
 import { PlusOutlined } from '@ant-design/icons';
 import { selectAllArticleSettings, selectArticleSettingByArticleKind } from '../model/settingsSlice'
 import { useSelector, useStore, useDispatch } from 'react-redux'
-import { apiDateToFe } from "../kitchenSink"
+import { apiDateToFe, dateAsYyyyMmDd } from "../kitchenSink"
 import { CreateNewPromptModal } from "./CreateNewPromptModal"
 
 const { Title } = Typography
 
 export const JournalEntry = ({ entryId }) => {
+  const isReadOnly = entryId != dateAsYyyyMmDd(new Date(Date.now()))
   const [newPromptModalVisible, setNewPromptModalVisible] = useState(false)
   // TODO: when there are articles filtered for a given entry, provide the user a way to manually
   // show those articles even if they don't match the filter or at least communicate to the user that
@@ -97,14 +98,14 @@ export const JournalEntry = ({ entryId }) => {
         itemLayout="vertical"
         renderItem={articleId =>
           <List.Item key={articleId} style={{ borderBottom: 'none', paddingBottom: '6px', paddingTop: '6px' }}>
-            <JournalArticle articleId={articleId} />
+            <JournalArticle articleId={articleId} isReadOnly={isReadOnly} />
           </List.Item>
         }
       >
       </List>
-      <Dropdown overlay={menu} trigger={['click']}>
+      {!isReadOnly && <Dropdown overlay={menu} trigger={['click']}>
         <Button block size="large" type="dashed"><PlusOutlined />Add Section</Button>
-      </Dropdown>
+      </Dropdown>}
       <CreateNewPromptModal isVisible={newPromptModalVisible} onClose={() => setNewPromptModalVisible(false)} onConfirm={onNewPromptOk} />
     </div>
   )

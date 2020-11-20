@@ -8,20 +8,22 @@ import { selectArticleContentById, textUpdated } from '../model/journalArticlesS
 import { TaggableTextField } from './TaggableTextField'
 import { Input, Divider } from 'antd';
 
-export const AgendaArticleContent = ({ articleId }) => {
+export const AgendaArticleContent = ({ articleId, isReadOnly }) => {
   const content = useSelector((state) => selectArticleContentById(state, articleId))
   const dispatch = useDispatch()
   return (
     <div>
-      <TaggableTextField placeholder="High-level notes about today's agenda..."
+      <TaggableTextField
+        isReadOnly={isReadOnly}
+        placeholder="High-level notes about today's agenda..."
         value={content.text}
         onChange={(val) =>
           dispatch(textUpdated({ articleId: articleId, text: val }))}
       />
       <Divider plain orientation="left">Agenda</Divider>
-      <TaskList articleId={articleId} />
+      <TaskList articleId={articleId} isReadOnly={isReadOnly}/>
       <Divider plain orientation="left">Restrictions</Divider>
-      <RestrictionList articleId={articleId} />
+      <RestrictionList articleId={articleId} isReadOnly={isReadOnly} />
     </div>
   )
 }

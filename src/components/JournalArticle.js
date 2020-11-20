@@ -13,18 +13,18 @@ import { AgendaArticleContent } from './AgendaArticleContent'
 import { WrittenArticleContent } from './WrittenArticleContent'
 import { ViceLogV2ArticleContent } from './ViceLogV2ArticleContent'
 
-export const JournalArticle = ({ articleId }) => {
+export const JournalArticle = ({ articleId, isReadOnly }) => {
   const title = useSelector((state) => selectArticleTitleById(state, articleId))
   const kind = useSelector((state) => selectArticleKindById(state, articleId))
   const dispatch = useDispatch()
   const getArticleContent = kind => {
     switch (kind) {
       case 'AGENDA':
-        return (<AgendaArticleContent articleId={articleId} />)
+        return (<AgendaArticleContent articleId={articleId} isReadOnly={isReadOnly} />)
       case 'VICE_LOG_V2':
-        return (<ViceLogV2ArticleContent articleId={articleId} />)
+        return (<ViceLogV2ArticleContent articleId={articleId} isReadOnly={isReadOnly} />)
       default:
-        return (<WrittenArticleContent articleId={articleId} />)
+        return (<WrittenArticleContent articleId={articleId} isReadOnly={isReadOnly} />)
     }
   }
   if (kind) {
@@ -38,9 +38,11 @@ export const JournalArticle = ({ articleId }) => {
         <Divider orientation="left">
           <span>
             {title}
-            <Dropdown overlay={menu} trigger={['click']}>
-              <Button type="text" shape="round" icon={<MoreOutlined />} />
-            </Dropdown>
+            {!isReadOnly &&
+              <Dropdown overlay={menu} trigger={['click']}>
+                <Button type="text" shape="round" icon={<MoreOutlined />} />
+              </Dropdown>
+            }
           </span>
         </Divider>
         {getArticleContent(kind)}

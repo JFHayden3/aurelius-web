@@ -6,24 +6,22 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectArticleById, updateAgendaTask, selectTaskById, moveAgendaTask, addAgendaTask, removeAgendaTask } from '../model/journalArticlesSlice'
-import moment from 'moment';
 import { Timeline, Button, Space, Typography, Tooltip } from 'antd';
 import { AgendaTaskModal } from './AgendaTaskModal'
 import { MenuOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { useDrop, useDrag } from 'react-dnd'
-import { times } from 'lodash';
 import { prettyPrintDuration, prettyPrintTime } from '../kitchenSink';
 
 const { Text } = Typography
 
-const ReadonlyTaskListItem = ({ articleId, taskId, onEditClick }) => {
+const TaskListItem = ({ articleId, taskId, onEditClick, isReadOnly }) => {
   const [hovered, setHovered] = useState(false)
   const task = useSelector((state) => selectTaskById(state, articleId, taskId))
   const dispatch = useDispatch()
   const [{ isDragging }, drag] = useDrag({
     item: { type: 'task', task: task },
     collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
+      isDragging:!!monitor.isDragging(),
     }),
   })
   const onDeleteClick = e => {
@@ -33,23 +31,23 @@ const ReadonlyTaskListItem = ({ articleId, taskId, onEditClick }) => {
   var durationStr = prettyPrintDuration(optDuration)
   const timeStr = prettyPrintTime(optTime)
   return (
-    <div ref={drag}
+    <div ref={isReadOnly ? null : drag}
       style={{
         opacity: isDragging ? 0.5 : 1,
       }}>
       <Space direction='horizontal' size='small' align='start'>
-        <MenuOutlined style={{ cursor: 'grab', paddingTop: '6px' }} />
+        {!isReadOnly && <MenuOutlined style={{ cursor: 'grab', paddingTop: '6px' }} />}
         <div
           onMouseEnter={e => setHovered(true)}
           onMouseLeave={e => setHovered(false)}>
           <Space direction='horizontal' align='start'>
-            <div onClick={e => onEditClick()}
+            <div onClick={e => !isReadOnly && onEditClick()}
               style={{
-                cursor: 'pointer',
+                cursor: isReadOnly ? 'inherit' : 'pointer',
                 height: '100%',
                 padding: '2px',
                 borderRadius: '6px',
-                boxShadow: hovered ? '2px 2px 3px gray' : 'unset'
+                boxShadow: hovered && !isReadOnly ? '2px 2px 3px gray' : 'unset'
               }}>
               <Space direction='horizontal' size='middle' align='start'>
                 {timeStr && <Text>{timeStr}</Text>}
@@ -66,9 +64,9 @@ const ReadonlyTaskListItem = ({ articleId, taskId, onEditClick }) => {
                 </Space>
               </Space>
             </div>
-            <Tooltip title="Remove task">
+            {!isReadOnly && <Tooltip title="Remove task">
               <div onClick={onDeleteClick} style={{ cursor: 'pointer', visibility: hovered ? 'visible' : 'hidden' }}><CloseOutlined /></div>
-            </Tooltip>
+            </Tooltip>}
           </Space>
         </div>
       </Space>
@@ -96,7 +94,7 @@ const TaskSpace = ({ index, moveTask, children }) => {
   )
 }
 
-export const TaskList = ({ articleId }) => {
+export const TaskList = ({ articleId, isReadOnly }) => {
   const article = useSelector((state) => selectArticleById(state, articleId))
   const dispatch = useDispatch()
   const [modalVisible, setModalVisible] = useState(false)
@@ -143,17 +141,23 @@ export const TaskList = ({ articleId }) => {
         {tasks && tasks.map((task, index) => (
           <Timeline.Item key={task.id} style={{ paddingBottom: '0px' }}>
             <TaskSpace index={index} moveTask={moveTask}>
-              <ReadonlyTaskListItem articleId={articleId} taskId={task.id} onEditClick={onEditTaskClick(task)} />
+              <TaskListItem
+                isReadOnly={isReadOnly}
+                articleId={articleId}
+                taskId={task.id}
+                onEditClick={onEditTaskClick(task)} />
             </TaskSpace>
           </Timeline.Item>
         ))}
-        <Timeline.Item key={tasks.length}>
-          <TaskSpace index={tasks.length} moveTask={moveTask}>
-            <Button onClick={onAddTaskClick} type="dashed" style={{ margin: '5px' }}>
-              <PlusOutlined /> Add Task
+        {!isReadOnly &&
+          <Timeline.Item key={tasks.length}>
+            <TaskSpace index={tasks.length} moveTask={moveTask}>
+              <Button onClick={onAddTaskClick} type="dashed" style={{ margin: '5px' }}>
+                <PlusOutlined /> Add Task
             </Button>
-          </TaskSpace>
-        </Timeline.Item>
+            </TaskSpace>
+          </Timeline.Item>
+        }
 
       </Timeline>
       {

@@ -39,7 +39,7 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
         {icon}
         {isHovered && text}
       </Space>
-      {isHovered && popupMenu &&
+      {popupMenu &&
         <Dropdown onClick={e => e.stopPropagation()} overlay={popupMenu} trigger={['click']} placement='bottomCenter'>
           <div style={{
             float: 'right',
@@ -48,7 +48,7 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
             transitionDuration: '1ms',
             transitionTimingFunction: 'linear',
             opacity: dropdownArrowOpacity,
-            display: 'inline-block',
+            display: isHovered ? 'inline-block' : 'none',
             marginTop: '10px',
             borderLeftStyle: 'solid',
             paddingLeft: '6px',

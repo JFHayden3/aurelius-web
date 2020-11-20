@@ -161,7 +161,6 @@ export const fetchSettings = createAsyncThunk(
   async (payload, { getState }) => {
     const userId = selectFetchUserField(getState())
     return API.graphql(graphqlOperation(getSettings, { userId }))
-      // TODO: create settings here if response empty or on user creation trigger?
       .then(response => {
         return convertApiToFe(response.data.getSettings)
       })
@@ -278,7 +277,6 @@ export function selectArticleSettingByArticleKind(state, articleKind) {
 export function selectAllArticleSettings(state) {
   // TODO: better init logic. This shoudln't be necessary and its probably dangerous
   if (!state.settings.articleSettings) {
-    console.error("BLAH REMEMBER TO FIX THIS")
     return {}
   }
   return state.settings.articleSettings

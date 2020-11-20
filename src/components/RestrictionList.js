@@ -18,7 +18,7 @@ import { useDrop, useDrag } from 'react-dnd'
 
 const { Text } = Typography
 
-const ReadonlyRestrictionItem = ({ articleId, restrictionId, onEditClick }) => {
+const RestrictionItem = ({ articleId, restrictionId, onEditClick, isReadOnly }) => {
   const [hovered, setHovered] = useState(false)
   const restrictionItem = useSelector((state) => selectRestrictionById(state, articleId, restrictionId))
   const [{ isDragging }, drag] = useDrag({
@@ -35,20 +35,20 @@ const ReadonlyRestrictionItem = ({ articleId, restrictionId, onEditClick }) => {
   // TODO: better representation of activities. We know that they're all vice ref tags
   const activityStr = activities.join(', ')
   return (
-    <div ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
+    <div ref={isReadOnly ? null : drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
       <Space direction='horizontal' size='small' align='start'>
-        <MenuOutlined style={{ cursor: 'grab', paddingTop: '6px' }} />
+        {!isReadOnly && <MenuOutlined style={{ cursor: 'grab', paddingTop: '6px' }} />}
         <div
           onMouseEnter={e => setHovered(true)}
           onMouseLeave={e => setHovered(false)}>
           <Space direction='horizontal' align='start'>
-            <div onClick={e => onEditClick()}
+            <div onClick={e => !isReadOnly && onEditClick()}
               style={{
-                cursor: 'pointer',
+                cursor: isReadOnly ? 'inherit' : 'pointer',
                 height: '100%',
                 padding: '2px',
                 borderRadius: '6px',
-                boxShadow: hovered ? '2px 2px 3px gray' : 'unset'
+                boxShadow: hovered && !isReadOnly ? '2px 2px 3px gray' : 'unset'
               }}>
               <Space direction='horizontal' size='middle' align='start'>
                 <Space direction='vertical' size='small' style={{ width: "100%" }}>
@@ -64,9 +64,10 @@ const ReadonlyRestrictionItem = ({ articleId, restrictionId, onEditClick }) => {
                 </Space>
               </Space>
             </div>
-            <Tooltip title="Remove restriction">
-              <div onClick={onDeleteClick} style={{ cursor: 'pointer', visibility: hovered ? 'visible' : 'hidden' }}><CloseOutlined /></div>
-            </Tooltip>
+            {!isReadOnly &&
+              <Tooltip title="Remove restriction">
+                <div onClick={onDeleteClick} style={{ cursor: 'pointer', visibility: hovered ? 'visible' : 'hidden' }}><CloseOutlined /></div>
+              </Tooltip>}
           </Space>
         </div>
       </Space>
@@ -95,7 +96,7 @@ const RestrictionItemSpace = ({ index, moveRestriction, children }) => {
   )
 }
 
-export const RestrictionList = ({ articleId }) => {
+export const RestrictionList = ({ articleId, isReadOnly }) => {
   const article = useSelector((state) => selectArticleById(state, articleId))
   const dispatch = useDispatch()
   const [modalVisible, setModalVisible] = useState(false)
@@ -141,18 +142,20 @@ export const RestrictionList = ({ articleId }) => {
       {restrictions && restrictions.map((restriction, index) => (
         <div key={restriction.id}>
           <RestrictionItemSpace index={index} moveRestriction={moveRestriction}>
-            <ReadonlyRestrictionItem
+            <RestrictionItem
               articleId={articleId}
               restrictionId={restriction.id}
-              onEditClick={onEditRestrictionClick(restriction)} />
+              onEditClick={onEditRestrictionClick(restriction)}
+              isReadOnly={isReadOnly}
+            />
           </RestrictionItemSpace>
         </div>
       ))}
-      <RestrictionItemSpace index={restrictions.length} moveRestriction={moveRestriction}>
+      {!isReadOnly && <RestrictionItemSpace index={restrictions.length} moveRestriction={moveRestriction}>
         <Button onClick={onAddRestrictionClick} type="dashed" style={{ margin: '5px' }}>
           <PlusOutlined /> Add Restriction
         </Button>
-      </RestrictionItemSpace>
+      </RestrictionItemSpace>}
       {modalRestriction &&
         <RestrictionModal agendaRestriction={modalRestriction}
           isVisible={modalVisible}

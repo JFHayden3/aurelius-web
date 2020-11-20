@@ -89,7 +89,7 @@ const App = () => {
         </Content>
         <Footer style={{ textAlign: 'center' }}>Aurelius ©2020 Created by Two Carls LLC</Footer>
       </Layout>
-    </Layout >
+    </Layout>
   )
 }
 
