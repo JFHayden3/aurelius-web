@@ -1,6 +1,6 @@
 import React, { useState, Component } from "react";
-import { Space, Row, Col, Typography, Divider, Button } from "antd";
-import { Auth } from "aws-amplify";
+import { Row, Col, Typography, Button, Modal } from "antd";
+import { AuthModal } from '../components/AuthModal'
 import { random } from "lodash";
 const { Title, Text, Paragraph } = Typography;
 
@@ -43,9 +43,9 @@ class CyclingQuote extends Component {
       const lastQuoteIndex = this.state.currentQuoteIndex;
       const currentQuoteIndex = this.state.unpickedQuotes[random(0, this.state.unpickedQuotes.length - 1)];
       const counter = this.state.counter + 1;
-      const unpickedQuotes = this.state.unpickedQuotes.length > 1 
-      ? this.state.unpickedQuotes.filter(v => v !== currentQuoteIndex)
-      : quoteCycleOptions.map((v, i) => i)
+      const unpickedQuotes = this.state.unpickedQuotes.length > 1
+        ? this.state.unpickedQuotes.filter(v => v !== currentQuoteIndex)
+        : quoteCycleOptions.map((v, i) => i)
       this.setState({ lastQuoteIndex, currentQuoteIndex, unpickedQuotes, counter });
     }, 7000);
   }
@@ -57,7 +57,7 @@ class CyclingQuote extends Component {
   state = {
     currentQuoteIndex: random(0, quoteCycleOptions.length - 1),
     lastQuoteIndex: random(0, quoteCycleOptions.length - 1),
-    unpickedQuotes:quoteCycleOptions.map((v, i) => i),
+    unpickedQuotes: quoteCycleOptions.map((v, i) => i),
     counter: 0,
   };
 
@@ -102,6 +102,7 @@ export const LandingPage = () => {
   const colStyle = { textAlign: "center", width: "33.3333%" };
   const boxHeaderStyle = { fontSize: "18px" };
   const boxContentStyle = { fontSize: "12px" };
+  const [authModalMode, setAuthModalMode] = useState('HIDDEN')
   return (
     <div style={{ fontFamily: "sans-serif" }}>
       <div
@@ -118,7 +119,7 @@ export const LandingPage = () => {
           <Button
             style={{ fontSize: "10px" }}
             type="link"
-            onClick={() => Auth.federatedSignIn()}
+            onClick={() => setAuthModalMode('SIGN_IN')}
           >
             login
           </Button>
@@ -142,7 +143,7 @@ export const LandingPage = () => {
           <Button
             style={{ fontSize: "22px" }}
             type="link"
-            onClick={() => Auth.federatedSignIn()}
+            onClick={() => setAuthModalMode('SIGN_UP')}
           >
             sign up now!
           </Button>
@@ -187,6 +188,12 @@ export const LandingPage = () => {
           <Paragraph style={boxContentStyle}>{technologyText}</Paragraph>
         </Col>
       </Row>
+      <Modal destroyOnClose
+        visible={authModalMode !== 'HIDDEN'}
+        onCancel={e => setAuthModalMode('HIDDEN')}
+        footer={null}>
+        <AuthModal initialMode={authModalMode} />
+      </Modal>
     </div>
   );
 };
