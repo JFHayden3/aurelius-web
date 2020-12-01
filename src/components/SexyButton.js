@@ -41,8 +41,17 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
     setDropdownOpen(false)
   }
 
+  const mainButtonClicked = e => {
+    if (popupMenu) {
+      setDropdownOpen(true)
+    } else {
+      onClick()
+    }
+  }
+
+
   return (
-    <div style={style} onClick={onClick}
+    <div style={style} onClick={mainButtonClicked}
       onMouseEnter={e => setHovered(true)} onMouseLeave={onMouseLeave}>
       <Space direction='horizontal' align='center' style={{ height: '100%', paddingLeft: contentMargin }}>
         {icon}
@@ -54,7 +63,7 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
           visible={dropdownOpen}
           overlay={popupMenu}
           trigger={['click']}
-          placement='bottomCenter'>
+          placement='bottomRight'>
           <div style={{
             float: 'right',
             transitionProperty: 'opacity',
