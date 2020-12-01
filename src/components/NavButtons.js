@@ -6,47 +6,29 @@ import {
 } from 'react-router-dom'
 import { Menu, Divider } from 'antd'
 import { SexyButton } from './SexyButton'
-import { selectByTagEntityKind, selectAllVices, computeNextTagEntityId, createNewTagEntity } from '../model/tagEntitySlice'
+import { selectByTagEntityKind, computeNextTagEntityId, createNewTagEntity } from '../model/tagEntitySlice'
 import { AddNewModal } from "./ViceVirtueSharedStuff"
-
-import {
-  FileTextOutlined,
-  FallOutlined,
-  RiseOutlined,
-  SettingOutlined,
-  TrophyOutlined
-} from '@ant-design/icons';
-
+import { getEntityColor, getEntityIcon } from '../kitchenSink'
 
 const navButtonProperties = {
   JOURNAL: {
-    icon: <FileTextOutlined />
-    , text: 'Journal'
-    , color: '#bae7ff'
+     text: 'Journal'
     , loc: 'journal'
   },
   VICE: {
-    icon: < FallOutlined />
-    , text: 'Vices'
-    , color: '#ffccc7'
+     text: 'Vices'
     , loc: 'vices'
   },
   VIRTUE: {
-    icon: <RiseOutlined />
-    , text: 'Virtues'
-    , color: '#d9f7be'
+     text: 'Virtues'
     , loc: 'virtues'
   },
   CHALLENGE: {
-    icon: <TrophyOutlined />
-    , text: 'Challenges'
-    , color: '#ffffb8'
+     text: 'Challenges'
     , loc: 'challenges'
   },
   SETTINGS: {
-    icon: <SettingOutlined />
-    , text: 'Settings'
-    , color: '#f5f5f5'
+     text: 'Settings'
     , loc: 'settings'
   },
 }
@@ -57,9 +39,9 @@ const NavButton = ({ type, menu }) => {
   const buttProps = navButtonProperties[type]
   return (
     <SexyButton
-      icon={buttProps.icon}
+      icon={getEntityIcon(type)}
       text={buttProps.text}
-      color={buttProps.color}
+      color={getEntityColor(type)}
       popupMenu={menu}
       isSelected={location.pathname.includes(buttProps.loc)}
       onClick={e => history.push(`/` + buttProps.loc)} />

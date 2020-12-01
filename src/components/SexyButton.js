@@ -32,15 +32,29 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
     borderRadius
   }
 
+  const onDropDownVisibilityChange = val => {
+    setDropdownOpen(val)
+  }
+
+  const onMouseLeave = e => {
+    setHovered(false)
+    setDropdownOpen(false)
+  }
+
   return (
     <div style={style} onClick={onClick}
-      onMouseEnter={e => setHovered(true)} onMouseLeave={e => setHovered(false)}>
+      onMouseEnter={e => setHovered(true)} onMouseLeave={onMouseLeave}>
       <Space direction='horizontal' align='center' style={{ height: '100%', paddingLeft: contentMargin }}>
         {icon}
         {isHovered && text}
       </Space>
       {popupMenu &&
-        <Dropdown onClick={e => e.stopPropagation()} overlay={popupMenu} trigger={['click']} placement='bottomCenter'>
+        <Dropdown onVisibleChange={onDropDownVisibilityChange}
+          onClick={e => e.stopPropagation()}
+          visible={dropdownOpen}
+          overlay={popupMenu}
+          trigger={['click']}
+          placement='bottomCenter'>
           <div style={{
             float: 'right',
             transitionProperty: 'opacity',

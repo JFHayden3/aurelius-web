@@ -1,5 +1,14 @@
 //utilities and shit
 import moment from 'moment'
+import React from 'react'
+import {
+  FileTextOutlined,
+  FallOutlined,
+  RiseOutlined,
+  SettingOutlined,
+  TrophyOutlined
+} from '@ant-design/icons';
+
 
 /**
  * Takes an api date (a number in the format yyyyMMdd) and returns a renderable
@@ -237,4 +246,34 @@ export const journalPromptFrequencies = {
   SPECIFIC_DOW: "Specific days",
   NEVER: "Never",
   RANDOMLY: "Sporadically"
+}
+
+export const getEntityColor = entityKind => {
+  switch (entityKind) {
+    case 'JOURNAL':
+      return '#bae7ff'
+    case 'VICE':
+      return '#ffccc7'
+    case 'VIRTUE':
+      return '#d9f7be'
+    case 'CHALLENGE':
+      return '#ffffb8'
+    case 'SETTINGS':
+      return '#f5f5f5'
+  }
+}
+
+export const getEntityIcon = entityKind => {
+  switch (entityKind) {
+    case 'JOURNAL':
+      return <FileTextOutlined />
+    case 'VICE':
+      return <FallOutlined />
+    case 'VIRTUE':
+      return <RiseOutlined />
+    case 'CHALLENGE':
+      return <TrophyOutlined />
+    case 'SETTINGS':
+      return <SettingOutlined />
+  }
 }

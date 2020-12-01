@@ -1,33 +1,52 @@
 import React, { useState, Component } from 'react'
 import { useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
-import { Typography, Popover } from 'antd'
-import { selectAllVirtues, selectAllVices } from '../model/tagEntitySlice'
-import { ViceCard } from './ViceCard'
-import { VirtueCard } from './VirtueCard'
+import { Typography, Popover, Space } from 'antd'
+import { selectAllTagEntitys, selectTagEntityById } from '../model/tagEntitySlice'
+import { getEntityColor, getEntityIcon } from '../kitchenSink'
 import { EditorState, ContentState, convertToRaw, convertFromRaw } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
 import createMentionPlugin, { defaultSuggestionsFilter } from 'draft-js-mention-plugin';
 import 'draft-js/dist/Draft.css';
-const { Link } = Typography
+const { Link, Paragraph, Title } = Typography
 
 const MentionedTag = (mentionProps) => {
   // TODO: different styling for vices.virtues
   // TODO: less shitty pop-up
   // TODO: validate for broken links (deleted vice/virtues) and do something about them
   const entityId = mentionProps.mention.entityId
-  const [linkPrefix, popoverContent] = mentionProps.mention.kind === 'VICE' ?
-    ["vices", (<ViceCard viceId={entityId} />)]
-    : ["virtues", (<VirtueCard virtueId={entityId} />)]
-
+  const entity = useSelector(state => selectTagEntityById(state, entityId))
   const history = useHistory()
 
   const onTagClick = e => {
-    history.push(`/${linkPrefix}/edit/${entityId}`)
+    if (entity) {
+      var linkPrefix
+      switch (mentionProps.mention.kind) {
+        case 'VICE':
+          linkPrefix = 'vices'
+          break;
+        case 'VIRTUE':
+          linkPrefix = 'virtues'
+          break;
+        case 'CHALLENGE':
+          linkPrefix = 'challenges'
+          break;
+      }
+      history.push(`/${linkPrefix}/edit/${entityId}`)
+    }
   }
 
+  const color = getEntityColor(mentionProps.mention.kind)
+  const icon = getEntityIcon(mentionProps.mention.kind)
   return (
-    <Popover content={popoverContent}>
+    <Popover overlayStyle={{ borderColor: color, antPopoverContent: { borderColor: color } }}
+      color={color} content={entity &&
+        <Space size='small' direction='vertical' style={{ maxWidth: '250px', backgroundColor: getEntityColor(mentionProps.mention.kind) }}>
+          <span><Title style={{display:'inline', marginRight:'20px'}} level={3}>{entity.name}</Title><div style={{ float: 'right', marginTop:'8px' }}>{icon}</div></span>
+          <Paragraph ellipsis={{
+            rows:3,
+            expandable: true}}>{entity.description}</Paragraph>
+        </Space>}>
       <Link onClick={onTagClick}>{mentionProps.children}</Link>
     </Popover>
   )
@@ -37,15 +56,14 @@ export const TaggableTextField = ({ value, onChange, placeholder, isReadOnly }) 
   const convertedValue = (value ?? "") === ""
     ? ContentState.createFromText("") : convertFromRaw(value)
 
-  const allViceRefs = useSelector(selectAllVices).map(v => ['VICE', v])
-  const allVirtueRefs = useSelector(selectAllVirtues).map(v => ['VIRTUE', v])
-  const allRefTags = allViceRefs.concat(allVirtueRefs).map(([kind, entity]) => {
-    return { name: entity.refTag, entityId: entity.id, kind: kind }
+
+  const allRefTags = useSelector(selectAllTagEntitys).map((entity) => {
+    return { name: entity.refTag, entityId: entity.id, kind: entity.kind }
   })
   return (
     <AutocompleteEditor
       isReadOnly={isReadOnly}
-      placeholder={placeholder}
+      placeholder={isReadOnly ? "" : placeholder}
       allRefTags={allRefTags}
       value={convertedValue}
       onChange={onChange} />
