@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Space, Dropdown } from 'antd'
 import { CaretDownOutlined } from '@ant-design/icons';
 
-
 export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }) => {
   const [isHovered, setHovered] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -11,6 +10,7 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
   const height = '40px'
   const boxShadow = '1px 1px 2px gray'
   const borderWidth = '2px'
+  const overflow = 'hidden'
   const backgroundColor = color
 
   const borderStyle = isSelected ? 'solid' : 'hidden'
@@ -18,10 +18,10 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
 
   const width = isHovered ? '140px' : height
   const borderRadius = isHovered ? '2px' : '50%'
-  const dropdownArrowOpacity = isHovered ? 1.0 : 0.0
 
   const style = {
     cursor,
+    overflow,
     height,
     transition,
     boxShadow,
@@ -49,7 +49,6 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
     }
   }
 
-
   return (
     <div style={style} onClick={mainButtonClicked}
       onMouseEnter={e => setHovered(true)} onMouseLeave={onMouseLeave}>
@@ -66,11 +65,6 @@ export const SexyButton = ({ icon, text, color, popupMenu, onClick, isSelected }
           placement='bottomRight'>
           <div style={{
             float: 'right',
-            transitionProperty: 'opacity',
-            transitionDelay: '300ms',
-            transitionDuration: '1ms',
-            transitionTimingFunction: 'linear',
-            opacity: dropdownArrowOpacity,
             display: isHovered ? 'inline-block' : 'none',
             marginTop: '10px',
             borderLeftStyle: 'solid',
