@@ -13,7 +13,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { Typography, List, Button, Tooltip, Space, Select, Row, Col } from 'antd';
 
-const { Text } = Typography;
+const { Text, Paragraph } = Typography;
 const { Option } = Select
 
 export const RestrictionEditor = (
@@ -39,7 +39,9 @@ export const RestrictionEditor = (
     onRestrictionIdChange(val)
   }
   const setRestrictionSettingName = newVal => {
-    // TODO: naming length min/max
+    if (newVal.length < 3 || newVal.length > 30) {
+      return
+    }
     const newKey = nextSavedViceRestrictionId
     // Setting the name saves the current (CUSTOM), spec as a new standard restriction
     // option and changes the vice to reference the saved setting
@@ -134,13 +136,18 @@ export const RestrictionEditor = (
           </Select>
           {currentRestrictionId === customKey && allowSaving &&
             <div>
-              <Tooltip title="Create as new restriction option. Allows sharing with other vices">
-                <Text editable={{ onChange: setRestrictionSettingName }} />
-              </Tooltip>
+              <Text
+                editable={{
+                  tooltip: "Create as new saved restriction. Allows sharing with other vices",
+                  maxLength: 25,
+                  onChange: setRestrictionSettingName,
+                }} />
             </div>
           }
           {allowSaving && currentRestriction.isUserCreated &&
-            <Button type='link' onClick={onDeleteRestriction}><DeleteOutlined /></Button>}
+            <Tooltip title='Delete'>
+              <Button type='link' onClick={onDeleteRestriction}><DeleteOutlined /></Button>
+            </Tooltip>}
         </Space>}
       <List itemLayout='vertical'
         dataSource={currentRestriction.spec}

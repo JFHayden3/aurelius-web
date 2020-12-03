@@ -4,9 +4,9 @@ import { AuthModal } from '../components/AuthModal'
 import { random } from "lodash";
 const { Title, Text, Paragraph } = Typography;
 
-const growText = "Define your goals, set your routines, draw your boundaries, and examine your short-comings. No matter where you are in life or what kind of changes you want to make, Kaizen Daily will give you the tools you need to delve inwards, uncover your true self, to get out of your own way, and manifest more of your potential. It all comes down to self-directed growth and personal accountability: deep down, YOU know when you are not living up to everything you could be. Learn to unify your intentions and actions and start living your best life today!"
-const oneDayText = "Kaizen is the process of gradually making small changes which add up over time to make a process or organization significantly more efficient. With Kaizen Daily, this philosophy is imbued into a daily journaling tool -- helping you to not just start writing everyday, but to use this writing to break away from bad behaviors, to form new habits, and ultimately to perfect your day."
-const technologyText = "Storage, organization, search, filtering, export, customization, and analysis: with Kaizen Daily you won't just be writing in an ordinary journal, you will be building a personal encyclopedia -- a map of your inner self. Built by journalers for journalers (or would-be journalers): say 'goodbye' to disorganized pages and scattered notebooks and 'hello' to the future."
+const growText = "Define your goals, set your routines, draw your boundaries, and examine your short-comings. No matter where you are in life or what kind of changes you want to make, Rise Write will give you the tools you need to delve inwards, uncover your true self, to get out of your own way, and manifest more of your potential. It all comes down to self-directed growth and personal accountability: deep down, YOU know when you are not living up to everything you could be. Learn to unify your intentions and actions and start living your best life today!"
+const oneDayText = "Start off each day on the right foot with customizable journaling exercises designed to get the words flowing fast and productively. Your daily writing will become the foundation from which you can make other changes in your life such as breaking away from bad behaviors, forming new habits, deepening your interpersonal relationships, or becoming more creative. The person you've always wanted to be is within your reach, it just takes simple daily persistence. Rise Write is built to be your companion in this process."
+const technologyText = "Storage, organization, search, filtering, export, customization, and analysis: with Rise Write you won't just be writing in an ordinary journal, you will be building a personal encyclopedia -- a map of your inner self. Built by journalers for journalers (or would-be journalers): say 'goodbye' to disorganized pages and scattered notebooks and 'hello' to the future."
 
 const quoteCycleOptions = [
   // Jung
@@ -113,7 +113,7 @@ export const LandingPage = () => {
           boxShadow: "0px 0px 10px 0px grey",
         }}
       >
-        <Text style={{ fontSize: "24px" }}>Kaizen Daily</Text>
+        <Text style={{ fontSize: "24px" }}>Rise Write</Text>
         <div style={{ float: "right", marginTop: "5px" }}>
           <Text style={{ fontSize: "10px" }}>Already have an account?</Text>
           <Button
