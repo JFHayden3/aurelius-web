@@ -236,7 +236,7 @@ export const EngagementScheduleEditor = ({ engagementSchedule, onScheduleChange,
       dataSource={engagementSchedule}
       itemLayout='vertical' style={{ width: '100%' }}
       renderItem={sched =>
-        <List.Item>
+        <List.Item style={{paddingTop:'4px', paddingBottom:'4px'}}>
           <SchedComponent
             sched={sched}
             isReadOnly={isReadOnly}

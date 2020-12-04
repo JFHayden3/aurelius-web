@@ -153,7 +153,7 @@ export const RestrictionEditor = (
         dataSource={currentRestriction.spec}
         style={{ width: '100%' }}
         renderItem={specComponent =>
-          <List.Item>
+          <List.Item style={{paddingTop:'4px', paddingBottom:'4px'}}>
             <Row>
               <Col flex={2}>
                 <DowPicker
