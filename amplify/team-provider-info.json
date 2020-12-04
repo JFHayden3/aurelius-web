@@ -1,35 +1,35 @@
 {
-    "dev": {
-        "awscloudformation": {
-            "AuthRoleName": "amplify-aureliusweb-dev-142140-authRole",
-            "UnauthRoleArn": "arn:aws:iam::591584782400:role/amplify-aureliusweb-dev-142140-unauthRole",
-            "AuthRoleArn": "arn:aws:iam::591584782400:role/amplify-aureliusweb-dev-142140-authRole",
-            "Region": "us-east-2",
-            "DeploymentBucketName": "amplify-aureliusweb-dev-142140-deployment",
-            "UnauthRoleName": "amplify-aureliusweb-dev-142140-unauthRole",
-            "StackName": "amplify-aureliusweb-dev-142140",
-            "StackId": "arn:aws:cloudformation:us-east-2:591584782400:stack/amplify-aureliusweb-dev-142140/78e52780-f392-11ea-93df-0a01dcfef60e",
-            "AmplifyAppId": "d3tx9qwwxbk31e"
-        },
-        "categories": {
-            "auth": {
-                "aureliusweba3ee06c7": {
-                    "hostedUIProviderCreds": "[{\"ProviderName\":\"Google\",\"client_id\":\"asdf\",\"client_secret\":\"asdf\"},{\"ProviderName\":\"LoginWithAmazon\",\"client_id\":\"56g8l2jn6lam32o9abuhj0vf5k\",\"client_secret\":\"1vbo48hbt68cq64p1681587reovtded56lc0ptmoet7amjp6eh1\"}]"
-                }
-            },
-            "function": {
-                "aureliusweba3ee06c7CustomMessage": {
-                    "REDIRECTURL": "http://localhost:3000",
-                    "EMAILSUBJECT": "Your account has been created",
-                    "EMAILMESSAGE": "Congratulations and welcome. You can now start your journey."
-                }
-            },
-            "hosting": {
-                "amplifyhosting": {
-                    "appId": "d3tx9qwwxbk31e",
-                    "type": "manual"
-                }
-            }
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-aureliusweb-dev-142140-authRole",
+      "UnauthRoleArn": "arn:aws:iam::591584782400:role/amplify-aureliusweb-dev-142140-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::591584782400:role/amplify-aureliusweb-dev-142140-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-aureliusweb-dev-142140-deployment",
+      "UnauthRoleName": "amplify-aureliusweb-dev-142140-unauthRole",
+      "StackName": "amplify-aureliusweb-dev-142140",
+      "StackId": "arn:aws:cloudformation:us-east-2:591584782400:stack/amplify-aureliusweb-dev-142140/78e52780-f392-11ea-93df-0a01dcfef60e",
+      "AmplifyAppId": "d3tx9qwwxbk31e"
+    },
+    "categories": {
+      "auth": {
+        "aureliusweba3ee06c7": {
+          "hostedUIProviderCreds": "[{\"ProviderName\":\"Google\",\"client_id\":\"asdf\",\"client_secret\":\"asdf\"},{\"ProviderName\":\"LoginWithAmazon\",\"client_id\":\"56g8l2jn6lam32o9abuhj0vf5k\",\"client_secret\":\"1vbo48hbt68cq64p1681587reovtded56lc0ptmoet7amjp6eh1\"}]"
         }
+      },
+      "function": {
+        "aureliusweba3ee06c7CustomMessage": {
+          "REDIRECTURL": "http://localhost:3000",
+          "EMAILSUBJECT": "Your account has been created",
+          "EMAILMESSAGE": "Congratulations and welcome. You can now start your journey."
+        }
+      },
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "d3tx9qwwxbk31e",
+          "type": "manual"
+        }
+      }
     }
+  }
 }

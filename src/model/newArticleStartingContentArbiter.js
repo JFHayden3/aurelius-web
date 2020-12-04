@@ -40,13 +40,17 @@ function getStartingContentForAgenda(today, state) {
     const sprints = challenge.effects.filter(effect => effect.kind === 'SPRINT')
     const fasts = challenge.effects.filter(effect => effect.kind === 'FAST')
     // Turn fasts into restrictions
-    const restrictions = fasts.map(fast => {
-      const restriction = viceRestrictions[fast.restrictionId].restriction
+    const restrictions = [].concat.apply([], fasts.map(fast => {
       const activities = fast.viceRefTags
-      const id = restrictionIdCounter++
-      const optNote = "Restricted due to #" + challenge.refTag
-      return { id, restriction, activities, optNote }
-    })
+      const relevantConditions = viceRestrictions[fast.restrictionId].spec
+        .filter(spec => spec.appliesOn.includes(todayDoW))
+        .map(spec => spec.condition)
+      return relevantConditions.map(cond => {
+        const id = restrictionIdCounter++
+        const optNote = "Restricted due to #" + challenge.refTag
+        return { id, restriction: cond, activities, optNote }
+      })
+    }))
     const tasks = [].concat.apply([], sprints.map(sprint =>
       engagementScheduleToTasks(sprint.virtueRefTag, sprint.engagementSchedule, todayDoW, getNextTaskId)
     ).filter(tasks => tasks.length > 0))
