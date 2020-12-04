@@ -6,7 +6,7 @@ import { JournalEntry } from './JournalEntry'
 import React, { useState } from 'react'
 import {
   Affix,
-  List, Card, Divider,
+  List, Card,
   Button, Spin, Drawer, Space,
   Tooltip
 } from 'antd';
@@ -94,7 +94,6 @@ export const LifeJournal = () => {
               <Card style={{borderRadius:'12px'}}>
                 <JournalEntry entryId={id} />
               </Card>
-              <Divider />
             </List.Item>
           }
         >
