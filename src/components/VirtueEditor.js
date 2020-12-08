@@ -1,7 +1,7 @@
 import React from 'react'
 import { selectVirtueById, updateEntity } from '../model/tagEntitySlice'
 import { useSelector, useDispatch } from 'react-redux'
-import { Typography, List, Row, Col, Space } from 'antd';
+import { Typography, Space } from 'antd';
 import { EngagementScheduleEditor } from './EngagementScheduleEditor'
 import { WrittenResponse, gutter, colSpan, TextItemList } from './ViceVirtueSharedStuff'
 const { Title, Text } = Typography;
@@ -44,25 +44,25 @@ export const VirtueEditor = ({ match }) => {
     )
   }
   return (
-    <div style={{ margin: 16 }}>
-      <Row >
-        <Title level={2}>{virtue.name}</Title>
-      </Row>
-      <Row gutter={gutter}>
-        <Col>
-          <Text strong={true}>Reference Tag</Text>
-        </Col>
-        <Col>
-          <Text code={true}>#{virtue.refTag}</Text>
-        </Col>
-      </Row>
-      <Space style={{ width: '70%' }} direction='vertical'>
+    <Space direction='vertical' size="large"
+      style={{
+        padding: 16, margin: 16,
+        width: '100%',
+        backgroundColor: 'white',
+        borderRadius: '12px'
+      }}>
+      <Title level={2}>{virtue.name}</Title>
+      <Space direction='horizontal' size='small'>
+        <Text strong={true}>Reference Tag</Text>
+        <Text code={true}>#{virtue.refTag}</Text>
+      </Space>
+      <Space style={{ maxWidth: '1000px', minWidth: '520px' }} direction='vertical'>
         <Text strong={true}>Scheduled engagement</Text>
         <EngagementScheduleEditor
           engagementSchedule={virtue.engagementSchedule}
-          onScheduleChange={onEngagementScheduleChange} 
+          onScheduleChange={onEngagementScheduleChange}
           maxSchedTextLength={50}
-          />
+        />
       </Space>
       <WrittenResponse
         text="Description"
@@ -76,18 +76,16 @@ export const VirtueEditor = ({ match }) => {
         entity={virtue}
         fieldName="positiveImpactDescription"
         onValueChange={onTextFieldChange} />
-      <Row gutter={gutter}>
-        <Col span={colSpan}>
-          <Text strong={true}>What are some ways you can make it easier for yourself to engage in this behavior?</Text>
-          <TextItemList
-            values={virtue.engagementTactics}
-            nextId={newTacticId}
-            onAddItem={onAddTacticClick}
-            onRemoveItem={onRemoveTactic}
-            onChangeItem={onTacticTextChange}
-          />
-        </Col>
-      </Row>
-    </div>
+      <Space direction='vertical' style={{ width: '100%' }} >
+        <Text strong={true}>What are some ways you can make it easier for yourself to engage in this behavior?</Text>
+        <TextItemList
+          values={virtue.engagementTactics}
+          nextId={newTacticId}
+          onAddItem={onAddTacticClick}
+          onRemoveItem={onRemoveTactic}
+          onChangeItem={onTacticTextChange}
+        />
+      </Space>
+    </Space>
   )
 }

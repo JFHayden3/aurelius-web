@@ -3,7 +3,7 @@
 // For now, just responsible for facilitating the infinite scroll behavior
 
 import { JournalEntry } from './JournalEntry'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Affix,
   List, Card,
@@ -55,6 +55,9 @@ export const LifeJournal = () => {
   const [exportModalVisible, setExportModalVisible] = useState(false)
   const [filterDrawerVisible, setFilterDrawerVisible] = useState(false)
   const dispatch = useDispatch()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
   const entryIds = useSelector(selectEntryIds)
   const isLoading = useSelector(state => selectEntriesLoading(state))
   const hasMoreUnfetchedEntries = useSelector(state => selectUnfetchedEntriesExist(state))

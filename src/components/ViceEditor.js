@@ -72,10 +72,7 @@ export const ViceEditor = ({ match }) => {
         backgroundColor: 'white',
         borderRadius: '12px'
       }}>
-      <Space direction='horizontal' style={{borderBottomStyle:'solid'}}>
-        <Title level={2}>{vice.name}</Title>
-        <DirtyViceTracker viceId={viceId} />
-      </Space>
+      <Title level={2}>{vice.name}</Title>
       <Space direction='horizontal' size='small'>
         <Text strong={true}>Reference Tag</Text>
         <Text code={true}>#{vice.refTag}</Text>

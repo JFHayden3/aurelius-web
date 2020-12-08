@@ -1,18 +1,16 @@
 import React, { useState } from 'react'
 import { selectChallengeById, updateEntity, selectAllVirtues, selectAllVices } from '../model/tagEntitySlice'
-import { useSelector, useDispatch, useStore } from 'react-redux'
-import { PlusOutlined, EditOutlined } from '@ant-design/icons'
+import { useSelector, useDispatch } from 'react-redux'
+import { PlusOutlined } from '@ant-design/icons'
 import {
-  Typography, List, Divider, Button,
+  Typography, Divider, Button,
   Space, DatePicker, Input,
-  Select, Tooltip, Menu,
+  Select,
   Card,
-  Dropdown
 } from 'antd';
 import { RestrictionEditor } from './RestrictionEditor'
 import { EngagementScheduleEditor } from './EngagementScheduleEditor'
 import { dateAsMoment, momentAsDate } from '../kitchenSink'
-import { isMatch } from 'lodash';
 const { Title, Text } = Typography;
 const { TextArea } = Input
 const { RangePicker } = DatePicker;
@@ -211,7 +209,13 @@ export const ChallengeEditor = ({ match }) => {
   const sprints = challenge.effects.filter(effect => effect.kind === 'SPRINT')
   const fasts = challenge.effects.filter(effect => effect.kind === 'FAST')
   return (
-    <Space direction='vertical' style={{ padding: '16px', width: width }}>
+    <Space direction='vertical' size='large'
+      style={{
+        padding: 16, margin: 16,
+        width: '100%',
+        backgroundColor: 'white',
+        borderRadius: '12px'
+      }}>
       <Title level={2}>{challenge.name}</Title>
       <Space direction='horizontal'>
         <Text strong={true}>Reference tag</Text>
