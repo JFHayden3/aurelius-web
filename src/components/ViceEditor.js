@@ -14,7 +14,7 @@ import { useSelector, useDispatch, useStore } from 'react-redux'
 import { PlusOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons'
 import { RestrictionEditor } from './RestrictionEditor'
 import { DirtyViceTracker } from './DirtyViceTracker'
-import { Typography, Row, Col, Button, Collapse, Space, Spin } from 'antd';
+import { Typography, Button, Collapse, Space, Spin } from 'antd';
 import { WrittenResponse, gutter, colSpan, TextItemList } from './ViceVirtueSharedStuff'
 import { ViceLogEntry } from './ViceLogEntry'
 import { dateAsYyyyMmDd, apiDateToFe, dateAsMoment } from '../kitchenSink'
@@ -65,23 +65,25 @@ export const ViceEditor = ({ match }) => {
     )
   }
   return (
-    <div style={{ margin: 16 }}>
-      <Row >
+    <Space direction='vertical' size="large"
+      style={{
+        padding: 16, margin: 16,
+        width: '100%',
+        backgroundColor: 'white',
+        borderRadius: '12px'
+      }}>
+      <Space direction='horizontal' style={{borderBottomStyle:'solid'}}>
         <Title level={2}>{vice.name}</Title>
         <DirtyViceTracker viceId={viceId} />
-      </Row>
-      <Row gutter={gutter}>
-        <Col>
-          <Text strong={true}>Reference Tag</Text>
-        </Col>
-        <Col>
-          <Text code={true}>#{vice.refTag}</Text>
-        </Col>
-      </Row>
-      <Space style={{ width: '70%' }} direction='vertical'>
+      </Space>
+      <Space direction='horizontal' size='small'>
+        <Text strong={true}>Reference Tag</Text>
+        <Text code={true}>#{vice.refTag}</Text>
+      </Space>
+      <Space style={{ maxWidth: '1000px', minWidth: '500px' }} direction='vertical'>
         <Text strong={true}>Default restrictions</Text>
         <RestrictionEditor
-          style={{backgroundColor:'white'}}
+          style={{ backgroundColor: 'white' }}
           customKeyId={"V" + vice.id}
           currentRestrictionId={vice.defaultEngagementRestriction.kind}
           onRestrictionIdChange={onRestrictionIdSelectionChange}
@@ -107,36 +109,43 @@ export const ViceEditor = ({ match }) => {
         fieldName="seductionDescription"
         onValueChange={onTextFieldChange}
       />
-      <Row gutter={gutter}>
-        <Col span={colSpan}>
-          <Text strong={true}>What are some steps you can take to make it more difficult to engage in this behavior or to divert yourself when you feel a strong urge?</Text>
-          <TextItemList
-            values={vice.mitigationTactics}
-            nextId={nextMitigationTacticId}
-            onAddItem={onAddTacticClick}
-            onRemoveItem={onRemoveTactic}
-            onChangeItem={onTacticTextChange}
-          />
-        </Col>
-      </Row>
-      <Col span={colSpan}>
-        <Space direction='vertical' style={{ width: '100%' }} >
-          <Text strong={true}>Log entries</Text>
-          <ViceLogsPresenter
-            viceRefTag={vice.refTag}
-            nextViceLogId={nextViceLogId} />
-        </Space>
-      </Col>
-    </div>
+      <Space direction='vertical'>
+        <Text strong={true}>What are some steps you can take to make it more difficult to engage in this behavior or to divert yourself when you feel a strong urge?</Text>
+        <TextItemList
+          values={vice.mitigationTactics}
+          nextId={nextMitigationTacticId}
+          onAddItem={onAddTacticClick}
+          onRemoveItem={onRemoveTactic}
+          onChangeItem={onTacticTextChange}
+        />
+      </Space>
+      <Space direction='vertical' style={{ width: '100%' }} >
+        <Text strong={true}>Log entries</Text>
+        <ViceLogsPresenter
+          viceRefTag={vice.refTag}
+          nextViceLogId={nextViceLogId} />
+      </Space>
+    </Space>
   )
 }
 
 const ViceLogsPresenter = ({ nextViceLogId, viceRefTag }) => {
   const [viceLogIds, setViceLogIds] = useState("UNINITIALIZED")
+  const [lastRefTag, setLastRefTag] = useState(viceRefTag)
   const [editingLogId, setEditingLogId] = useState(null)
   const [expandedLogPanelIds, setExpandedLogPanelIds] = useState([])
   const dispatch = useDispatch()
 
+  // Some hackery to give our state the proper scope 
+  function resetAllStateForNewVice() {
+    setViceLogIds('UNINITIALIZED')
+    setEditingLogId(null)
+    setExpandedLogPanelIds([])
+    setLastRefTag(viceRefTag)
+  }
+  if (lastRefTag !== viceRefTag) {
+    resetAllStateForNewVice()
+  }
   // This is fucky ultimately because of a race condition on the database side:
   // We can't just create the new article and then re-run the filter to get the
   // proper set of vice logs as the new entry won't be included (unless we threadsleep).

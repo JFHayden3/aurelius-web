@@ -73,7 +73,7 @@ const App = () => {
       </Affix>
 
       <Layout theme="light" className="site-layout" style={{ marginLeft: '17vw', marginRight: '17vw' }}>
-        <Content>
+        <Content style={{minWidth:"600px"}}>
           <div className="site-layout-background" style={{ minHeight: 360 }}>
             <Switch>
               <Route exact path="/journal" component={LifeJournal} />

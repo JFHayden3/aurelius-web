@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react'
-import { Typography, Row, Col, Input, Modal, Space, List } from 'antd';
+import { Typography, Input, Modal, Space, List } from 'antd';
 
 const { TextArea } = Input
 const { Text } = Typography;
@@ -26,9 +26,9 @@ export const TextItemList = ({ values, nextId, onAddItem, onRemoveItem, onChange
       itemLayout="vertical"
       bordered
       split={true}
-      style={{ backgroundColor: '#fff', borderRadius:'20px' }}
+      style={{ backgroundColor: '#fff', borderRadius: '20px' }}
       renderItem={item =>
-        <List.Item key={item.id} style={{padding:'8px'}}>
+        <List.Item key={item.id} style={{ padding: '8px' }}>
           <Input
             style={{ padding: 0, borderStyle: 'none' }}
             allowClear
@@ -48,15 +48,11 @@ export const WrittenResponse = ({ text, entity, fieldName, minRows = 6, isReadon
     onValueChange({ fieldName, value: e.target.value })
   }
   return (
-    <Row gutter={gutter}>
-      <Col span={colSpan}>
-        <Space direction='vertical' style={{ width: '100%' }}>
-          <Text strong={true}>{text}</Text>
-          {isReadonly && <Text>{entity[fieldName]}</Text>}
-          {!isReadonly && <TextArea autoSize={{ minRows }} defaultValue={entity[fieldName]} onChange={onTextChange} />}
-        </Space>
-      </Col>
-    </Row>
+    <Space direction='vertical' style={{ width: '100%' }}>
+      <Text strong={true}>{text}</Text>
+      {isReadonly && <Text>{entity[fieldName]}</Text>}
+      {!isReadonly && <TextArea autoSize={{ minRows }} defaultValue={entity[fieldName]} onChange={onTextChange} />}
+    </Space>
   )
 }
 
