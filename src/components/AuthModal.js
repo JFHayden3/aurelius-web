@@ -12,9 +12,26 @@ export const AuthModal = ({ initialMode }) => {
   const [newPassword, setNewPassword] = useState('')
   const [resetCode, setResetCode] = useState('')
   const [isDoingThing, setDoingThing] = useState(false)
+  const [authErrorMessage, setAuthErrorMessage] = useState(null)
   const onAsyncResult = r => {
-    console.log('\n\n' + JSON.stringify(r) + '\n\n')
+    switch (r.code) {
+      case 'NotAuthorizedException':
+        setAuthErrorMessage('Incorrect username or password')
+        break;
+      case 'UsernameExistsException':
+        setAuthErrorMessage('A user with that username already exists')
+        break;
+      case 'ExpiredCodeException':
+        setAuthErrorMessage('Invalid code provided, please request a code again')
+        break;
+    }
+    // console.log('\n\n' + JSON.stringify(r) + '\n\n')
     setDoingThing(false)
+  }
+
+  const doChangeMode = (newMode) => {
+    setMode(newMode)
+    setAuthErrorMessage(null)
   }
 
   const signUpClicked = e => {
@@ -25,7 +42,10 @@ export const AuthModal = ({ initialMode }) => {
       attributes: {
         email: email
       }
-    }).then(onAsyncResult, onAsyncResult)
+    }).then((res) => {
+      doChangeMode('SIGN_UP_SUCCESS')
+      onAsyncResult(res)
+    }, onAsyncResult)
   }
   const signInClicked = e => {
     setDoingThing(true)
@@ -33,7 +53,7 @@ export const AuthModal = ({ initialMode }) => {
   }
   const resetPasswordClicked = e => {
     Auth.forgotPassword(username).then(onAsyncResult, onAsyncResult)
-    setMode('RESET_CODE')
+    doChangeMode('RESET_CODE')
   }
   const confirmChangePassword = e => {
     setDoingThing(true)
@@ -42,8 +62,13 @@ export const AuthModal = ({ initialMode }) => {
   const formItemStyle = { marginBottom: '8px' }
   return (
     <div>
+      {mode === 'SIGN_UP_SUCCESS' &&
+        <Space direction='vertical'>
+          <Title level={3}>Account creation link sent</Title>
+          <Text>Please check email to complete creating your new account</Text>
+        </Space>
+      }
       {mode === 'SIGN_UP' &&
-        // TODO: name/email uniqueness checks
         <Form name='signup' layout='vertical'>
           <Title level={3}>Sign up with a new account</Title>
           <Form.Item
@@ -70,12 +95,15 @@ export const AuthModal = ({ initialMode }) => {
               { min: 8, message: 'Password must be at least 8 characters' }]}>
             <Input.Password placeholder='Password' value={password} onChange={e => setPassword(e.target.value)} />
           </Form.Item>
+          {authErrorMessage &&
+            <Text type='danger'>{authErrorMessage}</Text>
+          }
           <Form.Item style={formItemStyle}>
             <Button loading={isDoingThing} block type='primary' htmlType='submit' onClick={signUpClicked}>Sign Up</Button>
           </Form.Item>
           <Space direction='horizontal' size='small'>
             <Text>Already have an account?</Text>
-            <Button type='link' onClick={e => setMode('SIGN_IN')}>Sign in</Button>
+            <Button type='link' onClick={e => doChangeMode('SIGN_IN')}>Sign in</Button>
           </Space>
         </Form>
       }
@@ -99,13 +127,16 @@ export const AuthModal = ({ initialMode }) => {
             ]}>
             <Input.Password placeholder='Password' value={password} onChange={e => setPassword(e.target.value)} />
           </Form.Item>
-          <Button style={{ marginBottom: '8px' }} type='link' onClick={e => setMode('RECOVER')}>Forgot your password?</Button>
+          {authErrorMessage &&
+            <Text type='danger'>{authErrorMessage}</Text>
+          }
+          <Button style={{ marginBottom: '8px' }} type='link' onClick={e => doChangeMode('RECOVER')}>Forgot your password?</Button>
           <Form.Item style={formItemStyle}>
             <Button loading={isDoingThing} block type='primary' htmlType='submit' onClick={signInClicked}>Sign in</Button>
           </Form.Item>
           <Space direction='horizontal'>
             <Text>Need an account?</Text>
-            <Button type='link' onClick={e => setMode('SIGN_UP')}>Sign up</Button>
+            <Button type='link' onClick={e => doChangeMode('SIGN_UP')}>Sign up</Button>
           </Space>
         </Form>
       }
@@ -115,7 +146,7 @@ export const AuthModal = ({ initialMode }) => {
           <Text>Enter your Username below and we will send an email to reset your password</Text>
           <Input placeholder='Username' value={username} onChange={e => setUserName(e.target.value)}></Input>
           <Button loading={isDoingThing} block type='primary' onClick={resetPasswordClicked}>Reset my password</Button>
-          <Button type='link' onClick={e => setMode('RESET_CODE')}>Already have a code? Click here to enter.</Button>
+          <Button type='link' onClick={e => doChangeMode('RESET_CODE')}>Already have a code? Click here to enter.</Button>
         </Space>
       }
       {mode === 'RESET_CODE' &&
@@ -135,7 +166,7 @@ export const AuthModal = ({ initialMode }) => {
             name='code' label='Enter password reset code from email'
             rules={[{ required: true, message: 'Please input your reset code' },
             ]}
-            >
+          >
             <Input placeholder='Reset code' value={resetCode} onChange={e => setResetCode(e.target.value)} />
           </Form.Item>
           <Form.Item
@@ -147,6 +178,9 @@ export const AuthModal = ({ initialMode }) => {
               { min: 8, message: 'Password must be at least 8 characters' }]}>
             <Input.Password placeholder='New password' value={newPassword} onChange={e => setNewPassword(e.target.value)} />
           </Form.Item>
+          {authErrorMessage &&
+            <Text type='danger'>{authErrorMessage}</Text>
+          }
           <Form.Item>
             <Button loading={isDoingThing} block type='primary' htmlType='submit' onClick={confirmChangePassword}>Change password</Button>
           </Form.Item>
